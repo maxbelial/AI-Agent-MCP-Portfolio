@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 治理 - EMS NEO</title>
+  <link rel="stylesheet" href="../assets/ems-v6-common.css">
+  <link rel="stylesheet" href="ai-hub.css?v=20260901c">
+</head>
+
+<body>
+  <header class="header" id="emsHeader"></header>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main">
+    <div class="main-inner">
+      <div class="page-title-bar" style="padding-bottom:0">
+        <h1 class="page-title">AI 治理
+          <span style="font-size:12px;font-weight:400;color:var(--c-text-3)">
+            审批 / 成本用量 / 审计 / 熔断 / 权限 · 价值二「AI 治理可信」的落地页
+          </span>
+        </h1>
+      </div>
+
+            <div class="content">
+<div class="ac-panel active" id="panel-governance">
+
+          <!-- Sub-tab bar：T1 / T2 / T5（T3 熔断 · T4 证据链 · T8 权限 见下方卡片区 · 推翻留痕自动并入 T5 审计 · AI 动作可视化见 NEO Agent Hub）-->
+          <div class="ac-subtabs">
+            <div class="ac-subtab active" data-sub="t1" onclick="acSwitchSubtab('t1')">
+              治理审批 <span class="count" id="t1Count">23</span>
+            </div>
+            <div class="ac-subtab" data-sub="t2" onclick="acSwitchSubtab('t2')">
+              <span class="t-label">T2</span> 成本账单
+            </div>
+            <div class="ac-subtab" data-sub="t5" onclick="acSwitchSubtab('t5')">
+              审计日志 <span class="count" id="t5Count">1,847</span>
+            </div>
+          </div>
+
+          <!-- T1 -->
+          <div class="ac-subpanel active" id="sub-t1">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">待审批 · AI 治理事项
+                  <span class="head-desc" id="t1HeadDesc">共 23 条 · 展示最新 6 条</span>
+                </div>
+                <div style="display:flex;gap:var(--sp-8)">
+                  <button class="btn sm">批量驳回</button>
+                  <button class="btn sm primary" onclick="acBatchApprove()">批量通过</button>
+                </div>
+              </div>
+
+              <div id="t1-approval-list">
+                <!-- 由 JS 渲染，避免大段重复 HTML -->
+              </div>
+            </div>
+          </div>
+
+          <!-- T2 -->
+          <div class="ac-subpanel" id="sub-t2">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">成本与用量分析
+                  <span class="head-desc">平台内部视角：模型调用成本与用量（token）· 场景 × 租户 × 模型 × 用户四维下钻 · 对外计费（credits 单价 · 订阅 · License）见 AI 计费中心</span>
+                </div>
+                <div style="display:flex;gap:var(--sp-8)">
+                  <button class="btn sm ghost" onclick="acExportReport()">↓ 导出报表</button>
+                  <a href="ai-billing.html" class="btn sm ghost">→ AI 计费中心</a>
+                </div>
+              </div>
+
+              <div class="ac-kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: var(--sp-12)">
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>内部模型成本（本月）</span><span class="kpi-tag">COST</span></div>
+                  <div class="kpi-value" style="font-size:22px" id="billTotalCost">¥18,547</div>
+                  <div class="kpi-sub" id="billTotalCostSub">token 口径 · BYOK 调用不产生平台成本（客户直付）</div>
+                </div>
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>总调用量</span><span class="kpi-tag">USAGE</span></div>
+                  <div class="kpi-value" style="font-size:22px" id="billTotalCalls">387,124</div>
+                  <div class="kpi-sub" id="billTotalCallsSub">次 · 场景 × 租户 × 模型 × 用户四维可下钻</div>
+                </div>
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>单次平均成本</span><span class="kpi-tag">AVG</span></div>
+                  <div class="kpi-value" style="font-size:22px" id="billTotalAvg">¥0.048</div>
+                  <div class="kpi-sub">内部成本 ÷ 调用量 · 用于容量规划与成本优化</div>
+                </div>
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>credits 池状态</span><span class="kpi-tag ok">NEAR</span></div>
+                  <div class="kpi-value" style="font-size:22px;color:#B45309">86% 已分配</div>
+                  <div class="kpi-sub">430,000 / 500,000 · 已消耗 265,180（53%）· ≥70% 已告警</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:var(--sp-8);margin-bottom:var(--sp-12)" id="billTenantFilter">
+                <span style="font-size:12px;color:var(--c-text-2)">账单视角</span>
+                <select class="ad-select" style="width:auto" id="billTenantSelect" onchange="renderBillTable(this.value)"></select>
+              </div>
+
+              <table class="ac-data-table">
+                <thead>
+                  <tr>
+                    <th>场景</th>
+                    <th>档位</th>
+                    <th>调用次数</th>
+                    <th>credits 消耗（BYOK=—）</th>
+                    <th>Token 输入</th>
+                    <th>Token 输出</th>
+                    <th>内部成本（¥ · BYOK=—）</th>
+                  </tr>
+                </thead>
+                <tbody id="billBody">
+                </tbody>
+              </table>
+              <div style="padding:var(--sp-12) var(--sp-16);font-size:11px;color:var(--c-text-3);border-top:1px solid var(--c-border-light);line-height:1.7">
+                计量口径（12-ai-pricing-model）：credits 消耗仅统计平台模型池调用（谁调扣谁的）· BYOK 调用（云端 Key/本地模型）不消耗 credits、按 token 消耗量显示 · 平台不产生模型成本。对外计费（credits 单价 · 订阅方案 · AI 功能 License）见 <a href="ai-billing.html" class="ai-audit-link">AI 计费中心 →</a>。
+              </div>
+            </div>
+          </div>
+
+          <!-- T5 -->
+          <div class="ac-subpanel" id="sub-t5">
+            <!-- 视图切换：决策审计 / 调用明细（2026-08-28：补齐调用级日志缺口） -->
+            <div style="display:flex;gap:var(--sp-8);margin-bottom:var(--sp-12)">
+              <button class="btn sm primary" id="auditViewBtn" onclick="switchAuditView('audit')">决策审计</button>
+              <button class="btn sm ghost" id="execLogViewBtn" onclick="switchAuditView('exec')">调用明细 <span class="count" id="execLogCount">1,847</span></button>
+            </div>
+
+            <!-- 视图 A：决策审计（六要素 · 原审计列表） -->
+            <div id="auditViewPanel">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">审计日志 · 全链路追溯
+                  <span class="head-desc">每次调用六要素：身份 · 行为 · 模型 · 消耗 · 决策链 · 内容（脱敏后）· L2/L3 完整审计 · L1 只保 点「详情」下钻</span>
+                </div>
+                <div style="display:flex;gap:var(--sp-8)">
+                  <button class="btn sm" onclick="openMaskConfig()">脱敏策略</button>
+                  <button class="btn sm primary" onclick="acExportReport()">↓ 导出（CSV/PDF/JSON）</button>
+                </div>
+              </div>
+
+              <div class="audit-toolbar">
+                <input type="text" placeholder="搜索：触发人 · 审批人 · 工单号 · 场景 · guardrail 分类..." />
+                <select><option>所有场景</option><option>告警降噪</option><option>根因分析</option><option>转工单派工</option><option>变更审批</option><option>服务请求</option><option>NEO Agent</option><option>意图识别与标签</option><option>知识草稿生成</option><option>台账数据巡检</option><option>维修照片核验</option><option>熔断</option></select>
+                <select><option>今日</option><option>近 7 日</option><option>近 30 日</option></select>
+              </div>
+
+              <div id="t5-audit-list">
+                <!-- 30 条 mock 由 JS 渲染 -->
+              </div>
+            </div>
+
+            <!-- 安全防护统计 + 脱敏 + 保留期 -->
+            <div class="aux-grid" style="margin-top:var(--sp-12)">
+              <div class="ac-card">
+                <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                  <div class="head-title">安全防护 · 规则拦截 <span class="head-desc">前置规则（非智能检测）· log-only / log+block 两档</span></div>
+                </div>
+                <div style="padding:0 var(--sp-16) var(--sp-12)">
+                  <div class="override-reason-row"><span>P1 · Prompt 注入规则拦截（全平台）</span><span class="reason-count"><div class="reason-bar"><span style="width:15%"></span></div><strong>23</strong> <small style="color:var(--c-text-3)">block 23</small></span></div>
+                  <div class="override-reason-row"><span>P2 · 敏感内容规则过滤（对话类 · 16 分类）</span><span class="reason-count"><div class="reason-bar"><span style="width:31%"></span></div><strong>47</strong> <small style="color:var(--c-text-3)">block 12</small></span></div>
+                  <div class="override-reason-row"><span>P3 · 输出白名单校验（写入前拦截）</span><span class="reason-count"><div class="reason-bar"><span style="width:100%"></span></div><strong>156</strong> <small style="color:var(--c-text-3)">block 156</small></span></div>
+                </div>
+                <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3)">block 时返回标准错误提示而非 AI 输出 · 防护延迟可度量（P95 +42ms）· <a href="javascript:void(0)" class="ai-audit-link" onclick="openGuardrailConfig()">配置防护档位 →</a></div>
+              </div>
+
+              <div class="ac-card">
+                <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                  <div class="head-title">PII 脱敏 <span class="head-desc">调用 LLM 前自动剥除</span></div>
+                  <a href="javascript:void(0)" class="ai-audit-link" onclick="openMaskConfig()">配置 →</a>
+                </div>
+                <div style="padding:0 var(--sp-16) var(--sp-12)">
+                  <div class="override-reason-row"><span>手机号</span><span class="reason-count"><div class="reason-bar"><span style="width:100%"></span></div><strong>3,120</strong></span></div>
+                  <div class="override-reason-row"><span>邮箱</span><span class="reason-count"><div class="reason-bar"><span style="width:93%"></span></div><strong>2,890</strong></span></div>
+                  <div class="override-reason-row"><span>IP 地址</span><span class="reason-count"><div class="reason-bar"><span style="width:62%"></span></div><strong>1,932</strong></span></div>
+                  <div class="override-reason-row"><span>账号 / 身份证 / 银行卡</span><span class="reason-count"><div class="reason-bar"><span style="width:32%"></span></div><strong>1,000</strong></span></div>
+                </div>
+              </div>
+
+              <div class="ac-card">
+                <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                  <div class="head-title">日志保留期 · 数据驻留</div>
+                  <a href="javascript:void(0)" class="ai-audit-link" onclick="openRetentionConfig()">调整 →</a>
+                </div>
+                <div style="font-size:12px; color: var(--c-text-2); line-height: 1.8; padding:0 var(--sp-16)">
+                  <div>保留期：<strong>180 天</strong>（默认 · 到期自动归档留痕）</div>
+                  <div>可选：90 / 180 / 365 天（GDPR 数据最小化）</div>
+                  <div>数据驻留：<strong>Regional-only</strong> · 本月 0 次跨区域</div>
+                </div>
+                <div class="aux-metric">
+                  <div><strong>8,942</strong><small>近 30 日脱敏命中</small></div>
+                  <div><strong>0</strong><small>跨区域调用</small></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Gateway 全局开关 -->
+            <div class="ac-card" style="margin-top:var(--sp-12)">
+              <div class="ac-card-head">
+                <div class="head-title">AI Gateway · 全局开关
+                  <span class="head-desc">人工全局暂停/恢复 AI 交易 · 与自动熔断互补（熔断 = 阈值自动 · Gateway = 人工开关）</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--sp-8)">
+                  <span id="gatewayState" style="font-size:12px;color:var(--c-success);font-weight:600">● AI 服务运行中</span>
+                  <button class="btn sm" id="gatewayBtn" onclick="toggleGateway()">暂停 AI 服务</button>
+                </div>
+              </div>
+              <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3);line-height:1.7">
+                暂停期间：全部场景停用（AI 入口返回"AI 服务暂停中"）· 恢复需人工确认 · 暂停/恢复操作记录审计并通知 IT 主管（通知渠道见设置页）。<a href="ai-billing.html" class="ai-audit-link">credits 池耗尽策略 →</a>
+              </div>
+            </div>
+            </div><!-- /auditViewPanel -->
+
+            <!-- 视图 B：调用明细（每次调用级日志 · 2026-08-28 补齐缺口 · 与决策审计区分：本表为技术调用日志，审计为决策链） -->
+            <div id="execViewPanel" style="display:none">
+              <div class="ac-card">
+                <div class="ac-card-head">
+                  <div class="head-title">调用明细 · 每次 Agent 调用
+                    <span class="head-desc">Agent × 模型 × 场景 × 租户 × Token 消耗 × 耗时 · 调用级日志（原始记录）· 决策审计见「决策审计」视图 · 导出含明细</span>
+                  </div>
+                  <div style="display:flex;gap:var(--sp-8)">
+                    <button class="btn sm primary" onclick="acExportReport()">↓ 导出（CSV/JSON）</button>
+                  </div>
+                </div>
+
+                <div class="audit-toolbar">
+                  <input type="text" id="execSearchInput" placeholder="搜索：调用 ID · Agent · 模型 · 场景 · 租户..." oninput="renderExecLogs()" />
+                  <select id="execAgentFilter" onchange="renderExecLogs()"><option value="">全部 Agent</option><option>告警降噪</option><option>根因分析</option><option>工单起草</option><option>NEO Agent</option><option>文本理解</option><option>知识检索</option><option>摘要生成</option><option>风险评估</option><option>数据巡检</option><option>对话助手</option><option>FSM 调度推荐 Agent</option><option>ITSM 事件理解与分配 Agent</option><option>资产巡检</option><option>容量预测</option><option>链路健康</option></select>
+                  <select id="execStatusFilter" onchange="renderExecLogs()"><option value="">全部状态</option><option>成功</option><option>超时</option><option>拦截</option><option>熔断降级</option></select>
+                </div>
+
+                <table class="ac-data-table">
+                  <thead>
+                    <tr>
+                      <th>时间</th><th>调用 ID</th><th>Agent</th><th>场景</th><th>模型</th><th>租户</th><th>Token 入/出</th><th>耗时</th><th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="execLogBody"></tbody>
+                </table>
+                <div style="padding:var(--sp-12) var(--sp-16);font-size:11px;color:var(--c-text-3);border-top:1px solid var(--c-border-light);line-height:1.7">
+                  计量口径：credits 仅平台模型池调用计 · BYOK（云端 Key/本地模型）按 token 计量不计 credits · 调用日志保留期 90 天（可配置）· 每次调用自动写入审计（六要素）· 异常调用（超时/拦截）触发告警
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="aux-grid">
+            <div class="ac-card" id="permMatrixCard">
+              <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                <div class="head-title"><span class="t-label">T8</span> 权限矩阵 <span class="head-desc">角色 × 场景操作</span></div>
+                <a href="javascript:void(0)" class="ai-audit-link" onclick="acOpenPermConfig()">编辑 →</a>
+              </div>
+              <div class="perm-matrix">
+                <span class="cell head">角色</span>
+                <span class="cell head">触发 AI</span>
+                <span class="cell head">确认 L2</span>
+                <span class="cell head">开 L1 自动执行</span>
+                <span class="cell head">推翻 AI 建议</span>
+
+                <span class="cell role">U1 一线</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell no">—</span><span class="cell no">—</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 自动留痕</span>
+                <span class="cell role">U2 专业</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell no">—</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 自动留痕</span>
+                <span class="cell role">U3 中层</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 自动留痕</span>
+                <span class="cell role">U4 领导</span><span class="cell no">—</span><span class="cell no">—</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg>（预算/熔断）</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 审计留痕</span>
+              </div>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                <div class="head-title"><span class="t-label">T3</span> 熔断阈值 <span class="head-desc">双阈值 · 自动降级 L3</span></div>
+                <a href="javascript:void(0)" class="ai-audit-link" onclick="acOpenBudgetConfig()">调整 →</a>
+              </div>
+              <div style="font-size:12px; color: var(--c-text-2); line-height: 1.7">
+                <div><strong>成本双阈值</strong>：预算 80% 告警 · 80% 熔断（降级 L3）</div>
+                <div><strong>错误率</strong>：≥ 10% 熔断（客户可配）</div>
+              </div>
+              <div class="aux-metric">
+                <div><strong style="color:#15803d">正常</strong><small>近 24h 未触发</small></div>
+                <div><strong>3</strong><small>近 90d 熔断次数</small></div>
+              </div>
+            </div>
+
+            
+
+            <div class="ac-card">
+              <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                <div class="head-title"><span class="t-label">T4</span> 证据链 <span class="head-desc">每条 AI 建议可回看依据</span></div>
+                <a href="javascript:void(0)" class="ai-audit-link" onclick="acOpenEvidence()">示例 →</a>
+              </div>
+              <div style="font-size:12px; color: var(--c-text-2); line-height: 1.7">
+                每条 AI 建议 / 决策附带 <strong>数据来源 · 模型 · 输入 · 输出</strong>，点击建议可点开回看"为什么这么判断"（M2 根因分析 · M4 风险评估 · M5 审批建议）。
+              </div>
+              <div class="aux-metric">
+                <div><strong>96.3%</strong><small>证据覆盖占比</small></div>
+                <div><strong>1,240</strong><small>近 7 日可回看建议</small></div>
+              </div>
+            </div>
+
+            
+          </div>
+
+        </div>
+
+        <!-- ═════════════════════ Tab 3 · 平台 ═════════════════════ -->
+              </div>
+    </div>
+  </div>
+  <div class="ac-drawer-overlay" id="auditDrawerOverlay" onclick="if(event.target===this)closeAuditDetail()">
+    <div class="ac-drawer">
+      <div class="ac-drawer-head">
+        <span class="ac-drawer-title" id="auditDrawerTitle">审计详情</span>
+        <button class="ac-drawer-close" onclick="closeAuditDetail()">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ac-drawer-body" id="auditDrawerBody"></div>
+      <div class="ac-drawer-foot">
+        <button class="btn sm" onclick="showToast('本条审计记录已导出 JSON（含证据链 · 记录审计）')">导出 JSON</button>
+        <button class="btn sm primary" onclick="closeAuditDetail()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent 编辑抽屉 -->
+  <div class="ac-modal-overlay" id="maskOverlay" onclick="if(event.target===this)closeAcModal('maskOverlay')">
+    <div class="ac-modal">
+      <div class="ac-modal-head">
+        <span class="ac-modal-title">PII 脱敏策略（调用 LLM 前自动剥除）</span>
+        <button class="ac-modal-close" onclick="closeAcModal('maskOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ac-modal-body">
+        <div class="ad-mcp-grid" style="margin-bottom:var(--sp-12)">
+          <label class="ad-mcp-item"><input type="checkbox" checked> 姓名</label>
+          <label class="ad-mcp-item"><input type="checkbox" checked> 手机号</label>
+          <label class="ad-mcp-item"><input type="checkbox" checked> 邮箱</label>
+          <label class="ad-mcp-item"><input type="checkbox" checked> IP 地址</label>
+          <label class="ad-mcp-item"><input type="checkbox" checked> 账号（AD/SSO）</label>
+          <label class="ad-mcp-item"><input type="checkbox" checked> 身份证号</label>
+          <label class="ad-mcp-item"><input type="checkbox" checked> 银行卡号</label>
+          <label class="ad-mcp-item"><input type="checkbox"> 工位/座位号</label>
+        </div>
+        <div class="ad-field">
+          <div class="ad-field-label">自定义脱敏规则（正则）</div>
+          <input class="ad-input" placeholder="例：\\b(?:4[0-9]{12}|5[1-5][0-9]{14})\\b 卡号模式">
+          <div class="ad-field-hint">租户可增删字段与规则 · 审计日志中的输入/输出均为脱敏后内容 · 命中统计可查</div>
+        </div>
+      </div>
+      <div class="ac-modal-foot">
+        <button class="btn sm" onclick="closeAcModal('maskOverlay')">取消</button>
+        <button class="btn sm primary" onclick="closeAcModal('maskOverlay');showToast('脱敏策略已保存 · 记录审计')">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 防护档位弹窗 -->
+  <div class="ac-modal-overlay" id="guardOverlay" onclick="if(event.target===this)closeAcModal('guardOverlay')">
+    <div class="ac-modal">
+      <div class="ac-modal-head">
+        <span class="ac-modal-title">防护档位配置（三道防护 · log-only / log+block）</span>
+        <button class="ac-modal-close" onclick="closeAcModal('guardOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ac-modal-body">
+        <div class="ad-field">
+          <div class="ad-field-label">P1 · Prompt 注入规则拦截（全平台）</div>
+          <select class="ad-select"><option>log + block（当前）</option><option>log-only</option><option>停用</option></select>
+        </div>
+        <div class="ad-field">
+          <div class="ad-field-label">P2 · 敏感内容过滤（对话类 · 16 安全分类）</div>
+          <select class="ad-select"><option>log + block（当前）</option><option>log-only</option></select>
+          <div class="ad-field-hint">命中敏感主题重定向：转人工 / 建单 · 用户可「继续，不敏感」推翻（留痕）</div>
+        </div>
+        <div class="ad-field">
+          <div class="ad-field-label">P3 · 输出白名单校验（Agent 输出写入业务字段前）</div>
+          <select class="ad-select"><option>log + block（当前 · 非法值拦截并返回可选值）</option><option>log-only</option></select>
+        </div>
+      </div>
+      <div class="ac-modal-foot">
+        <button class="btn sm" onclick="closeAcModal('guardOverlay')">取消</button>
+        <button class="btn sm primary" onclick="closeAcModal('guardOverlay');showToast('防护档位已保存 · 记录审计')">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 保留期弹窗 -->
+  <div class="ac-modal-overlay" id="retentionOverlay" onclick="if(event.target===this)closeAcModal('retentionOverlay')">
+    <div class="ac-modal">
+      <div class="ac-modal-head">
+        <span class="ac-modal-title">日志保留期与数据驻留</span>
+        <button class="ac-modal-close" onclick="closeAcModal('retentionOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ac-modal-body">
+        <div class="ad-field">
+          <div class="ad-field-label">保留期</div>
+          <select class="ad-select"><option>180 天（默认）</option><option>90 天</option><option>365 天</option></select>
+          <div class="ad-field-hint">到期自动归档/删除留痕 · GDPR 数据最小化 · 与租户管理 retention 字段一致</div>
+        </div>
+        <div class="ad-field">
+          <div class="ad-field-label">数据驻留</div>
+          <select class="ad-select"><option>Regional-only（数据仅区域内处理 · 当前）</option><option>Global spillover（跨区域处理 · 需客户 consent）</option></select>
+        </div>
+      </div>
+      <div class="ac-modal-foot">
+        <button class="btn sm" onclick="closeAcModal('retentionOverlay')">取消</button>
+        <button class="btn sm primary" onclick="closeAcModal('retentionOverlay');showToast('保留期已保存 · 变更记录审计')">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MCP 注册弹窗 -->
+  <script>
+    window.EMS_PAGE = {
+      activeMenu: 'ai/ai-governance.html',
+      basePath: '../',
+      breadcrumb: 'AI 治理',
+      aiQuickActions: [
+        { title: '待审批快照', desc: '今日 AI 起草待审批', prompt: '今天有哪些 AI 起草的动作在等我审批？按优先级排序' },
+        { title: '成本预算', desc: '本月 AI 成本执行', prompt: '本月 AI 成本进度如何？是否会超预算？' },
+        { title: '熔断历史', desc: '近 30 日触发情况', prompt: '近 30 日熔断触发了几次？什么原因？' },
+        { title: '合规报告', desc: '生成月度合规报告', prompt: '生成本月 AI 治理合规报告' }
+      ]
+    };
+  </script>
+  <script>
+    function acSwitchSubtab(name) {
+      document.querySelectorAll('.ac-subtab').forEach(function (s) {
+        s.classList.toggle('active', s.getAttribute('data-sub') === name);
+      });
+      document.querySelectorAll('.ac-subpanel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'sub-' + name);
+      });
+      var url = new URL(window.location);
+      url.searchParams.set('sub', name);
+      history.replaceState(null, '', url.toString());
+    }
+
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var s = q.get('sub');
+      if (s && ['t1', 't2', 't5'].indexOf(s) >= 0) {
+        setTimeout(function () { acSwitchSubtab(s); }, 100);
+      }
+    })();
+
+/* ===== T1 待审批列表（仅承载 AI 治理审批）===== */
+    var t1Data = [
+      { kind: 'TIER', kindLabel: '档位变更', tier: 'L1', subject: 'GOV-20260918-001 · 告警转工单调整为 L1 自动执行', meta: '申请人：张伟 · 当前节点：运维负责人 · 09:47', preview: '适用周大福租户 · 仅 P2/P3 · 需命中已审批白名单' },
+      { kind: 'RULE', kindLabel: '白名单', tier: 'L1', subject: 'GOV-20260918-002 · VPN 账号续期自动执行规则', meta: '申请人：王芳 · 当前节点：安全负责人 · 09:38', preview: '限定本部门续期 · 有效期 90 天 · 写操作范围 AD 账号' },
+      { kind: 'AGENT', kindLabel: 'Agent 发布', tier: 'L2', subject: 'GOV-20260918-003 · 工单起草 Agent v2.4 发布', meta: '申请人：陈明 · 当前节点：平台负责人 · 09:25', preview: '准确率回归通过 · 灰度 10% · 可随时回滚 v2.3' },
+      { kind: 'TOOL', kindLabel: '工具权限', tier: 'L1', subject: 'GOV-20260918-004 · kubectl CLI 开放重启 Deployment', meta: '申请人：李华 · 当前节点：安全负责人 · 09:18', preview: '生产集群写权限 · 限定命名空间 · 命令白名单与审计已配置' }
+    ];
+
+    var DISPATCH_AGENT_CONFIG_KEY = 'ems-agent-config-fsm-dispatch-v1';
+    var DISPATCH_TENANT_POLICY_PREFIX = 'ems-agent-policy-fsm-dispatch-v1:';
+    var DISPATCH_TIER_REQUEST_PREFIX = 'ems-agent-tier-request-fsm-dispatch-v1:';
+    (function loadDispatchTierRequest() {
+      try {
+        Object.keys(localStorage).filter(function (key) { return key.indexOf(DISPATCH_TIER_REQUEST_PREFIX) === 0; }).forEach(function (key) {
+          var request = JSON.parse(localStorage.getItem(key) || 'null');
+          if (!request || request.status !== 'pending') return;
+          request.storageKey = key;
+          t1Data.unshift({
+            kind: 'TIER',
+            kindLabel: '档位变更',
+            tier: request.requestedTier,
+            subject: request.id + ' · FSM 调度推荐 Agent 调整为 ' + ({L1:'L1 自动执行',L2:'L2 手工确认',L3:'L3 业务审批'}[request.requestedTier] || request.requestedTier),
+            meta: '申请人：' + request.applicant + ' · 当前节点：高层治理审批',
+            preview: '适用租户：' + request.tenant + ' · 当前 ' + request.currentTier + ' · 审批通过后发布',
+            highLevelOnly: true,
+            dispatchTierRequest: request
+          });
+        });
+      } catch (e) {}
+    })();
+
+    function renderT1() {
+      var list = document.getElementById('t1-approval-list');
+      if (!list) return;
+      var role = (typeof localStorage !== 'undefined' && localStorage.getItem('ems-role-demo')) || 'u1';
+      var visibleRows = t1Data.filter(function (r) {
+        if (r.highLevelOnly) return role === 'u3' || role === 'um';
+        return !r.approvalPage || role === 'u3' || role === 'um';
+      });
+      if (visibleRows.length === 0) {
+        list.innerHTML = '<div style="padding:var(--sp-24) 0;text-align:center;color:var(--c-text-3);font-size:13px">暂无待审批项 · 队列已清空</div>';
+        return;
+      }
+      list.innerHTML = visibleRows.map(function (r) {
+        var actions = r.approvalPage
+          ? '  <a class="btn sm primary" href="' + r.approvalPage + '">进入审批</a>'
+          : '  <button class="btn sm" onclick="acQuickOverride(\'' + r.subject.split(' ')[0] + '\')">驳回</button>' +
+            '  <button class="btn sm primary" onclick="acQuickApprove(\'' + r.subject.split(' ')[0] + '\')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 通过</button>';
+        return [
+          '<div class="ac-approval-row" style="grid-template-columns:80px 1fr 1fr 80px auto auto; padding: var(--sp-12) var(--sp-16); margin-bottom: var(--sp-8)">',
+          '  <span class="approval-kind ' + r.kind.toLowerCase() + '">' + r.kindLabel + '</span>',
+          '  <div class="approval-subject"><strong>' + r.subject + '</strong><small>' + r.meta + '</small></div>',
+          '  <div class="approval-subject" style="min-width:0"><small style="color:var(--c-text-2)">' + r.preview + '</small></div>',
+          '  <span class="tier-badge tier-' + r.tier.toLowerCase() + '">' + r.tier + '</span>',
+          actions,
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    /* ===== 审计 30 条 mock ===== */
+    var t5Data = [
+      { time: '09:14:22', actor: '服务台 王琳', scene: '智能分单', auditType: 'itsmAssign', incidentId: 'INC-2026-0910-088', event: '确认 ITSM 智能分单 <strong>INC-2026-0910-088</strong> · 自动分类 网络/DNS · Gold/P2/重要性高 · assignment-rule evaluate 未命中 · incident assign 写入 网络二线组 / 李明', refs: [{ label: '我的待办', href: '../portal/work-queue.html?item=itassign1' }, { label: '事件详情', href: '../itsm/itsm-incident-detail.html?id=INC-2026-0910-088' }] },
+      { time: '10:36:14', actor: 'FSM 调度推荐 Agent', scene: '智能派工', auditType: 'dispatch', dispatchId: 'FSM-2026-139', event: '生成派工推荐 <strong>FSM-2026-139</strong>（UPS 电池更换）· License 有效 · Skill dispatch-recommend.md · FSM CLI 3/3 成功 · P.Y. Lau 96% / S.Y. Lee 88% / T.K. Yip 79% · 待人工确认', refs: [{ label: '派工待办', href: '../portal/work-queue.html?item=d1' }, { label: 'FSM 工单', href: '../fsm/fsm-dispatch-detail.html?id=FSM-2026-139' }] },
+      { time: '10:35:58', actor: 'License Manager', scene: '智能派工', event: '租户 <strong>达美乐（Domino）</strong> 的 FSM 调度推荐 Agent 授权校验通过 · 有效期至 2027-08-26', refs: [{ label: '授权管理', href: '../org/license-management.html' }] },
+      { time: '17:21:30', actor: '系统', scene: 'M7', event: '工单 <strong>INC-20260828-021</strong> 意图识别回填（故障分类=网络 · 业务影响=核心交易 · 诉求类型=报障）· 人工可改', refs: [{ label: '工单', href: '../itsm/itsm-incident-detail.html' }] },
+      { time: '17:05:12', actor: '李总监', scene: 'M9', event: '审核通过知识草稿 <strong>KB-20260828-004</strong>（由 INC-20260812-007 关闭自动生成）· 已入库', refs: [{ label: '知识库', href: '../itsm/itsm-incidents.html' }] },
+      { time: '16:58:44', actor: '系统', scene: 'M12', event: '台账巡检检出 5 条脏数据（重复资产 AST-2026-0144 · 备注错乱 3 条 · 归属缺失 1 条）· 整改建议已回填', refs: [{ label: '台账', href: '../itam/itam-asset-ledger.html' }] },
+      { time: '16:50:20', actor: '系统', scene: 'M19', event: '完工照片核验通过 <strong>FSM-2026-144</strong>（App-Server-02 内存更换 · 合规 92%）· 自动归档', refs: [{ label: '派工', href: '../fsm/fsm-dispatch-detail.html' }] },
+      { time: '16:42:10', actor: '张伟', scene: 'M3', event: '确认派工 <strong>FSM-2026-143</strong>（App-Server-03 预防性硬件检查）· L2 · 采纳 AI 推荐赵刚', refs: [{ label: '派工', href: '../fsm/fsm-dispatch-detail.html?id=FSM-2026-143' }] },
+      { time: '16:25:00', actor: '系统', scene: 'L04', event: '容量预测触发 · AI 起草扩容工单（DB-Master-02 存储 87% · 预测 3 天耗尽）· 待值班经理确认', refs: [{ label: '我的待办', href: '../portal/work-queue.html' }] },
+      { time: '16:05:00', actor: '系统', scene: 'M1', event: '跨境链路告警升级 P2（GBA-SZ ↔ GBA-GZ MPLS 丢包 2.4%）· 关联线路资产 <strong>AST-2026-0011</strong>（中国移动国际 DIA）', refs: [{ label: 'NPM', href: '../itom/npm-overview.html' }, { label: '资产', href: '../itam/itam-asset-detail.html?id=AST-2026-0011' }] },
+      { time: '15:00:00', actor: '系统', scene: 'M3', event: '工单 <strong>INC-20260813-003</strong> 分派张伟（基础架构组）· SLA 4h 计时', refs: [{ label: '工单', href: '../itsm/itsm-incident-detail.html?id=INC-20260813-003' }] },
+      { time: '14:53:00', actor: '张伟', scene: 'M3', event: '确认创建工单 <strong>INC-20260813-003</strong>（Web-Server-01 CPU 95%）· L2 · 采纳 AI 建议 100% · 通知已发送', refs: [{ label: '告警', href: '../itom/alert-detail.html?alert=cpu-95' }, { label: '工单', href: '../itsm/itsm-incident-detail.html?id=INC-20260813-003' }] },
+      { time: '10:12:00', actor: '系统', scene: 'M2', event: 'AI 生成修复建议（INC-20260813-003）· Top1 置信度 86% · 相似案例 INC-20260715-003', refs: [{ label: '告警', href: '../itom/alert-detail.html?alert=cpu-95' }] },
+      { time: '09:45:00', actor: '张明', scene: 'M3', event: 'AI 起草工单 <strong>INC-20260813-003</strong>（来源：告警 cpu-95）· 进入确认队列', refs: [{ label: '告警', href: '../itom/alert-detail.html?alert=cpu-95' }] },
+      { time: '09:38:14', actor: '王芳', scene: 'M4', event: '提交变更 <strong>CHG-20260813-001</strong> · AI 风险评估 45% 中等 · 待审批', refs: [{ label: '变更单', href: '../itsm/change-detail.html' }] },
+      { time: '09:32:07', actor: '系统', scene: 'M5', event: 'L1 自动执行通过 <strong>SR-20260813-001</strong>（VPN 续期）· 已创建 AD 账号 · 已通知王芳', refs: [{ label: '请求', href: '../itsm/service-request.html' }] },
+      { time: '09:25:14', actor: '张伟', scene: 'M3', event: '确认执行 AI 起草工单 <strong>INC-20260813-002</strong>（DB-Master-02 连接数超限）· L2 · 编辑处理人后确认', refs: [{ label: '工单', href: '../itsm/itsm-incident-detail.html?id=INC-20260813-002' }] },
+      { time: '09:18:33', actor: '待审批', scene: 'M5', event: '提交服务请求 <strong>SR-20260813-002</strong>（GitHub 权限）· AI 起草说明 · 待人工审批', refs: [{ label: '请求', href: '../itsm/service-request.html' }] },
+      { time: '09:15:33', actor: '李总监', scene: 'M4', event: 'Override 变更 <strong>CHG-20260812-010</strong>（AI 建议批准 → 人工驳回）· 原因："窗口与业务高峰冲突"', refs: [] },
+      { time: '09:01:05', actor: '系统', scene: 'M1', event: '降噪后有效告警入队 · cpu-95 事件组（12 条原始告警聚合）· 今日降噪率 89.7%', refs: [{ label: '降噪', href: '../itom/alert-noise-reduction.html' }] },
+      { time: '08:52:41', actor: '系统', scene: 'M1', event: 'AI 降噪聚合 63 条 OSPF 告警为 1 组事件 · 归属 GBA-SZ-Core-SW01 · 匹配规则 "跨站拓扑关联聚合"', refs: [{ label: '降噪', href: '../itom/alert-noise-reduction.html' }] },
+      { time: '08:47:12', actor: '熔断守护', scene: 'T3', event: '每小时预算检查 · 成本 17% · 错误率 0.3% · 状态正常 · 未触发降级', refs: [{ label: '熔断配置', href: 'javascript:acOpenBudgetConfig()' }] },
+      { time: '08:34:08', actor: '张伟', scene: 'M3', event: 'Override 工单 <strong>INC-20260812-003</strong>（AI 派 DB 组 → 改派应用组）· 原因："AI 派错"', refs: [] },
+      { time: '08:12:44', actor: '王芳', scene: 'M4', event: '批准变更 <strong>CHG-20260812-009</strong>（MySQL 8.0 升级）· L2 · 采纳 AI 建议', refs: [{ label: '变更', href: '../itsm/change-detail.html' }] },
+      { time: '08:03:19', actor: '系统', scene: 'M2', event: 'NEO Agent 提问 "今天有什么值得关注的告警" · Skills 触发 (根因分析 x1)', refs: [] },
+      { time: '07:52:33', actor: '张伟', scene: 'M3', event: '批量确认 3 个 L2 · 类型均为转工单派工 · 全部采纳 AI 建议', refs: [] },
+      { time: '07:41:08', actor: '值班切换', scene: 'M6', event: 'NEO Agent 生成夜班交接单 · 涵盖未闭工单 · L3 业务审批', refs: [] },
+      { time: '昨 22:57', actor: '陈明', scene: 'M5', event: '人工复核请求 <strong>SR-20260812-008</strong>（跨部门权限）· 原因："需董事会审批"', refs: [] },
+      { time: '昨 22:12', actor: '系统', scene: 'M1', event: 'AI 建议新降噪规则 "Nexus BGP + 5min 去重"（隐藏 1,024 条噪声）· 待值班经理审批', refs: [{ label: '待审批', href: 'javascript:acSwitchSubtab(\'t1\')' }] },
+      { time: '昨 21:03', actor: '张伟', scene: 'M3', event: 'Override 工单 <strong>INC-20260812-002</strong> · 关联 CI 修正（AI 关联 Web-01 → Web-03）', refs: [] },
+      { time: '昨 20:47', actor: '熔断守护', scene: 'T3', event: '成本预算检查通过 · 全日累计 ¥6,412 · 82% 预算 · 未触发', refs: [] },
+      { time: '昨 19:32', actor: '系统', scene: 'M5', event: 'L1 白名单批量通过 12 条 VPN 续期请求 · 全部本部门 · 合规通过', refs: [] },
+      { time: '昨 18:24', actor: '王芳', scene: 'M4', event: '驳回变更 <strong>CHG-20260812-007</strong> · 原因："回滚计划不清晰"', refs: [] },
+      { time: '昨 17:38', actor: '张伟', scene: 'M3', event: '确认创建工单 <strong>INC-20260812-001</strong> · L2 · 采纳 AI 建议', refs: [] },
+      { time: '昨 16:12', actor: '李总监', scene: 'T8', event: '权限矩阵变更 · U3 中层新增 "开 L1 白名单" 权限 · 审计留痕', refs: [] },
+      { time: '昨 15:22', actor: '系统', scene: 'M2', event: 'Agent 健康检查 · 根因分析 Agent 恢复正常（P95 延时 2.1s → 1.2s）', refs: [] },
+      { time: '昨 14:03', actor: '张伟', scene: 'M6', event: 'NEO Agent 提问 "工程师 K.H. Wong 现在在哪" · MCP CMDB 调用 · L3', refs: [] },
+      { time: '昨 12:47', actor: '系统', scene: 'M1', event: 'AI 降噪规则应用 · 抑制 F5 Pool Down 抖动 412 条', refs: [] },
+      { time: '昨 11:32', actor: '王芳', scene: 'M4', event: '批准变更 · CMDB 影响面自动更新 42 条 CI 关系', refs: [] },
+      { time: '昨 10:14', actor: '张伟', scene: 'M3', event: '放行工单 · 派工至 FSM 现场 · 工程师赵刚 45min ETA', refs: [] },
+      { time: '昨 09:03', actor: '陈明', scene: 'M5', event: '批准 GitHub 权限申请 · L2 · 采纳 AI 建议 · 已同步 SSO', refs: [] },
+      { time: '昨 08:47', actor: '熔断守护', scene: 'T3', event: '日预算重置 · 前日累计 ¥847 · 无触发', refs: [] },
+      { time: '前日 22:00', actor: '系统', scene: 'M6', event: 'NEO Agent 生成每日运维简报 · U4 已阅 · L1', refs: [] },
+      { time: '前日 20:15', actor: '张伟', scene: 'M3', event: '批量确认 5 个 L2 转单 · 全部 P2/P3 告警 · 全部直接使用', refs: [] }
+    ];
+    try {
+      Object.keys(localStorage).filter(function (key) { return key.indexOf('ems-fsm-dispatch-state-') === 0 && key.slice(-12) === 'FSM-2026-139'; }).forEach(function (key) {
+        var dispatchState = JSON.parse(localStorage.getItem(key) || 'null');
+        if (!dispatchState || dispatchState.status !== '待认领') return;
+        var tenant = key.slice('ems-fsm-dispatch-state-'.length, -13);
+        var isAutoDispatch = dispatchState.source === 'ai-auto';
+        t5Data.unshift({ time:'最近', actor:isAutoDispatch ? 'FSM 调度推荐 Agent' : '调度员 王琳', scene:'智能派工', auditType:'dispatch', dispatchId:'FSM-2026-139', event:(isAutoDispatch ? 'L1 自动执行派单 ' : '确认 AI 派工推荐并完成派单 ')+'<strong>FSM-2026-139</strong> · 租户 '+tenant+' · '+String(dispatchState.candidate||'候选工程师').replace(/ \/ /g,'、')+' · 工单进入待认领', refs:[{label:'派工待办',href:'../portal/work-queue.html?item=d1'},{label:'FSM 工单',href:'../fsm/fsm-dispatch-detail.html?id=FSM-2026-139'}] });
+      });
+    } catch (e) {}
+    try {
+      Object.keys(localStorage).filter(function (key) { return key.indexOf('ems-itsm-ai-assignment-') === 0; }).forEach(function (key) {
+        var state = JSON.parse(localStorage.getItem(key) || 'null');
+        if (!state || state.source !== 'ai-l2-confirmed') return;
+        var incidentId = state.incidentId || key.slice('ems-itsm-ai-assignment-'.length);
+        t5Data.unshift({ time:'最近', actor:'服务台 王琳', scene:'智能分单', auditType:'itsmAssign', incidentId:incidentId, event:'确认 ITSM 智能分单 <strong>' + incidentId + '</strong> · 自动分类 网络/DNS · L2 当前用户权限 · incident assign 写入 ' + state.group + ' / ' + state.user, refs:[{label:'我的待办',href:'../portal/work-queue.html?item=itassign1'},{label:'事件详情',href:'../itsm/itsm-incident-detail.html?id=' + incidentId}] });
+      });
+    } catch (e) {}
+
+    /* ═══════════ T5 视图切换：决策审计 / 调用明细（2026-08-28 补齐调用级日志） ═══════════ */
+    var EXEC_LOG_DATA = [
+      { t: '09:14:20', id: 'CL-20260924-0088', agent: 'ITSM 事件理解与分配 Agent', scene: '智能分单', model: 'DeepSeek V4 Pro', tenant: '达美乐', tin: '2.9K', tout: '0.8K', ms: '684', st: '成功' },
+      { t: '10:36:14', id: 'CL-20260922-0101', agent: 'FSM 调度推荐 Agent', scene: '智能派工', model: 'DeepSeek V4 Pro', tenant: '达美乐', tin: '3.8K', tout: '1.2K', ms: '1,306', st: '成功' },
+      { t: '17:21:30', id: 'CL-20260828-0184', agent: 'A1 文本理解', scene: '意图识别与标签', model: 'DeepSeek V4 Pro', tenant: '周大福', tin: '2.1K', tout: '0.4K', ms: '312', st: '成功' },
+      { t: '17:20:55', id: 'CL-20260828-0183', agent: 'A2 知识检索', scene: '知识推荐（RAG）', model: 'DeepSeek V4 Pro', tenant: '周大福', tin: '8.4K', tout: '1.2K', ms: '486', st: '成功' },
+      { t: '17:18:02', id: 'CL-20260828-0182', agent: '告警降噪', scene: '告警降噪聚类', model: 'DeepSeek V4 Pro', tenant: '达美乐', tin: '6.8K', tout: '0.2K', ms: '98', st: '成功' },
+      { t: '17:15:44', id: 'CL-20260828-0181', agent: 'A4 风险评估', scene: '变更风险评估', model: 'Opus 4.7', tenant: '广发证券', tin: '12.6K', tout: '3.1K', ms: '1,204', st: '成功' },
+      { t: '17:12:19', id: 'CL-20260828-0180', agent: 'NEO Agent', scene: '全局对话', model: 'ChatGPT 5.5', tenant: '周大福', tin: '1.8K', tout: '0.9K', ms: '842', st: '成功' },
+      { t: '17:08:36', id: 'CL-20260828-0179', agent: 'A5 数据巡检', scene: '台账脏数据巡检', model: 'DeepSeek V4 Pro', tenant: '周大福', tin: '14.2K', tout: '0.6K', ms: '1,568', st: '成功' },
+      { t: '17:05:12', id: 'CL-20260828-0178', agent: 'A3 摘要生成', scene: '知识草稿生成', model: 'DeepSeek V4 Pro', tenant: '美心MX', tin: '22.5K', tout: '4.8K', ms: '2,103', st: '成功' },
+      { t: '16:58:44', id: 'CL-20260828-0177', agent: 'A5 数据巡检', scene: '台账脏数据巡检', model: 'DeepSeek V4 Pro', tenant: '广发证券', tin: '11.9K', tout: '0.5K', ms: '1,321', st: '成功' },
+      { t: '16:52:30', id: 'CL-20260828-0176', agent: 'A2 知识检索', scene: '维修照片核验', model: 'Gemini 2.5 Ultra', tenant: '达美乐', tin: '5.2K', tout: '0.3K', ms: '2,847', st: '成功' },
+      { t: '16:50:20', id: 'CL-20260828-0175', agent: 'A2 知识检索', scene: '维修照片核验', model: 'Gemini 2.5 Ultra', tenant: '达美乐', tin: '4.8K', tout: '0.3K', ms: '2,915', st: '成功' },
+      { t: '16:45:03', id: 'CL-20260828-0174', agent: 'A6 对话助手', scene: '外勤语音助手', model: 'DeepSeek V4 Pro', tenant: '达美乐', tin: '1.2K', tout: '0.8K', ms: '1,762', st: '超时' },
+      { t: '16:42:10', id: 'CL-20260828-0173', agent: 'A7 调度推荐', scene: '智能派工', model: 'DeepSeek V4 Pro', tenant: '周大福', tin: '3.4K', tout: '1.1K', ms: '654', st: '成功' },
+      { t: '16:38:27', id: 'CL-20260828-0172', agent: 'A1 文本理解', scene: '服务请求 AI 审批', model: 'DeepSeek V4 Pro', tenant: '达美乐', tin: '1.9K', tout: '0.4K', ms: '276', st: '拦截' },
+      { t: '16:35:51', id: 'CL-20260828-0171', agent: '根因分析', scene: '根因分析 + 证据链', model: 'ChatGPT 5.5', tenant: '广发证券', tin: '18.7K', tout: '5.2K', ms: '3,214', st: '熔断降级' },
+      { t: '16:30:14', id: 'CL-20260828-0170', agent: '工单起草', scene: '告警转工单', model: 'DeepSeek V4 Pro', tenant: '周大福', tin: '7.6K', tout: '1.8K', ms: '938', st: '成功' }
+    ];
+    function switchAuditView(mode) {
+      var audit = document.getElementById('auditViewPanel');
+      var exec = document.getElementById('execViewPanel');
+      var bAudit = document.getElementById('auditViewBtn');
+      var bExec = document.getElementById('execLogViewBtn');
+      if (mode === 'exec') {
+        exec.style.display = 'block'; audit.style.display = 'none';
+        bAudit.className = 'btn sm ghost'; bExec.className = 'btn sm primary';
+        renderExecLogs();
+      } else {
+        exec.style.display = 'none'; audit.style.display = 'block';
+        bExec.className = 'btn sm ghost'; bAudit.className = 'btn sm primary';
+      }
+    }
+    function renderExecLogs() {
+      var body = document.getElementById('execLogBody');
+      if (!body) return;
+      var q = (document.getElementById('execSearchInput') || {}).value || '';
+      var ag = (document.getElementById('execAgentFilter') || {}).value || '';
+      var st = (document.getElementById('execStatusFilter') || {}).value || '';
+      var rows = EXEC_LOG_DATA.filter(function (r) {
+        return (!q || (r.id + r.agent + r.scene + r.tenant + r.model).indexOf(q) >= 0)
+          && (!ag || r.agent === ag)
+          && (!st || r.st === st);
+      });
+      var stCls = { '成功': 'ok', '超时': 'warn', '拦截': 'danger', '熔断降级': 'warn' };
+      body.innerHTML = rows.map(function (r) {
+        return '<tr><td style="white-space:nowrap">' + r.t + '</td><td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">' + r.id + '</code></td>'
+          + '<td><strong style="color:var(--c-text-1)">' + r.agent + '</strong></td><td>' + r.scene + '</td><td>' + r.model + '</td><td>' + r.tenant + '</td>'
+          + '<td>' + r.tin + ' / ' + r.tout + '</td><td>' + r.ms + ' ms</td>'
+          + '<td><span class="kpi-status ' + (stCls[r.st] || '') + '">' + r.st + '</span></td></tr>';
+      }).join('');
+      var cnt = document.getElementById('execLogCount');
+      if (cnt) cnt.textContent = rows.length.toLocaleString();
+    }
+
+    function renderT5() {
+      var list = document.getElementById('t5-audit-list');
+      if (!list) return;
+      list.innerHTML = t5Data.map(function (r, i) {
+        var refsHtml = r.refs.length
+          ? '<div class="audit-refs">' + r.refs.map(function (rr) { return '<a href="' + rr.href + '">' + rr.label + '</a>'; }).join('') + '</div>'
+          : '<div class="audit-refs"><span style="color:var(--c-text-3)">—</span></div>';
+        return [
+          '<div class="audit-row">',
+          '  <span class="audit-time">' + r.time + '</span>',
+          '  <span class="audit-actor">' + r.actor + '</span>',
+          '  <span class="audit-event">' + r.event + ' <a href="javascript:void(0)" class="ai-audit-link" style="font-weight:400" onclick="openAuditDetail(' + i + ')">详情</a></span>',
+          refsHtml,
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    renderT1(); renderT5();
+
+    /* URL 参数支持：?sub=t5&view=exec（外部入口直达调用明细 · 如 AI 平台 MCP 工具页「调用明细」） */
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var sub = q.get('sub');
+      var view = q.get('view');
+      if (sub === 't5') {
+        acSwitchSubtab('t5');
+        if (view === 'exec') switchAuditView('exec');
+        if (q.get('audit') === 'dispatch') {
+          setTimeout(function () { openDispatchAudit(q.get('dispatchId') || 'DSP-20260813-002'); }, 120);
+        }
+        if (q.get('audit') === 'itsmAssign') {
+          setTimeout(function () { openItsmAssignmentAudit(q.get('incidentId') || 'INC-2026-0910-088'); }, 120);
+        }
+      }
+    })();
+
+    /* ===== T2 成本账单下钻：场景 → 租户 → 单次调用 ===== */
+    var BILL_DRILL = {
+      m1: { name: '告警降噪聚类', tier: 'L3', rows: [
+        { tenant: '周大福', model: 'DeepSeek V4 Pro', calls: '52,300', credits: '34,870', cost: '¥1,620', tin: '104M', tout: '5M', bill: '¥3,600' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '38,900', credits: '—', cost: '—', tin: '78M', tout: '4M', bill: '—' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '21,400', credits: '14,270', cost: '¥1,430', tin: '43M', tout: '2M', bill: '¥2,060' },
+        { tenant: '美心MX', model: 'Qwen3 235B', calls: '11,400', credits: '7,560', cost: '¥822', tin: '23M', tout: '1M', bill: '¥1,227' }
+      ] },
+      m2: { name: '根因分析', tier: 'L1', rows: [
+        { tenant: '周大福', model: 'ChatGPT 5.5', calls: '41,200', credits: '20,600', cost: '¥2,340', tin: '206M', tout: '41M', bill: '¥1,450' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '28,400', credits: '—', cost: '—', tin: '142M', tout: '28M', bill: '—' },
+        { tenant: '广发证券', model: 'Opus 4.7', calls: '15,800', credits: '7,900', cost: '¥1,860', tin: '79M', tout: '16M', bill: '¥1,120' },
+        { tenant: '美心MX', model: 'DeepSeek V4 Pro', calls: '7,400', credits: '3,370', cost: '¥924', tin: '37M', tout: '8M', bill: '¥695' }
+      ] },
+      m3: { name: '转工单派工', tier: 'L2', rows: [
+        { tenant: '周大福', model: 'DeepSeek V4 Pro', calls: '30,100', credits: '22,570', cost: '¥1,270', tin: '90M', tout: '12M', bill: '¥2,260' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '20,800', credits: '—', cost: '—', tin: '62M', tout: '8M', bill: '—' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '12,600', credits: '9,450', cost: '¥1,010', tin: '38M', tout: '5M', bill: '¥2,120' },
+        { tenant: '美心MX', model: 'DeepSeek V4 Pro', calls: '6,200', credits: '5,800', cost: '¥638', tin: '19M', tout: '3M', bill: '¥1,406' }
+      ] },
+      m4: { name: '变更审批', tier: 'L2', rows: [
+        { tenant: '周大福', model: 'Opus 4.7', calls: '14,800', credits: '7,400', cost: '¥1,180', tin: '74M', tout: '15M', bill: '¥540' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '9,600', credits: '4,800', cost: '¥490', tin: '48M', tout: '10M', bill: '¥180' },
+        { tenant: '美心MX', model: 'BYOK（token 计量）', calls: '6,600', credits: '—', cost: '—', tin: '33M', tout: '6M', bill: '—' }
+      ] },
+      m5: { name: '服务请求', tier: 'L2', rows: [
+        { tenant: '周大福', model: 'DeepSeek V4 Pro', calls: '12,400', credits: '2,480', cost: '¥510', tin: '25M', tout: '4M', bill: '¥248' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '6,300', credits: '—', cost: '—', tin: '13M', tout: '2M', bill: '—' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '4,500', credits: '620', cost: '¥438', tin: '8M', tout: '1M', bill: '¥188' }
+      ] },
+      m6: { name: 'NEO Agent', tier: 'L1', rows: [
+        { tenant: '周大福', model: '多模型可切', calls: '20,800', credits: '28,400', cost: '¥1,720', tin: '104M', tout: '17M', bill: '¥2,840' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '15,400', credits: '—', cost: '—', tin: '77M', tout: '13M', bill: '—' },
+        { tenant: '广发证券', model: '多模型可切', calls: '7,200', credits: '10,300', cost: '¥1,380', tin: '36M', tout: '6M', bill: '¥1,030' },
+        { tenant: '美心MX', model: '多模型可切', calls: '3,024', credits: '4,368', cost: '¥713', tin: '15M', tout: '3M', bill: '¥1,581' }
+      ] },
+      m7: { name: 'ITSM 理解与摘要（A1/A3）', tier: 'L1/L2', rows: [
+        { tenant: '周大福', model: 'DeepSeek V4 Pro', calls: '9,300', credits: '4,650', cost: '¥860', tin: '28M', tout: '5M', bill: '¥930' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '6,100', credits: '—', cost: '—', tin: '18M', tout: '3M', bill: '—' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '4,800', credits: '2,400', cost: '¥610', tin: '14M', tout: '2M', bill: '¥480' }
+      ] },
+      m8: { name: 'ITAM 数据治理（A5）', tier: 'L1', rows: [
+        { tenant: '周大福', model: 'DeepSeek V4 Pro', calls: '1,860', credits: '620', cost: '¥86', tin: '5M', tout: '1M', bill: '¥124' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '1,240', credits: '410', cost: '¥64', tin: '3M', tout: '0.4M', bill: '¥82' },
+        { tenant: '美心MX', model: 'DeepSeek V4 Pro', calls: '720', credits: '240', cost: '¥38', tin: '2M', tout: '0.3M', bill: '¥48' }
+      ] },
+      m9: { name: 'FSM 外勤智能（A2/A1/A6）', tier: 'L1/L2', rows: [
+        { tenant: '周大福', model: 'DeepSeek V4 Pro', calls: '3,120', credits: '1,560', cost: '¥210', tin: '9M', tout: '2M', bill: '¥312' },
+        { tenant: '达美乐', model: 'BYOK（token 计量）', calls: '2,040', credits: '—', cost: '—', tin: '6M', tout: '1M', bill: '—' },
+        { tenant: '广发证券', model: 'DeepSeek V4 Pro', calls: '1,480', credits: '740', cost: '¥132', tin: '4M', tout: '0.8M', bill: '¥148' }
+      ] }
+    };
+    function openBillDrill(sceneId) {
+      var d = BILL_DRILL[sceneId];
+      if (!d) return;
+      var rowsHtml = d.rows.map(function (r) {
+        return '<tr><td><strong>' + r.tenant + '</strong></td><td>' + r.model + '</td><td>' + r.calls + '</td><td>' + r.credits + '</td><td>' + r.cost + '</td></tr>';
+      }).join('');
+      showActionModal({
+        title: '账单下钻 · ' + d.name + '（' + d.tier + '）',
+        iconKind: 'info',
+        sections: [
+          {
+            heading: '按租户 × 模型 下钻',
+            html: '<table class="ac-data-table" style="margin:0"><thead><tr><th>租户</th><th>模型</th><th>调用次数</th><th>credits</th><th>内部成本</th></tr></thead><tbody>' + rowsHtml + '</tbody></table>' +
+              '<div style="font-size:11px;color:var(--c-text-3);margin-top:var(--sp-8);line-height:1.7">更细粒度：继续下钻到「单次调用」见 <a href="ai-billing.html" style="color:var(--c-primary)">AI 计费中心 →</a>（每次调用六要素：用户 × 租户 × 场景 × 模型 × Token × 成本）</div>'
+          }
+        ],
+        actions: [
+          { label: '关闭', kind: '' },
+          { label: '打开 AI 计费中心', kind: 'primary', onClick: function () { window.location.href = 'ai-billing.html'; } }
+        ]
+      });
+    }
+
+    /* ===== T2 账单：MSP 看全租户 / 最终租户只看自己 ===== */
+    var TENANT_NAMES = ['周大福', '达美乐', '广发证券', '美心MX'];
+    function _isMsp() {
+      var role = (typeof localStorage !== 'undefined' && localStorage.getItem('ems-role-demo')) || 'u1';
+      return role === 'pm' || role === 'bm';
+    }
+    function _currentTenant() {
+      var t = (typeof localStorage !== 'undefined' && localStorage.getItem('ems-tenant-demo')) || '';
+      return TENANT_NAMES.indexOf(t) >= 0 ? t : TENANT_NAMES[0];
+    }
+    function _num(s) { return parseInt(String(s).replace(/[^\d]/g, ''), 10) || 0; }
+    function _fmt(n) { return n.toLocaleString('en-US'); }
+    function renderBillTable(tenantName) {
+      var isMsp = _isMsp();
+      var viewAll = tenantName === '__all__' || !tenantName;
+      var tenant = tenantName && tenantName !== '__all__' ? tenantName : null;
+
+      // 租户筛选下拉：MSP 看全部+可切单租户；最终租户锁定自己
+      var sel = document.getElementById('billTenantSelect');
+      if (sel) {
+        var opts = [];
+        if (isMsp) {
+          opts.push('<option value="__all__"' + (viewAll ? ' selected' : '') + '>全部租户（汇总）</option>');
+          TENANT_NAMES.forEach(function (t) { opts.push('<option value="' + t + '"' + (tenant === t ? ' selected' : '') + '>' + t + '</option>'); });
+        } else {
+          var cur = _currentTenant();
+          opts.push('<option value="' + cur + '" selected>' + cur + '（本租户）</option>');
+        }
+        sel.innerHTML = opts.join('');
+        var filterBox = document.getElementById('billTenantFilter');
+        if (filterBox) filterBox.style.display = isMsp ? '' : 'none';
+      }
+
+      // 聚合目标：全部租户 或 指定租户
+      var targetRows = function (rows) {
+        if (viewAll) return rows;
+        return rows.filter(function (r) { return r.tenant === (tenant || _currentTenant()); });
+      };
+
+      var html = '';
+      var totCalls = 0, totCredits = 0, totCost = 0, totTin = 0, totTout = 0;
+      Object.keys(BILL_DRILL).forEach(function (sceneId) {
+        var d = BILL_DRILL[sceneId];
+        var rows = targetRows(d.rows);
+        var calls = 0, credits = 0, cost = 0, tin = 0, tout = 0;
+        rows.forEach(function (r) {
+          calls += _num(r.calls); credits += _num(r.credits); cost += _num(r.cost); tin += _num(r.tin); tout += _num(r.tout);
+        });
+        totCalls += calls; totCredits += credits; totCost += cost; totTin += tin; totTout += tout;
+        var tierCls = d.tier.toLowerCase();
+        html += '<tr style="cursor:pointer" onclick="openBillDrill(\'' + sceneId + '\')">'
+          + '<td><strong>' + d.name + '</strong><br><small style="color:var(--c-text-3)">点击下钻</small></td>'
+          + '<td><span class="tier-badge tier-' + tierCls + '">' + d.tier + '</span></td>'
+          + '<td>' + _fmt(calls) + '</td>'
+          + '<td>' + _fmt(credits) + '</td>'
+          + '<td>' + _fmt(tin) + 'M</td>'
+          + '<td>' + _fmt(tout) + 'M</td>'
+          + '<td>¥' + _fmt(cost) + '</td>'
+          + '</tr>';
+      });
+      html += '<tr style="background:var(--c-fill-1)"><td><strong>合计</strong></td><td>—</td><td><strong>' + _fmt(totCalls) + '</strong></td><td><strong>' + _fmt(totCredits) + '</strong></td><td>' + _fmt(totTin) + 'M</td><td>' + _fmt(totTout) + 'M</td><td><strong>¥' + _fmt(totCost) + '</strong></td></tr>';
+      document.getElementById('billBody').innerHTML = html;
+
+      // KPI 卡联动（成本/调用量/单次平均 · 对外计费在 AI 计费中心）
+      var cEl = document.getElementById('billTotalCost');
+      if (cEl) cEl.textContent = '¥' + _fmt(totCost);
+      var csEl = document.getElementById('billTotalCostSub');
+      if (csEl) csEl.textContent = 'token 口径 · ' + (viewAll ? '全部租户' : (tenant || _currentTenant())) + ' · BYOK 调用不产生平台成本';
+      var kEl = document.getElementById('billTotalCalls');
+      if (kEl) kEl.textContent = _fmt(totCalls);
+      var aEl = document.getElementById('billTotalAvg');
+      if (aEl) aEl.textContent = '¥' + (totCalls ? (totCost / totCalls).toFixed(3) : '0');
+    }
+    renderBillTable(_isMsp() ? '__all__' : _currentTenant());
+
+    /* ===== 动作 · 全部走自定义 modal · 无 alert/prompt ===== */
+    var t1Total = 12 + t1Data.filter(function (row) { return !!row.dispatchTierRequest; }).length; // 仅统计 AI 治理审批；L3 运行任务进入产品业务审批
+    function _nowTime() {
+      var d = new Date();
+      var p = function (n) { return (n < 10 ? '0' : '') + n; };
+      return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    function _refreshCounts() {
+      var c1 = document.getElementById('t1Count');
+      if (c1) c1.textContent = t1Total;
+      var hd = document.getElementById('t1HeadDesc');
+      if (hd) hd.textContent = '共 ' + t1Total + ' 条 · 展示最新 ' + t1Data.length + ' 条';
+
+    }
+    function acQuickApprove(id) {
+      var row = t1Data.find(function (x) { return x.subject.indexOf(id) === 0; });
+      if (!row) { showToast('未找到该审批项', 'warn'); return; }
+      var dispatchRequest = row.dispatchTierRequest;
+      if (dispatchRequest && dispatchRequest.applicantUserId === (localStorage.getItem('ems-user-id') || 'demo-ai-admin')) {
+        showToast('申请人与审批人必须分离，请由其他治理角色审批', 'warn');
+        return;
+      }
+      showConfirmModal({
+        title: '通过治理审批',
+        message: '即将通过治理事项 <strong>' + id + '</strong>。<br><br>系统将：<br>' +
+          '① 按审批结果发布对应配置<br>' +
+          '② 记录到审计（审批人/时间/前后状态）<br>' +
+          '③ Token 消耗计入 T2 账单<br>' +
+          '④ 通知相关处理人',
+        okText: '通过',
+        onOk: function () {
+          if (row.dispatchTierRequest) {
+            try {
+              var policyKey = DISPATCH_TENANT_POLICY_PREFIX + row.dispatchTierRequest.tenant;
+              var policy = JSON.parse(localStorage.getItem(policyKey) || '{}');
+              policy.tierCode = row.dispatchTierRequest.requestedTier;
+              localStorage.setItem(policyKey, JSON.stringify(policy));
+              localStorage.removeItem(row.dispatchTierRequest.storageKey || (DISPATCH_TIER_REQUEST_PREFIX + row.dispatchTierRequest.tenant));
+            } catch (e) {}
+          }
+          t1Data = t1Data.filter(function (x) { return x.subject.indexOf(id) !== 0; });
+          t1Total = Math.max(0, t1Total - 1);
+          t5Data.unshift({ time: _nowTime(), actor: '当前用户', scene: row.kind, event: '审批通过 ' + id + ' · ' + row.subject + ' · 结果已记录到审计', refs: [] });
+          renderT1(); renderT5(); _refreshCounts();
+          showToast(id + ' 已通过 · 已移出待审批队列 · 已写入审计', 'success');
+        }
+      });
+    }
+
+    function acQuickOverride(id) {
+      var row = t1Data.find(function (x) { return x.subject.indexOf(id) === 0; });
+      if (!row) { showToast('未找到该审批项', 'warn'); return; }
+      var dispatchRequest = row.dispatchTierRequest;
+      if (dispatchRequest && dispatchRequest.applicantUserId === (localStorage.getItem('ems-user-id') || 'demo-ai-admin')) {
+        showToast('申请人与审批人必须分离，请由其他治理角色处理', 'warn');
+        return;
+      }
+      showInputModal({
+        title: '驳回治理事项 · 原因',
+        message: '你将驳回治理事项 <strong>' + id + '</strong>。审批结果和原因会自动进入审计留痕。',
+        placeholder: '可选：例：AI 派单团队不正确 · 应派应用组...',
+        multiline: true,
+        hintList: [
+          { label: '变更窗口与业务高峰冲突' },
+          { label: '分单团队不正确' },
+          { label: '优先级低估' },
+          { label: '申请人合规风险' },
+          { label: 'CMDB 关联错误' }
+        ],
+        okText: '驳回（留痕）',
+        onSubmit: function (reason) {
+          if (row.dispatchTierRequest) {
+            try { localStorage.removeItem(row.dispatchTierRequest.storageKey || (DISPATCH_TIER_REQUEST_PREFIX + row.dispatchTierRequest.tenant)); } catch (e) {}
+          }
+          t1Data = t1Data.filter(function (x) { return x.subject.indexOf(id) !== 0; });
+          t1Total = Math.max(0, t1Total - 1);
+          renderT1(); _refreshCounts();
+          showToast('已驳回 · ' + id + ' · 推翻行为自动留痕（T5 审计）' + (reason ? ' · 原因："' + reason + '"' : ''), 'warn');
+        }
+      });
+    }
+
+    function acBatchApprove() {
+      var selected = t1Data.filter(function (x) { return !x.approvalPage; });
+      var n = selected.length;
+      showConfirmModal({
+        title: '批量通过 ' + n + ' 项治理审批',
+        message: selected.map(function (x) { return '· ' + x.kindLabel + ' · ' + x.subject; }).join('<br>') +
+          '<br><br>每项审批结果将独立记录到审计。',
+        okText: '批量通过 ' + n + ' 项',
+        onOk: function () {
+          var now = _nowTime();
+          selected.forEach(function (x) {
+            t5Data.unshift({ time: now, actor: '当前用户', scene: x.kind, event: '批量审批通过 ' + x.subject + ' · 结果已记录到审计', refs: [] });
+          });
+          t1Data = t1Data.filter(function (x) { return x.approvalPage; });
+          t1Total = Math.max(0, t1Total - n);
+          renderT1(); renderT5(); _refreshCounts();
+          showToast('已通过 ' + n + ' 项 · 全部记录到审计', 'success');
+        }
+      });
+    }
+
+    function acExportReport() {
+      showConfirmModal({
+        title: '导出合规审计报告',
+        message: '将打包近 30 日的以下数据为 PDF + CSV：<br><br>' +
+          '<div style="background:var(--c-fill-1);border-radius:var(--r-md);padding:var(--sp-12);font-size:12px;line-height:1.7">' +
+          '· 审批流水（23 条）<br>' +
+          '· 成本账单（分场景/租户/模型/用户四维）<br>' +
+          '· 完整审计日志（1,847 条）<br>' +
+          '· 推翻留痕统计（自动 · 不要求人工登记）<br>' +
+          '</div><br>' +
+          '预计文件大小 8-12 MB · 生成 3-5 秒 · 完成后邮件通知。',
+        okText: '开始导出',
+        onOk: function () {
+          showToast('报告导出中 · 完成后邮件通知 admin@ems.local', 'success');
+        }
+      });
+    }
+
+    function acOpenBudgetConfig() {
+      showActionModal({
+        title: '熔断阈值 & T2 · 预算配置',
+        iconKind: 'warn',
+        sections: [
+          {
+            heading: '成本双阈值',
+            html: '<div style="line-height:1.8"><strong>预算总额</strong>：¥45,000 / 月<br>' +
+              '<strong>告警阈值</strong>：80%（¥36,000）→ 通知 IT 主管<br>' +
+              '<strong>熔断阈值</strong>：100%（¥45,000）→ 暂停写动作，仅保留只读分析</div>'
+          },
+          {
+            heading: '错误率阈值',
+            html: '<div style="line-height:1.8"><strong>AI 建议错误率</strong>：≥ 5% 触发熔断<br>' +
+              '<strong>熔断动作</strong>：暂停 L1/L2 写动作，仅保留只读分析</div>'
+          },
+          {
+            heading: '当前状态',
+            html: '<div style="display:flex;gap:var(--sp-16);padding:var(--sp-12);background:rgba(34,197,94,.08);border-radius:var(--r-md)">' +
+              '<div><strong style="color:#15803d">正常</strong> · 成本 17% · 错误率 0.3%</div>' +
+              '<div style="color:var(--c-text-3)">近 90 日熔断 3 次</div></div>'
+          }
+        ],
+        actions: [
+          { label: '取消', kind: '' },
+          {
+            label: '进入完整配置页', kind: 'primary', onClick: function () {
+              window.location.href = 'ai-platform.html?sub=p-tier';
+            }
+          }
+        ]
+      });
+    }
+
+    function acOpenPermConfig() {
+      showActionModal({
+        title: '权限矩阵编辑',
+        iconKind: 'info',
+        sections: [
+          {
+            heading: '当前权限矩阵',
+            html: '<div style="font-size:12px;line-height:1.7">按角色 × 操作 分配 · 遵循最小权限原则<br>' +
+              '<span style="color:var(--c-text-3)">修改会自动记录到 审计</span></div>'
+          }
+        ],
+        actions: [
+          { label: '取消', kind: '' },
+          {
+            label: '打开完整编辑器', kind: 'primary', onClick: function () {
+              document.getElementById('permMatrixCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+        ]
+      });
+    }
+
+    function acOpenEvidence() {
+      showActionModal({
+        title: 'T4 · 证据链示例',
+        iconKind: 'info',
+        sections: [
+          {
+            heading: 'AI 建议：根因分析（M2）',
+            html: '<div style="font-size:12px;line-height:1.8">建议"根因为 BGP 前缀泄漏"的依据：<br>' +
+              '<span style="color:var(--c-text-3)">① 数据来源：CMDB 拓扑（上游 ISP-PE-01）· NPM 拨测趋势<br>' +
+              '② 模型：ChatGPT 5.5 · ③ 输入：告警 + 指标 5 分钟窗口 · ④ 输出：Top3 根因 + 证据</span></div>'
+          }
+        ],
+        actions: [
+          { label: '关闭', kind: '' },
+          {
+            label: '跳转 M2 告警详情', kind: 'primary', onClick: function () {
+              window.location.href = '../itom/alert-detail.html';
+            }
+          }
+        ]
+      });
+    }
+
+    
+
+    
+    /* ═══════════ 审计详情抽屉（六要素） ═══════════ */
+    var SCENE_LABEL = { 'M1': '告警降噪', 'M2': '根因分析', 'M3': '转工单派工', 'M4': '变更审批', 'M5': '服务请求', 'M6': 'NEO Agent', 'M7': '意图识别与标签', 'M8': 'AI 优先级研判', 'M9': '知识草稿生成', 'M10': '同源故障聚类', 'M11': 'IT 自助助手', 'M12': '台账脏数据巡检', 'M13': '工单资产关联', 'M14': '沉睡闲置分析', 'M15': '上门检查+备件', 'M16': '历史案例推荐', 'M17': '表单智能校验', 'M18': '外勤语音助手', 'M19': '维修照片核验', '智能分单': 'ITSM 智能分单', 'T3': '熔断', 'T8': '权限' };
+    var SCENE_META = {
+      'M1': { agent: '规则引擎 + 语义辅助（sa1）', model: 'DeepSeek V4 Pro', credits: '1（规则命中 0）', tier: 'L1 · 自动执行', mode: '托管' },
+      'M2': { agent: '组合工作流（检索+解析 · sa2）', model: 'ChatGPT 5.5', credits: '10（Agentic 工作流）', tier: 'L3 · 业务审批', mode: '托管' },
+      'M3': { agent: 'sa3 工单起草 + A7 调度推荐', model: 'DeepSeek V4 Pro', credits: '2', tier: 'L2 · 手工确认', mode: '托管' },
+      'M4': { agent: 'A4 风险评估', model: 'Opus 4.7', credits: '5', tier: 'L2 · 手工确认', mode: '托管' },
+      'M5': { agent: 'A1 文本理解 + A2 知识推荐', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L2/L1 · 自动执行', mode: '托管' },
+      'M6': { agent: '对话助手（sa6 NEO Agent）', model: '5 模型可切', credits: '1 / 轮', tier: 'L3 · 业务审批', mode: '托管' },
+      'M7': { agent: 'A1 文本理解与标签', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L3 · 业务审批（可切 L2）', mode: '托管' },
+      'M8': { agent: 'A1 文本理解与标签', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L3 · 业务审批', mode: '托管' },
+      'M9': { agent: 'A3 摘要与文档生成', model: 'DeepSeek V4 Pro', credits: '2', tier: 'L2 · 手工确认', mode: '托管' },
+      'M10': { agent: 'A4 风险评估（每日定时批量）', model: 'DeepSeek V4 Pro', credits: '3', tier: 'L3 · 业务审批', mode: '托管' },
+      'M11': { agent: 'A6 对话助手', model: 'DeepSeek V4 Pro', credits: '1 / 轮', tier: 'L3 · 业务审批（自助闭环可 L2）', mode: '托管' },
+      'M12': { agent: 'A5 数据质量巡检', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L3 · 业务审批', mode: '托管' },
+      'M13': { agent: 'A1 文本理解与标签', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L3 · 业务审批（可切 L2）', mode: '托管' },
+      'M14': { agent: 'A5 数据质量巡检（每日定时）', model: 'DeepSeek V4 Pro', credits: '2', tier: 'L3 · 业务审批', mode: '托管' },
+      'M15': { agent: 'A2 知识检索与推荐', model: 'DeepSeek V4 Pro', credits: '2', tier: 'L2 · 手工确认', mode: '托管' },
+      'M16': { agent: 'A2 知识检索与推荐', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L3 · 业务审批', mode: '托管' },
+      'M17': { agent: 'A1 文本理解与标签', model: 'DeepSeek V4 Pro', credits: '1', tier: 'L3 · 业务审批', mode: '托管' },
+      'M18': { agent: 'A6 对话助手 + Multimodal', model: 'DeepSeek V4 Pro', credits: '1 / 轮', tier: 'L3 · 业务审批', mode: '托管' },
+      'M19': { agent: 'A2 知识检索（多模态）', model: 'Gemini 2.5 Ultra', credits: '3', tier: 'L3 · 业务审批（可切 L2）', mode: '托管' },
+      '智能分单': { agent: 'ITSM 事件理解与分配 Agent（A8）', model: 'DeepSeek V4 Pro', credits: '2（规则命中解释 0）', tier: 'L2 · 手工确认', mode: '托管' },
+      'T3': { agent: '熔断守护（系统任务）', model: '—（无 LLM 调用）', credits: '0', tier: 'L1 治理', mode: '—' },
+      'T8': { agent: '—（配置变更）', model: '—（无 LLM 调用）', credits: '0', tier: 'L1 治理', mode: '—' }
+    };
+
+    function openAuditDetail(i) {
+      var r = t5Data[i];
+      if (!r) return;
+      if (r.auditType === 'dispatch') {
+        openDispatchAudit(r.dispatchId);
+        return;
+      }
+      if (r.auditType === 'itsmAssign') {
+        openItsmAssignmentAudit(r.incidentId);
+        return;
+      }
+      var m = SCENE_META[r.scene] || SCENE_META['M6'];
+      m.label = SCENE_LABEL[r.scene] || r.scene;
+      var tierMain = (m.tier || '').match(/L[123]/);
+      var isL2L3 = !!tierMain && tierMain[0] !== 'L1' && (m.tier || '').indexOf('白名单硬编码') < 0;
+      document.getElementById('auditDrawerTitle').textContent = '审计详情 · ' + r.time + ' · ' + (m.label || r.scene);
+      var chainHtml = isL2L3
+        ? '<div class="detail-chain">' +
+          '<div class="detail-chain-item"><span class="t">' + r.time + '</span><span>' + r.actor + ' 触发（' + r.scene + '）</span></div>' +
+          '<div class="detail-chain-item"><span class="t">+2s</span><span>AI 起草完成 · 建议采纳（' + (r.actor === '系统' ? '白名单自动放行' : '人工确认/审批') + '）</span></div>' +
+          '<div class="detail-chain-item"><span class="t">+8s</span><span>' + (r.actor === '系统' ? 'L1 自动执行 · 落地执行' : r.actor + ' 放行 · 落地执行') + ' · 审批记录入 T5</span></div>' +
+          '</div>'
+        : '<div class="detail-box">L1 档位 · 仅保简化审计（调用记录 + Token 消耗）· 无决策链</div>';
+      document.getElementById('auditDrawerBody').innerHTML = [
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">① 身份</div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">触发人 / 角色</span><span class="v">' + r.actor + ' · U1 一线' + (r.actor === '李总监' ? '（U3 中层）' : '') + '</span></div>',
+        '    <div class="detail-item"><span class="k">租户 / 项目</span><span class="v">周大福 tn_corp · PRJ-2026-001</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">② 行为</div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">场景 / 档位</span><span class="v">' + r.scene + ' · ' + m.tier + '</span></div>',
+        '    <div class="detail-item"><span class="k">Agent / Skill</span><span class="v">' + m.agent + '</span></div>',
+        '    <div class="detail-item"><span class="k">动作类型</span><span class="v">' + (r.actor === '系统' ? '自动执行' : (r.event.indexOf('Override') >= 0 ? 'Override（推翻留痕 · 自动）' : (r.event.indexOf('L2') >= 0 ? '手工确认（L2）' : '治理审批'))) + '</span></div>',
+        '    <div class="detail-item"><span class="k">关联单据</span><span class="v">' + (r.event.match(/<strong>([^<]+)<\/strong>/) ? r.event.match(/<strong>([^<]+)<\/strong>/)[1] : '—') + '</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">③ 模型</div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">模型 / 版本</span><span class="v">' + m.model + '</span></div>',
+        '    <div class="detail-item"><span class="k">接入模式</span><span class="v">' + m.mode + '（租户默认）</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">④ 消耗</div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">credits</span><span class="v">' + m.credits + '</span></div>',
+        '    <div class="detail-item"><span class="k">Token 输入 / 输出</span><span class="v">3,241 / 812</span></div>',
+        '    <div class="detail-item"><span class="k">延迟</span><span class="v">1.4s（P95 2.1s 内）</span></div>',
+        '    <div class="detail-item"><span class="k">重试次数</span><span class="v">0</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">⑤ 决策链（L2/L3）</div>',
+        chainHtml,
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">⑥ 内容（脱敏后）</div>',
+        '  <div style="margin-bottom:var(--sp-8)"><span style="font-size:11px;color:var(--c-text-3)">输入（prompt）</span></div>',
+        '  <div class="detail-box">对告警 INC-20260813-003 进行分类与优先级研判：<span class="masked">[手机号已脱敏]</span> 上报 Web-Server-01 CPU 使用率 95%，持续 15 分钟，联系 <span class="masked">[邮箱已脱敏]</span> 确认业务影响。</div>',
+        '  <div style="margin:var(--sp-8) 0"><span style="font-size:11px;color:var(--c-text-3)">输出（AI 响应）</span></div>',
+        '  <div class="detail-box">{"category":"性能-计算资源","priority":"P1","summary":"Web-Server-01 CPU 95% 持续 15 分钟"} · 经选项池白名单校验通过</div>',
+        '  <div style="margin-top:var(--sp-8);font-size:11px;color:var(--c-text-3)">防护命中：P1 注入检测 0 · P2 敏感内容 0 · P3 白名单校验 0 · 脱敏命中 2 字段（手机号/邮箱）</div>',
+        '</div>'
+      ].join('');
+      document.getElementById('auditDrawerOverlay').classList.add('open');
+    }
+
+    function openDispatchAudit(dispatchId) {
+      var engineers = [
+        { rank: 1, name: 'P.Y. Lau', score: '96%', skill: '40/40', distance: '14/15', schedule: '24/25', cost: '18/20', history: '—', result: 'UPS、电池组与电力安全技能全匹配；覆盖 TKO 且可接单；负载 1/5；预计 HKD 3,600。' },
+        { rank: 2, name: 'S.Y. Lee', score: '88%', skill: '38/40', distance: '11/15', schedule: '21/25', cost: '18/20', history: '—', result: 'UPS 技能匹配且费用在预算内；负载 2/5，预计 55 分钟到场。' },
+        { rank: 3, name: 'T.K. Yip', score: '79%', skill: '30/40', distance: '12/15', schedule: '21/25', cost: '16/20', history: '—', result: '电池组技能匹配且收费较低；UPS 主机经验不足，建议 TAC 支持。' }
+      ];
+      var rows = engineers.map(function (e) {
+        return '<tr><td><strong>#' + e.rank + ' ' + e.name + '</strong></td><td><strong style="color:var(--c-primary)">' + e.score + '</strong></td><td>' + e.skill + '</td><td>' + e.distance + '</td><td>' + e.schedule + '</td><td>' + e.cost + '</td><td>' + e.history + '</td></tr>';
+      }).join('');
+      document.getElementById('auditDrawerTitle').textContent = '派工推荐审计详情 · ' + dispatchId;
+      document.getElementById('auditDrawerBody').innerHTML = [
+        '<div class="detail-section"><div class="detail-section-title">推荐结论</div>',
+        '<div class="detail-grid"><div class="detail-item"><span class="k">推荐工程师</span><span class="v">P.Y. Lau（96%）· S.Y. Lee（88%）· T.K. Yip（79%）</span></div><div class="detail-item"><span class="k">确认动作</span><span class="v">更新工单候选工程师，不自动派单</span></div><div class="detail-item"><span class="k">工单费用</span><span class="v">预算 HKD 5,200 · 首选预计 HKD 3,600</span></div><div class="detail-item"><span class="k">技能要求</span><span class="v">UPS · 电池组更换 · 机房电力安全</span></div></div></div>',
+        '<div class="detail-section"><div class="detail-section-title">判断依据与权重</div>',
+        '<div class="detail-box">综合匹配度 = 技能 40% + 可用负载 25% + 收费匹配 20% + 到场时效 15%。硬性过滤：档案激活且可接单、服务范围覆盖、关键技能满足、费用不超过预算。</div>',
+        '<table class="ac-data-table" style="margin-top:var(--sp-8)"><thead><tr><th>候选人</th><th>匹配度</th><th>技能</th><th>距离</th><th>档期</th><th>费用</th><th>履约</th></tr></thead><tbody>' + rows + '</tbody></table></div>',
+        '<div class="detail-section"><div class="detail-section-title">候选人解释</div>' + engineers.map(function (e) { return '<div class="detail-box" style="margin-bottom:var(--sp-8)"><strong>#' + e.rank + ' ' + e.name + ' · ' + e.score + '</strong><br>' + e.result + '</div>'; }).join('') + '</div>',
+        '<div class="detail-section"><div class="detail-section-title">执行链</div><div class="detail-chain"><div class="detail-chain-item"><span class="t">10:35:58</span><span>License 校验通过 · 达美乐（Domino）</span></div><div class="detail-chain-item"><span class="t">+0.2s</span><span>加载 dispatch-recommend.md</span></div><div class="detail-chain-item"><span class="t">+0.5s</span><span>调用 workorder get、engineer query、engineer workload · 3/3 成功</span></div><div class="detail-chain-item"><span class="t">+1.3s</span><span>输出 Top 3，等待调度员确认；未执行派单</span></div></div></div>',
+        '<div class="detail-section"><div class="detail-section-title">模型与数据来源</div><div class="detail-grid"><div class="detail-item"><span class="k">Agent / 模型</span><span class="v">FSM 调度推荐 Agent · DeepSeek V4 Pro</span></div><div class="detail-item"><span class="k">调用编号</span><span class="v">CL-20260922-0101</span></div><div class="detail-item"><span class="k">数据来源</span><span class="v">FSM 工单、工程师画像、实时负载与收费标准</span></div><div class="detail-item"><span class="k">执行结果</span><span class="v">仅生成建议 · 手工确认</span></div></div></div>'
+      ].join('');
+      document.getElementById('auditDrawerOverlay').classList.add('open');
+    }
+
+    function openItsmAssignmentAudit(incidentId) {
+      incidentId = incidentId || 'INC-2026-0910-088';
+      document.getElementById('auditDrawerTitle').textContent = 'ITSM 智能分单审计详情 · ' + incidentId;
+      document.getElementById('auditDrawerBody').innerHTML = [
+        '<div class="detail-section"><div class="detail-section-title">推荐结论</div>',
+        '<div class="detail-grid"><div class="detail-item"><span class="k">事件工单</span><span class="v">' + incidentId + ' · DNS 解析异常</span></div><div class="detail-item"><span class="k">推荐处理组</span><span class="v">网络二线组</span></div><div class="detail-item"><span class="k">推荐处理人</span><span class="v">李明 · 匹配度 92%</span></div><div class="detail-item"><span class="k">确认动作</span><span class="v">L2 手工确认后写入 ITSM</span></div></div></div>',
+        '<div class="detail-section"><div class="detail-section-title">自动分类与标签</div>',
+        '<div class="detail-grid"><div class="detail-item"><span class="k">告警识别</span><span class="v">DNS 查询 SERVFAIL 突增 · DNS-Core-01</span></div><div class="detail-item"><span class="k">影响范围</span><span class="v">18 家门店 POS 交易链路</span></div><div class="detail-item"><span class="k">分类结果</span><span class="v">网络 → DNS 解析</span></div><div class="detail-item"><span class="k">标签</span><span class="v">告警转工单 · VIP客户 · 核心交易链路 · DNS</span></div><div class="detail-item"><span class="k">SLA / 优先级</span><span class="v">Gold · P2</span></div><div class="detail-item"><span class="k">重要性</span><span class="v">高 · 字段白名单校验通过</span></div></div></div>',
+        '<div class="detail-section"><div class="detail-section-title">固定规则兼容</div>',
+        '<div class="detail-box">先执行 ems itsm assignment-rule evaluate。结果：固定分单规则未命中 DNS SERVFAIL + 海外门店 VIP 组合条件，因此进入 AI 补位建议。若固定规则命中，Agent 只记录解释与效果反馈，不生成替代处理人。</div></div>',
+        '<div class="detail-section"><div class="detail-section-title">判断依据</div>',
+        '<table class="ac-data-table" style="margin-top:var(--sp-8)"><thead><tr><th>维度</th><th>输入</th><th>解释</th></tr></thead><tbody><tr><td>相似事件</td><td>近 90 天 6 起 DNS SERVFAIL</td><td>5 起由李明闭环，平均恢复 38 分钟</td></tr><tr><td>排班负载</td><td>李明当班 · 当前 2/6</td><td>网络二线组覆盖该客户网络域</td></tr><tr><td>SLA</td><td>响应剩余 42m</td><td>需要直接分配处理组/处理人，不进入认领等待</td></tr><tr><td>客户身份</td><td>达美乐海外门店 VIP</td><td>优先保证门店交易链路恢复</td></tr></tbody></table></div>',
+        '<div class="detail-section"><div class="detail-section-title">执行链</div><div class="detail-chain"><div class="detail-chain-item"><span class="t">09:14:18</span><span>License 与租户边界校验通过 · 达美乐</span></div><div class="detail-chain-item"><span class="t">+0.1s</span><span>ems itsm incident get · 读取描述、告警、客户身份、SLA 与当前状态</span></div><div class="detail-chain-item"><span class="t">+0.2s</span><span>ems itsm incident classify / priority evaluate / sla match · 分类、Gold、P2、重要性高校验通过</span></div><div class="detail-chain-item"><span class="t">+0.3s</span><span>ems itsm assignment-rule evaluate · 固定规则未命中</span></div><div class="detail-chain-item"><span class="t">+0.5s</span><span>incident similar / team query / user query / schedule get / workload get · 5/5 成功</span></div><div class="detail-chain-item"><span class="t">+0.7s</span><span>服务台确认采纳 · ems itsm incident assign 写入 网络二线组 / 李明</span></div></div></div>',
+        '<div class="detail-section"><div class="detail-section-title">权限与边界</div>',
+        '<div class="detail-grid"><div class="detail-item"><span class="k">执行身份</span><span class="v">当前用户 ITSM 分配权限</span></div><div class="detail-item"><span class="k">字段写入</span><span class="v">处理组、处理人</span></div><div class="detail-item"><span class="k">不处理事项</span><span class="v">不绕过权限、不改写 SLA 升级策略</span></div><div class="detail-item"><span class="k">审计编号</span><span class="v">ITSM-ASG-20260924-0088</span></div></div></div>',
+        '<div class="detail-section"><div class="detail-section-title">模型与调用</div>',
+        '<div class="detail-grid"><div class="detail-item"><span class="k">Agent / 模型</span><span class="v">ITSM 事件理解与分配 Agent · DeepSeek V4 Pro</span></div><div class="detail-item"><span class="k">调用编号</span><span class="v">CL-20260924-0088</span></div><div class="detail-item"><span class="k">Token 输入 / 输出</span><span class="v">2.9K / 0.8K</span></div><div class="detail-item"><span class="k">执行结果</span><span class="v">成功 · ITSM CLI 写入完成</span></div></div></div>'
+      ].join('');
+      document.getElementById('auditDrawerOverlay').classList.add('open');
+    }
+
+    function closeAuditDetail() {
+      document.getElementById('auditDrawerOverlay').classList.remove('open');
+    }
+
+        function closeAcModal(id) { document.getElementById(id).classList.remove('open'); }
+    function openMaskConfig() { document.getElementById('maskOverlay').classList.add('open'); }
+    function openGuardrailConfig() { document.getElementById('guardOverlay').classList.add('open'); }
+    function openRetentionConfig() { document.getElementById('retentionOverlay').classList.add('open'); }
+
+    function toggleGateway() {
+      var state = document.getElementById('gatewayState');
+      var btn = document.getElementById('gatewayBtn');
+      var paused = state.textContent.indexOf('暂停') >= 0;
+      if (paused) {
+        state.textContent = '● AI 服务运行中';
+        state.style.color = 'var(--c-success)';
+        btn.textContent = '暂停 AI 服务';
+        window.showToast && showToast('AI Gateway 已恢复 · 各场景恢复配置档位 · 操作记录审计', 'success');
+      } else {
+        state.textContent = '● AI 服务已暂停';
+        state.style.color = 'var(--c-danger)';
+        btn.textContent = '恢复 AI 服务';
+        window.showToast && showToast('AI Gateway 已暂停：全部场景停用 · 已通知 IT 主管', 'warn');
+      }
+    }
+  </script>
+  <script src="../assets/ems-v6-components.js"></script>
+</body>
+
+</html>

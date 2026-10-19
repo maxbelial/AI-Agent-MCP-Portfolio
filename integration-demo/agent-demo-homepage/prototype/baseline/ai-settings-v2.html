@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMS - AI访问设置</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/ems-v2-common.css">
+  <style>
+    /* EMS AI访问设置 — 页面专属样式 + Enhanced Shell Overrides
+       共享样式见 ems-v2-common.css */
+
+    :root {
+      --sidebar-collapsed-w: 56px;
+    }
+
+    /* === Dark Theme === */
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --c-primary: #60A5FA;
+      --c-primary-hover: #93C5FD;
+      --c-primary-active: #3B82F6;
+      --c-primary-bg: #1E293B;
+      --c-primary-border: #1E40AF;
+      --c-success: #34D399;
+      --c-success-bg: #064E3B;
+      --c-success-border: #065F46;
+      --c-warning: #FBBF24;
+      --c-warning-bg: #78350F;
+      --c-warning-border: #92400E;
+      --c-danger: #F87171;
+      --c-danger-bg: #7F1D1D;
+      --c-danger-border: #991B1B;
+      --c-text-1: #F1F5F9;
+      --c-text-2: #94A3B8;
+      --c-text-3: #64748B;
+      --c-text-4: #475569;
+      --c-border: #334155;
+      --c-border-light: #1E293B;
+      --c-fill-1: #1E293B;
+      --c-fill-2: #334155;
+      --c-bg: #0F172A;
+      --c-white: #1E293B;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ===== HEADER (Enhanced Navbar) ===== */
+    .header {
+      height: var(--header-h);
+      background: var(--c-white);
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px 0 0;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo-area {
+      width: var(--sidebar-collapsed-w);
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: width .25s var(--ease);
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      transition: width .25s var(--ease), height .25s var(--ease);
+    }
+
+    .logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    body.sidebar-open .logo-area {
+      width: var(--sidebar-w);
+      padding-left: 16px;
+      justify-content: flex-start;
+    }
+
+    body.sidebar-open .logo-mark {
+      width: 120px;
+      height: 36px;
+      border-radius: var(--r-sm);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--c-text-3);
+    }
+
+    .header-breadcrumb .sep {
+      font-size: 11px;
+    }
+
+    .header-breadcrumb .current {
+      color: var(--c-text-1);
+      font-weight: 500;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+      min-width: 0;
+    }
+
+    .cmd-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      color: var(--c-text-3);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      min-width: 200px;
+      max-width: 400px;
+      width: 100%;
+      transition: border-color .2s;
+    }
+
+    .cmd-trigger:hover {
+      border-color: var(--c-primary);
+      color: var(--c-text-2);
+    }
+
+    .cmd-trigger .shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      padding: 1px 5px;
+      border: 1px solid var(--c-border);
+      border-radius: 3px;
+      background: var(--c-white);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-icon-btn {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: transparent;
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .header-icon-btn:hover {
+      background: var(--c-fill-2);
+      color: var(--c-text-1);
+    }
+
+    .header-icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--c-border);
+      margin: 0 6px;
+    }
+
+    /* Language Switcher */
+    .lang-switcher {
+      position: relative;
+    }
+
+    .lang-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 140px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      padding: 4px;
+      animation: cmdSlideIn .12s ease;
+    }
+
+    .lang-menu.open {
+      display: block;
+    }
+
+    .lang-option {
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+
+    .lang-option:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .lang-option.active {
+      color: var(--c-primary);
+      font-weight: 500;
+      background: var(--c-primary-bg);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .15s;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border: none;
+      background: transparent;
+    }
+
+    .user-area:hover {
+      background: var(--c-fill-2);
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--c-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* User dropdown */
+    .user-wrapper {
+      position: relative;
+    }
+
+    .user-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 180px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      padding: 4px;
+      animation: cmdSlideIn .12s ease;
+    }
+
+    .user-dropdown.open {
+      display: block;
+    }
+
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+
+    .user-dropdown-item:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .user-dropdown-item.danger {
+      color: var(--c-danger);
+    }
+
+    .user-dropdown-item.danger:hover {
+      background: var(--c-danger-bg);
+    }
+
+    .user-dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-dropdown-sep {
+      height: 1px;
+      background: var(--c-border);
+      margin: 4px 0;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #1F2937;
+      color: #F9FAFB;
+      padding: 8px 20px;
+      border-radius: var(--r-lg);
+      font-size: 13px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+    }
+
+    [data-theme="dark"] .toast {
+      background: #E5E7EB;
+      color: #111827;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== COMMAND PALETTE ===== */
+    .cmd-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .35);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      justify-content: center;
+      padding-top: 18vh;
+    }
+
+    .cmd-overlay.open {
+      display: flex;
+    }
+
+    .cmd-box {
+      width: 520px;
+      max-height: 440px;
+      background: var(--c-white);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: cmdSlideIn .15s ease;
+    }
+
+    @keyframes cmdSlideIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cmd-input-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .cmd-input-area svg {
+      width: 18px;
+      height: 18px;
+      color: var(--c-text-3);
+      flex-shrink: 0;
+    }
+
+    .cmd-input-area input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      background: transparent;
+      color: var(--c-text-1);
+      font-family: inherit;
+    }
+
+    .cmd-input-area input::placeholder {
+      color: var(--c-text-3);
+    }
+
+    .cmd-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .cmd-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 8px 8px 4px;
+    }
+
+    .cmd-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .cmd-result-item:hover,
+    .cmd-result-item.focused {
+      background: var(--c-fill-1);
+    }
+
+    .cmd-result-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--c-fill-2);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      flex-shrink: 0;
+    }
+
+    .cmd-result-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .cmd-result-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cmd-result-text .title {
+      font-size: 13px;
+      color: var(--c-text-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cmd-result-text .desc {
+      font-size: 11px;
+      color: var(--c-text-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cmd-result-shortcut {
+      font-size: 11px;
+      color: var(--c-text-3);
+      display: flex;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .cmd-result-shortcut kbd {
+      padding: 1px 5px;
+      border: 1px solid var(--c-border);
+      border-radius: 3px;
+      background: var(--c-white);
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    .cmd-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--c-text-3);
+      font-size: 13px;
+    }
+
+    .cmd-footer {
+      padding: 8px 16px;
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .cmd-footer kbd {
+      padding: 1px 4px;
+      border: 1px solid var(--c-border);
+      border-radius: 3px;
+      background: var(--c-white);
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    /* ===== SIDEBAR (Collapsible) ===== */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      width: var(--sidebar-collapsed-w);
+      height: calc(100vh - var(--header-h));
+      background: var(--c-white);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 90;
+      overflow: hidden;
+      padding: 6px 0;
+      transition: width .25s var(--ease);
+    }
+
+    .sidebar.expanded {
+      width: var(--sidebar-w);
+      overflow-y: auto;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--c-text-3);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform .25s var(--ease);
+    }
+
+    .sidebar.expanded .sidebar-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .sidebar-group {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-group {
+      opacity: 1;
+    }
+
+    .sidebar-group:first-of-type {
+      margin-top: 0;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 18px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sidebar-item:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-item.active {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+      font-weight: 500;
+    }
+
+    .sidebar-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--c-primary);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-item .s-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-item .s-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-item .s-label {
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-item .s-label {
+      opacity: 1;
+    }
+
+    /* Tooltip on collapsed */
+    .sidebar:not(.expanded) .sidebar-item[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(var(--sidebar-collapsed-w) + 4px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--c-text-1);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .org-switcher {
+      height: 48px;
+      border-top: 1px solid var(--c-border-light);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      cursor: pointer;
+      gap: 10px;
+      margin-top: auto;
+      flex-shrink: 0;
+      transition: background .15s;
+      overflow: hidden;
+    }
+
+    .org-switcher:hover {
+      background: var(--c-fill-1);
+    }
+
+    .org-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-md);
+      background: var(--c-fill-2);
+      border: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .org-info {
+      flex: 1;
+      min-width: 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .org-info {
+      opacity: 1;
+    }
+
+    .org-name {
+      font-size: 13px;
+      color: var(--c-text-1);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===== MAIN ===== */
+    .main {
+      position: absolute;
+      top: var(--header-h);
+      left: var(--sidebar-collapsed-w);
+      right: 0;
+      bottom: 0;
+      overflow: auto;
+      background: var(--c-bg);
+      transition: left .25s var(--ease);
+    }
+
+    .sidebar.expanded~.main {
+      left: var(--sidebar-w);
+    }
+
+    .main-inner {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      background: var(--c-white);
+      padding: 0;
+    }
+
+    /* Page header */
+    .page-header {
+      padding: 16px 20px 0;
+      background: var(--c-white);
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    /* ===== PAGE-SPECIFIC STYLES ===== */
+
+    /* 树面板 */
+    .tree-panel {
+      background: var(--c-white);
+      margin-left: 12px;
+    }
+
+    .tree-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 14px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+    }
+
+    .tree-panel-header svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--c-text-2);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .tree-search {
+      padding: 10px 12px;
+    }
+
+    .tree-search-input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      font-size: 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .tree-search-input:focus {
+      border-color: var(--c-primary);
+    }
+
+    .tree-search-input::placeholder {
+      color: var(--c-text-4);
+    }
+
+    .tree-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px 12px;
+    }
+
+    .tree-node {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--c-text-1);
+      transition: all .15s;
+      user-select: none;
+    }
+
+    .tree-node:hover {
+      background: var(--c-fill-1);
+    }
+
+    .tree-node.active {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      font-weight: 500;
+    }
+
+    .tree-node .node-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--r-sm);
+      font-size: 9px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-3);
+      background: var(--c-fill-2) !important;
+      border: 1px solid var(--c-border);
+      flex-shrink: 0;
+    }
+
+    .tree-node.active .node-avatar {
+      color: var(--c-primary);
+    }
+
+    .node-avatar.is-enduser {
+      border-radius: 50% !important;
+    }
+
+    .tree-parent {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tree-parent .expand-icon {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s;
+    }
+
+    .tree-parent .expand-icon svg {
+      width: 12px;
+      height: 12px;
+      stroke: var(--c-text-3);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .tree-parent.expanded .expand-icon {
+      transform: rotate(90deg);
+    }
+
+    .tree-children {
+      padding-left: 22px;
+    }
+
+    .tree-children.collapsed {
+      display: none;
+    }
+
+    .tree-parent .node-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--r-sm);
+      font-size: 9px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-3);
+      background: var(--c-fill-2) !important;
+      border: 1px solid var(--c-border);
+      flex-shrink: 0;
+    }
+
+    .tenant-type-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+
+    .tenant-type-tag.msp {
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    .tenant-type-tag.poc {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    /* 右侧内容 */
+    .right-content {
+      background: var(--c-white);
+    }
+
+    /* 基础配置区域 */
+    .config-section {
+      padding: 24px;
+      border-bottom: 1px solid var(--c-fill-1);
+    }
+
+    .config-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      margin-bottom: 20px;
+    }
+
+    .config-form .config-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .config-form .config-label {
+      width: 100px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      padding-top: 7px;
+      flex-shrink: 0;
+    }
+
+    .config-form .config-value {
+      flex: 1;
+      max-width: 400px;
+    }
+
+    /* AI Toggle */
+    .ai-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toggle-track {
+      width: 40px;
+      height: 22px;
+      border-radius: 11px;
+      background: var(--c-text-4);
+      position: relative;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .toggle-track.on {
+      background: var(--c-primary);
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--c-white);
+      transition: transform .2s;
+    }
+
+    .toggle-track.on::after {
+      transform: translateX(18px);
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      color: var(--c-text-2);
+    }
+
+    /* 头像/浮标预览 */
+    .preview-box {
+      width: 80px;
+      height: 80px;
+      border: 1px dashed var(--c-border);
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--c-fill-1);
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .preview-box:hover {
+      border-color: var(--c-primary);
+    }
+
+    .preview-box svg {
+      width: 32px;
+      height: 32px;
+      stroke: var(--c-text-4);
+      fill: none;
+      stroke-width: 1.5;
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--r-lg);
+    }
+
+    /* Token 消耗表 */
+    .token-section {
+      padding: 24px;
+    }
+
+    /* 保存按钮底部吸附 */
+    .save-bar {
+      position: sticky;
+      bottom: 0;
+      padding: 12px 24px;
+      background: var(--c-white);
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      justify-content: flex-end;
+      z-index: 50;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== HEADER (Enhanced Navbar) ===== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-area">
+        <div class="logo-mark"><img src="../assets/itom-logo.png" alt="EMS"></div>
+      </div>
+      <nav class="header-breadcrumb">
+        <a class="bc-item" href="#" style="color:var(--c-text-3);text-decoration:none"
+          onmouseover="this.style.color='var(--c-primary)'" onmouseout="this.style.color='var(--c-text-3)'">系统设置</a>
+        <span class="sep">/</span>
+        <span class="current">AI访问设置</span>
+      </nav>
+    </div>
+    <div class="header-center">
+      <div class="cmd-trigger" onclick="openCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;flex-shrink:0">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>搜索租户、授权、页面…</span>
+        <span class="shortcut">⌘K</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="lang-switcher" id="langSwitcher">
+        <button class="header-icon-btn" title="语言切换" onclick="toggleLangMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+          </svg>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-option active" onclick="switchLang('zh-CN','简体中文',this)">简体中文</div>
+          <div class="lang-option" onclick="switchLang('zh-TW','繁體中文',this)">繁體中文</div>
+          <div class="lang-option" onclick="switchLang('en','English',this)">English</div>
+        </div>
+      </div>
+      <button class="header-icon-btn" title="暗色模式 (⌘D)" onclick="toggleTheme()">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      </button>
+      <button class="header-icon-btn" title="全屏" onclick="toggleFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+        </svg>
+      </button>
+      <div class="header-sep"></div>
+      <div class="user-wrapper" id="userWrapper">
+        <button class="user-area" onclick="toggleUserMenu()">
+          <div class="user-avatar">A</div>
+          <span>Admin</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-item" onclick="showToast('个人信息')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            个人信息
+          </div>
+          <div class="user-dropdown-item" onclick="showToast('修改密码')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+            修改密码
+          </div>
+          <div class="user-dropdown-item" onclick="showToast('系统设置')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51H21a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+            </svg>
+            系统设置
+          </div>
+          <div class="user-dropdown-sep"></div>
+          <div class="user-dropdown-item danger" onclick="showToast('已退出登录')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            退出登录
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== COMMAND PALETTE ===== -->
+  <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this)closeCmd()">
+    <div class="cmd-box">
+      <div class="cmd-input-area">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" id="cmdInput" placeholder="搜索租户、授权、页面、操作…" autocomplete="off"
+          oninput="filterCmdResults(this.value)">
+      </div>
+      <div class="cmd-results" id="cmdResults"></div>
+      <div class="cmd-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> 导航</span>
+        <span><kbd>Enter</kbd> 打开</span>
+        <span><kbd>Esc</kbd> 关闭</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SIDEBAR (Collapsible — default collapsed) ===== -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="展开/收起菜单">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+      </svg>
+    </button>
+    <a class="sidebar-item" href="workspace-v2.html" title="工作台">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg></span>
+      <span class="s-label">工作台</span>
+    </a>
+    <div class="sidebar-group">组织管理</div>
+    <a class="sidebar-item" href="tenant-management-v2.html" title="租户管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg></span>
+      <span class="s-label">租户管理</span>
+    </a>
+    <a class="sidebar-item" href="product-management-v2.html" title="产品管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+          <path d="M3.27 6.96L12 12.01l8.73-5.05" />
+          <path d="M12 22.08V12" />
+        </svg></span>
+      <span class="s-label">产品管理</span>
+    </a>
+    <a class="sidebar-item" href="license-management-v2.html" title="授权管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg></span>
+      <span class="s-label">授权管理</span>
+    </a>
+    <div class="sidebar-group">权限管理</div>
+    <a class="sidebar-item" href="role-management-v2.html" title="角色管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg></span>
+      <span class="s-label">角色管理</span>
+    </a>
+    <a class="sidebar-item" href="org-structure-v2.html" title="组织架构">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="5" r="3" />
+          <path d="M12 8v4" />
+          <path d="M6 16h12" />
+          <path d="M6 16v4" />
+          <path d="M18 16v4" />
+          <path d="M12 12v4" />
+          <path d="M12 16v4" />
+        </svg></span>
+      <span class="s-label">组织架构</span>
+    </a>
+    <div class="sidebar-group">系统设置</div>
+    <a class="sidebar-item" href="personal-info-v2.html" title="个人信息">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg></span>
+      <span class="s-label">个人信息</span>
+    </a>
+    <a class="sidebar-item" href="third-party-v2.html" title="三方对接">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+        </svg></span>
+      <span class="s-label">三方对接</span>
+    </a>
+    <a class="sidebar-item" href="sync-management-v2.html" title="同步管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M23 4v2h-6" />
+          <path d="M1 20v-6h6" />
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10" />
+          <path d="M20.49 15a9 9 0 01-14.85 3.36L1 14" />
+        </svg></span>
+      <span class="s-label">同步管理</span>
+    </a>
+    <a class="sidebar-item" href="general-settings-v2.html" title="通用设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+        </svg></span>
+      <span class="s-label">通用设置</span>
+    </a>
+    <div class="sidebar-item active" title="AI访问设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">AI访问设置</span>
+    </div>
+    <div class="sidebar-group">ITOM 模块</div>
+    <a class="sidebar-item" href="../itom/alert-center-v2.html" title="告警中心">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+      <span class="s-label">告警中心</span>
+    </a>
+    <div class="sidebar-group">AI 管理</div>
+    <a class="sidebar-item" href="../ai/ai-management-v2.html" title="Agent Hub">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M9 14h6"/></svg></span>
+      <span class="s-label">Agent Hub</span>
+    </a>
+    <div class="org-switcher">
+      <div class="org-avatar">J</div>
+      <div class="org-info">
+        <div class="org-name">JGDemo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="main-inner">
+
+      <div class="page-header">
+        <h1 class="page-title">AI访问设置</h1>
+      </div>
+
+      <div class="content-layout" style="flex:1;">
+        <!-- 左侧租户树 -->
+        <div class="tree-panel">
+          <div class="tree-panel-header">
+            <svg viewBox="0 0 24 24" stroke-linecap="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87" />
+              <path d="M16 3.13a4 4 0 010 7.75" />
+            </svg>
+            租户列表
+          </div>
+          <div class="tree-search">
+            <input class="tree-search-input" type="text" placeholder="搜索租户名称" id="tree-search" oninput="filterTree()">
+          </div>
+          <div class="tree-body" id="tree-body"></div>
+        </div>
+
+        <!-- 右侧内容 -->
+        <div class="right-content" style="flex:1;overflow-y:auto;">
+
+          <!-- 基础配置 -->
+          <div class="config-section">
+            <div class="config-section-title">基础配置</div>
+            <div class="config-form">
+
+              <div class="config-row">
+                <div class="config-label">启用AI机器人</div>
+                <div class="config-value">
+                  <div class="ai-toggle">
+                    <div class="toggle-track on" id="ai-toggle" onclick="toggleAI()"></div>
+                    <span class="toggle-label" id="ai-toggle-text">已启用</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="config-row">
+                <div class="config-label">AI名称</div>
+                <div class="config-value">
+                  <input class="form-input" id="ai-name" type="text" value="Bot" style="max-width:280px;">
+                </div>
+              </div>
+
+              <div class="config-row">
+                <div class="config-label">AI头像</div>
+                <div class="config-value">
+                  <div class="preview-box" onclick="showToast('上传AI头像 — 功能演示')">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="config-row">
+                <div class="config-label">机器人浮标</div>
+                <div class="config-value">
+                  <div class="preview-box" onclick="showToast('上传机器人浮标 — 功能演示')">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Token消耗明细 -->
+          <div class="token-section">
+            <div class="config-section-title">Token消耗明细</div>
+            <div class="table-card">
+              <div class="table-card-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>使用者</th>
+                      <th>Token输入消耗量</th>
+                      <th>Token输出消耗量</th>
+                      <th>最近使用时间</th>
+                    </tr>
+                  </thead>
+                  <tbody id="token-table-body"></tbody>
+                </table>
+              </div>
+
+              <div class="pagination" id="pagination">
+                <div>共 <strong id="total-count">0</strong> 条</div>
+                <div class="pagination-right">
+                  <select class="pg-select">
+                    <option>15 条/页</option>
+                    <option>30 条/页</option>
+                  </select>
+                  <button class="pg-btn" disabled>‹</button>
+                  <button class="pg-btn is-active">1</button>
+                  <button class="pg-btn" disabled>›</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="footer">EMS v0.2.1-1222-g65a75ba65a75ba | 2026-04-28 08:47:54</div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn btn-primary" onclick="showToast('保存设置 — 功能演示')">保存</button>
+    </div>
+  </div>
+
+  <!-- ===== Page-specific Scripts ===== -->
+  <script>
+    /* ===== TREE DATA ===== */
+    var TREE_DATA = [
+      {
+        id: 'JG', name: 'JG', expanded: true,
+        children: [
+          {
+            id: 'IT188MSP', name: 'IT188 MSP', type: 'MSP', expanded: true,
+            children: [
+              { id: 'DEV', name: 'DEV' },
+              { id: 'mx', name: 'mx' },
+              { id: 'Test123456', name: 'Test123456' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'msp', name: 'msp', type: 'MSP', trial: 'POC', expanded: false,
+        children: []
+      },
+      {
+        id: 'update_t', name: 'update_t...', type: 'MSP', trial: 'POC', expanded: false,
+        children: [
+          { id: 'tdengine', name: 'tdengine', trial: 'POC' }
+        ]
+      }
+    ];
+
+    var currentTenantId = 'DEV';
+
+    var AVATAR_COLORS = ['#2563EB', '#7C3AED', '#0891B2', '#059669', '#D97706', '#DC2626', '#4F46E5', '#0D9488'];
+    function avatarColor(name) { var h = 0; for (var i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i); return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; }
+
+    /* ===== TOKEN DATA ===== */
+    var TOKEN_DATA = [
+      { user: '-', inputTokens: '581,234', outputTokens: '14,567', lastUsed: '2026-05-03 15:42:00' },
+      { user: '-', inputTokens: '423,891', outputTokens: '12,345', lastUsed: '2026-05-02 09:15:00' },
+      { user: '-', inputTokens: '312,456', outputTokens: '8,901', lastUsed: '2026-05-01 18:30:00' },
+      { user: '-', inputTokens: '256,789', outputTokens: '7,234', lastUsed: '2026-04-30 11:20:00' },
+      { user: '-', inputTokens: '198,345', outputTokens: '5,678', lastUsed: '2026-04-29 14:55:00' }
+    ];
+
+    /* ===== RENDER TREE ===== */
+    function renderTree(data) {
+      var list = data || TREE_DATA;
+      var html = '';
+
+      function renderNode(node, level) {
+        if (node.children && node.children.length > 0) {
+          var expandedClass = node.expanded ? ' expanded' : '';
+          html += '<div class="tree-parent' + expandedClass + '" onclick="toggleExpand(this)" style="padding-left:' + (10 + level * 16) + 'px;">';
+          html += '<span class="expand-icon"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg></span>';
+          html += '<span class="node-avatar">' + node.name.charAt(0).toUpperCase() + '</span>';
+          html += '<span>' + escapeHtml(node.name) + '</span>';
+          if (node.type === 'MSP') html += '<span class="tenant-type-tag msp">MSP</span>';
+          if (node.trial === 'POC') html += '<span class="tenant-type-tag poc">POC</span>';
+          html += '</div>';
+
+          var collapsedClass = node.expanded ? '' : ' collapsed';
+          html += '<div class="tree-children' + collapsedClass + '">';
+          node.children.forEach(function (child) {
+            renderNode(child, level + 1);
+          });
+          html += '</div>';
+        } else {
+          var activeClass = node.id === currentTenantId ? ' active' : '';
+          html += '<div class="tree-node' + activeClass + '" onclick="switchTenant(\'' + node.id + '\')" style="padding-left:' + (10 + level * 16) + 'px;">';
+          html += '<span class="node-avatar is-enduser">' + node.name.charAt(0).toUpperCase() + '</span>';
+          html += '<span>' + escapeHtml(node.name) + '</span>';
+          if (node.trial === 'POC') html += '<span class="tenant-type-tag poc">POC</span>';
+          html += '</div>';
+        }
+      }
+
+      list.forEach(function (node) { renderNode(node, 0); });
+      document.getElementById('tree-body').innerHTML = html;
+    }
+
+    /* ===== TOGGLE EXPAND ===== */
+    function toggleExpand(el) {
+      el.classList.toggle('expanded');
+      var children = el.nextElementSibling;
+      if (children) children.classList.toggle('collapsed');
+    }
+
+    /* ===== SWITCH TENANT ===== */
+    function switchTenant(id) {
+      currentTenantId = id;
+      renderTree();
+    }
+
+    /* ===== TOGGLE AI ===== */
+    function toggleAI() {
+      var track = document.getElementById('ai-toggle');
+      var text = document.getElementById('ai-toggle-text');
+      track.classList.toggle('on');
+      text.textContent = track.classList.contains('on') ? '已启用' : '已停用';
+    }
+
+    /* ===== RENDER TOKEN TABLE ===== */
+    function renderTokenTable() {
+      var tbody = document.getElementById('token-table-body');
+      var html = '';
+      TOKEN_DATA.forEach(function (row) {
+        html += '<tr>';
+        html += '<td>' + escapeHtml(row.user) + '</td>';
+        html += '<td>' + escapeHtml(row.inputTokens) + '</td>';
+        html += '<td>' + escapeHtml(row.outputTokens) + '</td>';
+        html += '<td>' + escapeHtml(row.lastUsed) + '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+      document.getElementById('total-count').textContent = '1685';
+    }
+
+    /* ===== FILTER TREE ===== */
+    function filterTree() {
+      var keyword = document.getElementById('tree-search').value.toLowerCase();
+      if (!keyword) { renderTree(); return; }
+
+      function filterNodes(nodes) {
+        var results = [];
+        nodes.forEach(function (node) {
+          if (node.children) {
+            var matchChildren = filterNodes(node.children);
+            if (node.name.toLowerCase().indexOf(keyword) !== -1 || matchChildren.length > 0) {
+              results.push(Object.assign({}, node, { expanded: true, children: matchChildren.length > 0 ? matchChildren : node.children }));
+            }
+          } else {
+            if (node.name.toLowerCase().indexOf(keyword) !== -1) {
+              results.push(node);
+            }
+          }
+        });
+        return results;
+      }
+
+      renderTree(filterNodes(TREE_DATA));
+    }
+
+    /* ===== UTILS ===== */
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    /* ===== INIT ===== */
+    renderTree();
+    renderTokenTable();
+  </script>
+
+  <!-- ===== Navbar Feature Scripts ===== -->
+  <script>
+    // Toast
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(function () { t.classList.remove('show'); }, 2000);
+    }
+
+    // Theme Toggle (with localStorage persist)
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isDark = html.getAttribute('data-theme') === 'dark';
+      var next = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      try { localStorage.setItem('ems-theme', next); } catch (e) { }
+      showToast(isDark ? '已切换到浅色主题' : '已切换到暗色主题');
+    }
+    // Restore theme on load
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+      } catch (e) { }
+    })();
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Sidebar Toggle (with localStorage persist)
+    function toggleSidebar() {
+      var sb = document.getElementById('sidebar');
+      sb.classList.toggle('expanded');
+      var isOpen = sb.classList.contains('expanded');
+      document.body.classList.toggle('sidebar-open', isOpen);
+      try { localStorage.setItem('ems-sidebar', isOpen ? 'expanded' : 'collapsed'); } catch (e) { }
+    }
+    // Restore sidebar on load
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-sidebar');
+        if (saved === 'expanded') {
+          document.getElementById('sidebar').classList.add('expanded');
+          document.body.classList.add('sidebar-open');
+        }
+      } catch (e) { }
+    })();
+
+    // User Menu
+    function toggleUserMenu() {
+      document.getElementById('userDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', function (e) {
+      var w = document.getElementById('userWrapper');
+      if (w && !w.contains(e.target)) document.getElementById('userDropdown').classList.remove('open');
+    });
+
+    // Language Switcher
+    function toggleLangMenu() {
+      document.getElementById('langMenu').classList.toggle('open');
+    }
+    function switchLang(code, label, el) {
+      document.querySelectorAll('.lang-option').forEach(function (o) { o.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('langMenu').classList.remove('open');
+      showToast('已切换语言: ' + label);
+    }
+    document.addEventListener('click', function (e) {
+      var sw = document.getElementById('langSwitcher');
+      if (sw && !sw.contains(e.target)) {
+        document.getElementById('langMenu').classList.remove('open');
+      }
+    });
+
+    // Command Palette
+    var CMD_DATA = [
+      { cat: '快速导航', title: '工作台', desc: '概览 Dashboard', icon: 'grid' },
+      { cat: '快速导航', title: '租户管理', desc: '组织管理 → 租户管理', icon: 'users' },
+      { cat: '快速导航', title: '产品管理', desc: '组织管理 → 产品管理', icon: 'box' },
+      { cat: '快速导航', title: '授权管理', desc: '组织管理 → License & SKU', icon: 'lock' },
+      { cat: '快速导航', title: '角色管理', desc: '权限管理 → 角色管理', icon: 'shield' },
+      { cat: '快速导航', title: '组织架构', desc: '权限管理 → 组织架构', icon: 'org' },
+      { cat: '快速导航', title: '个人信息', desc: '系统设置 → 个人信息', icon: 'user' },
+      { cat: '快速导航', title: '三方对接', desc: '系统设置 → 三方对接', icon: 'link' },
+      { cat: '快速导航', title: '同步管理', desc: '系统设置 → 同步管理', icon: 'sync' },
+      { cat: '快速导航', title: '通用设置', desc: '系统设置 → 通用设置', icon: 'settings' },
+      { cat: '快速导航', title: 'AI访问设置', desc: '系统设置 → AI配置', icon: 'ai' },
+      { cat: '操作', title: '新增租户', desc: '创建新的租户账号', icon: 'plus' },
+      { cat: '系统操作', title: '切换暗色主题', desc: '系统显示偏好', icon: 'theme', keys: ['⌘', 'D'], action: function () { toggleTheme(); closeCmd(); } },
+      { cat: '系统操作', title: '全屏模式', desc: '切换全屏显示', icon: 'fullscreen', action: function () { toggleFullscreen(); closeCmd(); } },
+    ];
+
+    var CMD_ICONS = {
+      grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+      users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+      box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+      lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+      shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      org: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="3"/><path d="M12 8v4"/><path d="M6 16h12"/><path d="M6 16v4"/><path d="M18 16v4"/><path d="M12 12v4"/><path d="M12 16v4"/></svg>',
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+      sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 4v2h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/><path d="M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>',
+      settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z"/></svg>',
+      ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+      theme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
+      fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>',
+    };
+
+    var cmdFocusIdx = 0;
+    var cmdFiltered = [];
+
+    function renderCmdResults(items) {
+      cmdFiltered = items;
+      cmdFocusIdx = 0;
+      var container = document.getElementById('cmdResults');
+      if (!items.length) {
+        container.innerHTML = '<div class="cmd-empty">没有匹配结果，试试其他关键字</div>';
+        return;
+      }
+      var html = '';
+      var lastCat = '';
+      items.forEach(function (item, idx) {
+        if (item.cat !== lastCat) {
+          lastCat = item.cat;
+          html += '<div class="cmd-section-title">' + item.cat + '</div>';
+        }
+        var f = idx === 0 ? ' focused' : '';
+        var keys = item.keys ? '<div class="cmd-result-shortcut">' + item.keys.map(function (k) { return '<kbd>' + k + '</kbd>'; }).join('') + '</div>' : '';
+        html += '<div class="cmd-result-item' + f + '" data-idx="' + idx + '" onclick="execCmdItem(' + idx + ')" onmouseenter="focusCmdItem(' + idx + ')">';
+        html += '<div class="cmd-result-icon">' + (CMD_ICONS[item.icon] || '') + '</div>';
+        html += '<div class="cmd-result-text"><div class="title">' + item.title + '</div><div class="desc">' + item.desc + '</div></div>';
+        html += keys + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function filterCmdResults(q) {
+      q = q.trim().toLowerCase();
+      if (!q) { renderCmdResults(CMD_DATA.slice(0, 12)); return; }
+      var results = CMD_DATA.filter(function (item) {
+        return item.title.toLowerCase().indexOf(q) !== -1
+          || item.desc.toLowerCase().indexOf(q) !== -1
+          || item.cat.toLowerCase().indexOf(q) !== -1;
+      });
+      renderCmdResults(results.slice(0, 20));
+    }
+
+    function focusCmdItem(idx) {
+      document.querySelectorAll('.cmd-result-item').forEach(function (el) { el.classList.remove('focused'); });
+      var el = document.querySelector('.cmd-result-item[data-idx="' + idx + '"]');
+      if (el) { el.classList.add('focused'); cmdFocusIdx = idx; }
+    }
+
+    function execCmdItem(idx) {
+      var item = cmdFiltered[idx];
+      if (item && item.action) item.action();
+      else { closeCmd(); showToast('导航到: ' + (item ? item.title : '')); }
+    }
+
+    function openCmd() {
+      document.getElementById('cmdOverlay').classList.add('open');
+      renderCmdResults(CMD_DATA.slice(0, 12));
+      setTimeout(function () { document.getElementById('cmdInput').focus(); }, 50);
+    }
+    function closeCmd() {
+      document.getElementById('cmdOverlay').classList.remove('open');
+      document.getElementById('cmdInput').value = '';
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', function (e) {
+      var cmdOpen = document.getElementById('cmdOverlay').classList.contains('open');
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        if (cmdOpen) closeCmd(); else openCmd();
+        return;
+      }
+      if (e.key === 'Escape') {
+        if (cmdOpen) { closeCmd(); return; }
+      }
+      if (cmdOpen) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          var next = Math.min(cmdFocusIdx + 1, cmdFiltered.length - 1);
+          focusCmdItem(next);
+          var el = document.querySelector('.cmd-result-item.focused');
+          if (el) el.scrollIntoView({ block: 'nearest' });
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          var prev = Math.max(cmdFocusIdx - 1, 0);
+          focusCmdItem(prev);
+          var el2 = document.querySelector('.cmd-result-item.focused');
+          if (el2) el2.scrollIntoView({ block: 'nearest' });
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          execCmdItem(cmdFocusIdx);
+        }
+      }
+    });
+  </script>
+
+</body>
+
+</html>

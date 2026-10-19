@@ -1,0 +1,5225 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMS - 授权管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/ems-v2-common.css">
+  <style>
+    /* EMS 授权管理 License SKU 化改造原型 v2.0 2026-04-24
+   UI Optimization — EMS 2.0 Business Clean 配色对齐 */
+
+    :root {
+      /* Brand — EMS 2.0 Design System */
+      --c-primary: #2563EB;
+      --c-primary-hover: #3B82F6;
+      --c-primary-active: #1D4ED8;
+      --c-primary-bg: #EFF6FF;
+      --c-primary-border: #93C5FD;
+      /* Semantic */
+      --c-success: #10B981;
+      --c-success-bg: #ECFDF5;
+      --c-success-border: #6EE7B7;
+      --c-warning: #F59E0B;
+      --c-warning-bg: #FFFBEB;
+      --c-warning-border: #FCD34D;
+      --c-danger: #EF4444;
+      --c-danger-bg: #FEF2F2;
+      --c-danger-border: #FCA5A5;
+      /* Neutral */
+      --c-text-1: #111827;
+      --c-text-2: #6B7280;
+      --c-text-3: #9CA3AF;
+      --c-text-4: #D1D5DB;
+      --c-border: #E5E7EB;
+      --c-border-light: #F3F4F6;
+      --c-fill-1: #F9FAFB;
+      --c-fill-2: #F3F4F6;
+      --c-bg: #F5F7FA;
+      --c-white: #FFFFFF;
+      /* Layout */
+      --sidebar-w: 200px;
+      --sidebar-collapsed-w: 56px;
+      --header-h: 48px;
+      /* Shadow */
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+      /* Radius */
+      --r-sm: 4px;
+      --r-md: 6px;
+      --r-lg: 8px;
+      --r-xl: 12px;
+      /* Transition */
+      --ease: cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* === Dark Theme === */
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --c-primary: #60A5FA;
+      --c-primary-hover: #93C5FD;
+      --c-primary-active: #3B82F6;
+      --c-primary-bg: #1E293B;
+      --c-primary-border: #1E40AF;
+      --c-success: #34D399;
+      --c-success-bg: #064E3B;
+      --c-success-border: #065F46;
+      --c-warning: #FBBF24;
+      --c-warning-bg: #78350F;
+      --c-warning-border: #92400E;
+      --c-danger: #F87171;
+      --c-danger-bg: #7F1D1D;
+      --c-danger-border: #991B1B;
+      --c-text-1: #F1F5F9;
+      --c-text-2: #94A3B8;
+      --c-text-3: #64748B;
+      --c-text-4: #475569;
+      --c-border: #334155;
+      --c-border-light: #1E293B;
+      --c-fill-1: #1E293B;
+      --c-fill-2: #334155;
+      --c-bg: #0F172A;
+      --c-white: #1E293B;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--c-bg);
+      color: var(--c-text-2);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--c-text-4);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--c-text-3);
+    }
+
+    a {
+      color: var(--c-primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--c-primary-hover);
+    }
+
+    /* ===== HEADER (Enhanced Navbar) ===== */
+    .header {
+      height: var(--header-h);
+      background: var(--c-white);
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px 0 0;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo-area {
+      width: var(--sidebar-collapsed-w);
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: width .25s var(--ease);
+    }
+
+    .sidebar.expanded~.main,
+    .sidebar-expanded-logo .logo-area {
+      /* JS toggles this class on header */
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      transition: width .25s var(--ease), height .25s var(--ease);
+    }
+
+    .logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Expanded logo when sidebar is open */
+    body.sidebar-open .logo-area {
+      width: var(--sidebar-w);
+      padding-left: 16px;
+      justify-content: flex-start;
+    }
+
+    body.sidebar-open .logo-mark {
+      width: 120px;
+      height: 36px;
+      border-radius: var(--r-sm);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--c-text-3);
+    }
+
+    .header-breadcrumb .sep {
+      font-size: 11px;
+    }
+
+    .header-breadcrumb .current {
+      color: var(--c-text-1);
+      font-weight: 500;
+    }
+
+    /* Search bar */
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+      min-width: 0;
+    }
+
+    .cmd-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      color: var(--c-text-3);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      min-width: 200px;
+      max-width: 400px;
+      width: 100%;
+      transition: border-color .2s;
+    }
+
+    .cmd-trigger:hover {
+      border-color: var(--c-primary);
+      color: var(--c-text-2);
+    }
+
+    .cmd-trigger .shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      padding: 1px 5px;
+      border: 1px solid var(--c-border);
+      border-radius: 3px;
+      background: var(--c-white);
+    }
+
+    /* Icon buttons */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-icon-btn {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: transparent;
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .header-icon-btn:hover {
+      background: var(--c-fill-2);
+      color: var(--c-text-1);
+    }
+
+    .header-icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .badge-count {
+      position: absolute;
+      top: 2px;
+      right: 0;
+      min-width: 16px;
+      height: 16px;
+      background: var(--c-danger);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      border: 1.5px solid var(--c-white);
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--c-border);
+      margin: 0 6px;
+    }
+
+    /* Language Switcher */
+    .lang-switcher {
+      position: relative;
+    }
+
+    .lang-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 140px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      padding: 4px;
+      animation: cmdSlideIn .12s ease;
+    }
+
+    .lang-menu.open {
+      display: block;
+    }
+
+    .lang-option {
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+
+    .lang-option:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .lang-option.active {
+      color: var(--c-primary);
+      font-weight: 500;
+      background: var(--c-primary-bg);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .15s;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border: none;
+      background: transparent;
+    }
+
+    .user-area:hover {
+      background: var(--c-fill-2);
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--c-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #1F2937;
+      color: #F9FAFB;
+      padding: 8px 20px;
+      border-radius: var(--r-lg);
+      font-size: 13px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+    }
+
+    [data-theme="dark"] .toast {
+      background: #E5E7EB;
+      color: #111827;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== AI DRAWER ===== */
+    .ai-drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+      z-index: 1100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+
+    .ai-drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .ai-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 380px;
+      min-width: 320px;
+      max-width: 640px;
+      background: var(--c-white);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, .1);
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s ease;
+    }
+
+    .ai-drawer.open {
+      transform: translateX(0);
+    }
+
+    .ai-drawer-resize {
+      position: absolute;
+      left: -3px;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      cursor: col-resize;
+      z-index: 10;
+      background: transparent;
+    }
+
+    .ai-drawer-resize:hover,
+    .ai-drawer-resize.dragging {
+      background: var(--c-primary);
+      opacity: 0.4;
+    }
+
+    .ai-drawer-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(37, 99, 235, .06) 0%, transparent 60%);
+    }
+
+    .ai-drawer-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--c-text-1);
+    }
+
+    .ai-drawer-title .ai-icon {
+      width: 22px;
+      height: 22px;
+      color: var(--c-primary);
+    }
+
+    .ai-drawer-title .ai-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      background: var(--c-primary);
+      color: #fff;
+      font-weight: 500;
+      letter-spacing: .5px;
+    }
+
+    .ai-drawer-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--c-text-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+
+    .ai-drawer-close:hover {
+      background: var(--c-fill-2);
+      color: var(--c-text-1);
+    }
+
+    .ai-drawer-close svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .ai-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ai-msg {
+      padding: 10px 14px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 90%;
+    }
+
+    .ai-msg.assistant {
+      background: rgba(37, 99, 235, .06);
+      border: 1px solid rgba(37, 99, 235, .12);
+      color: var(--c-text-1);
+      align-self: flex-start;
+    }
+
+    .ai-msg.user {
+      background: var(--c-primary);
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    .ai-context-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, .05) 0%, rgba(139, 92, 246, .03) 100%);
+      border: 1px solid rgba(37, 99, 235, .1);
+      border-radius: var(--r-sm);
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .ai-context-bar svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .ai-context-tag {
+      padding: 2px 8px;
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .ai-quick-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 0 8px;
+    }
+
+    .ai-quick-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(37, 99, 235, .2);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, .04) 0%, rgba(139, 92, 246, .04) 100%);
+      color: var(--c-text-2);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .ai-quick-btn:hover {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+      background: linear-gradient(135deg, rgba(37, 99, 235, .12) 0%, rgba(139, 92, 246, .08) 100%);
+    }
+
+    .ai-cap-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .ai-cap-tag.active {
+      background: #DCFCE7;
+      color: #16A34A;
+    }
+
+    .ai-cap-tag .cap-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #22C55E;
+    }
+
+    .ai-drawer-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--c-border);
+    }
+
+    .ai-input-enhanced {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      background: var(--c-fill-1);
+      transition: border-color .2s;
+    }
+
+    .ai-input-enhanced:focus-within {
+      border-color: var(--c-primary);
+    }
+
+    .ai-input-enhanced .ai-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+    }
+
+    .ai-input-enhanced input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      color: var(--c-text-1);
+    }
+
+    .ai-input-enhanced input::placeholder {
+      color: var(--c-text-3);
+    }
+
+    .ai-send-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--c-primary);
+      border-radius: var(--r-sm);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, .3);
+      transition: all .2s;
+    }
+
+    .ai-send-btn:hover {
+      background: var(--c-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .ai-send-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ===== COMMAND PALETTE ===== */
+    .cmd-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .35);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      justify-content: center;
+      padding-top: 18vh;
+    }
+
+    .cmd-overlay.open {
+      display: flex;
+    }
+
+    .cmd-box {
+      width: 520px;
+      max-height: 440px;
+      background: var(--c-white);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: cmdSlideIn .15s ease;
+    }
+
+    @keyframes cmdSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cmd-input-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .cmd-input-area svg {
+      width: 18px;
+      height: 18px;
+      color: var(--c-text-3);
+      flex-shrink: 0;
+    }
+
+    .cmd-input-area input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      background: transparent;
+      color: var(--c-text-1);
+      font-family: inherit;
+    }
+
+    .cmd-input-area input::placeholder {
+      color: var(--c-text-3);
+    }
+
+    .cmd-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .cmd-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 8px 8px 4px;
+    }
+
+    .cmd-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .cmd-result-item:hover,
+    .cmd-result-item.focused {
+      background: var(--c-fill-1);
+    }
+
+    .cmd-result-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--c-fill-2);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      flex-shrink: 0;
+    }
+
+    .cmd-result-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .cmd-result-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cmd-result-text .title {
+      font-size: 13px;
+      color: var(--c-text-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cmd-result-text .desc {
+      font-size: 11px;
+      color: var(--c-text-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cmd-result-shortcut {
+      font-size: 11px;
+      color: var(--c-text-3);
+      display: flex;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .cmd-result-shortcut kbd {
+      padding: 1px 5px;
+      border: 1px solid var(--c-border);
+      border-radius: 3px;
+      background: var(--c-white);
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    .cmd-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--c-text-3);
+      font-size: 13px;
+    }
+
+    .cmd-footer {
+      padding: 8px 16px;
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .cmd-footer kbd {
+      padding: 1px 4px;
+      border: 1px solid var(--c-border);
+      border-radius: 3px;
+      background: var(--c-white);
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    /* ===== NOTIFICATION DRAWER ===== */
+    .notif-drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+      z-index: 1100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+
+    .notif-drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .notif-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 400px;
+      min-width: 320px;
+      max-width: 520px;
+      background: var(--c-white);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, .1);
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s ease;
+    }
+
+    .notif-drawer.open {
+      transform: translateX(0);
+    }
+
+    .notif-drawer-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .notif-drawer-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-drawer-title .notif-count {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      background: var(--c-danger);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--c-border);
+      padding: 0 16px;
+    }
+
+    .notif-tab {
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+      position: relative;
+    }
+
+    .notif-tab:hover {
+      color: var(--c-text-1);
+    }
+
+    .notif-tab.active {
+      color: var(--c-primary);
+      border-bottom-color: var(--c-primary);
+      font-weight: 500;
+    }
+
+    .notif-tab .tab-badge {
+      position: absolute;
+      top: 6px;
+      right: 2px;
+      min-width: 14px;
+      height: 14px;
+      background: var(--c-danger);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 600;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+    }
+
+    .notif-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .notif-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border-light);
+      cursor: pointer;
+      transition: background .15s;
+      display: flex;
+      gap: 12px;
+    }
+
+    .notif-item:hover {
+      background: var(--c-fill-1);
+    }
+
+    .notif-item.unread {
+      background: rgba(37, 99, 235, .02);
+    }
+
+    .notif-item .notif-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notif-icon.danger {
+      background: var(--c-danger-bg);
+      color: var(--c-danger);
+    }
+
+    .notif-icon.warning {
+      background: var(--c-warning-bg);
+      color: var(--c-warning);
+    }
+
+    .notif-icon.info {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+    }
+
+    .notif-icon.success {
+      background: var(--c-success-bg);
+      color: var(--c-success);
+    }
+
+    .notif-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .notif-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .notif-content .notif-title {
+      font-size: 13px;
+      color: var(--c-text-1);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .notif-item.unread .notif-title {
+      font-weight: 600;
+    }
+
+    .notif-content .notif-desc {
+      font-size: 12px;
+      color: var(--c-text-2);
+      line-height: 1.5;
+    }
+
+    .notif-content .notif-time {
+      font-size: 11px;
+      color: var(--c-text-3);
+      margin-top: 4px;
+    }
+
+    .notif-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      justify-content: center;
+    }
+
+    .notif-footer a {
+      font-size: 13px;
+      color: var(--c-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .notif-footer a:hover {
+      color: var(--c-primary-hover);
+    }
+
+    /* ===== SIDEBAR (Collapsible) ===== */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      width: var(--sidebar-collapsed-w);
+      height: calc(100vh - var(--header-h));
+      background: var(--c-white);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 90;
+      overflow: hidden;
+      padding: 6px 0;
+      transition: width .25s var(--ease);
+    }
+
+    .sidebar.expanded {
+      width: var(--sidebar-w);
+      overflow-y: auto;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--c-text-3);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform .25s var(--ease);
+    }
+
+    .sidebar.expanded .sidebar-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .sidebar-group {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-group {
+      opacity: 1;
+    }
+
+    .sidebar-group:first-of-type {
+      margin-top: 0;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 18px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sidebar-item:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-item.active {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+      font-weight: 500;
+    }
+
+    .sidebar-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--c-primary);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-item .s-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-item .s-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-item .s-label {
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-item .s-label {
+      opacity: 1;
+    }
+
+    /* Tooltip on collapsed */
+    .sidebar:not(.expanded) .sidebar-item[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(var(--sidebar-collapsed-w) + 4px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--c-text-1);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .org-switcher {
+      height: 48px;
+      border-top: 1px solid var(--c-border-light);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      cursor: pointer;
+      gap: 10px;
+      margin-top: auto;
+      flex-shrink: 0;
+      transition: background .15s;
+      overflow: hidden;
+    }
+
+    .org-switcher:hover {
+      background: var(--c-fill-1);
+    }
+
+    .org-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-md);
+      background: var(--c-fill-2);
+      border: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .org-info {
+      flex: 1;
+      min-width: 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .org-info {
+      opacity: 1;
+    }
+
+    .org-name {
+      font-size: 13px;
+      color: var(--c-text-1);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===== MAIN ===== */
+    .main {
+      position: absolute;
+      top: var(--header-h);
+      left: var(--sidebar-collapsed-w);
+      right: 0;
+      bottom: 0;
+      overflow: auto;
+      background: var(--c-bg);
+      transition: left .25s var(--ease);
+    }
+
+    .sidebar.expanded~.main {
+      left: var(--sidebar-w);
+    }
+
+    .main-inner {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      background: var(--c-white);
+      padding: 0;
+    }
+
+    /* Page header */
+    .page-header {
+      padding: 16px 20px 0;
+      background: var(--c-white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .page-desc {
+      font-size: 13px;
+      color: var(--c-text-3);
+      margin-left: 12px;
+    }
+
+    /* User dropdown */
+    .user-wrapper {
+      position: relative;
+    }
+
+    .user-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 180px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      padding: 4px;
+      animation: cmdSlideIn .12s ease;
+    }
+
+    .user-dropdown.open {
+      display: block;
+    }
+
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+
+    .user-dropdown-item:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .user-dropdown-item.danger {
+      color: var(--c-danger);
+    }
+
+    .user-dropdown-item.danger:hover {
+      background: var(--c-danger-bg);
+    }
+
+    .user-dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-dropdown-sep {
+      height: 1px;
+      background: var(--c-border);
+      margin: 4px 0;
+    }
+
+    /* Tree empty state */
+    .tree-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      color: var(--c-text-3);
+    }
+
+    .tree-empty svg {
+      width: 40px;
+      height: 40px;
+      color: var(--c-text-4);
+      margin-bottom: 8px;
+    }
+
+    .tree-empty span {
+      font-size: 12px;
+    }
+
+    /* Tabs — 左对齐 */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--c-border);
+      background: var(--c-white);
+      padding-left: 20px;
+    }
+
+    .tab-item {
+      flex: none;
+      text-align: center;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--c-text-2);
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .2s;
+      user-select: none;
+    }
+
+    .tab-item:hover {
+      color: var(--c-primary);
+    }
+
+    .tab-item.active {
+      color: var(--c-primary);
+      font-weight: 600;
+      border-bottom-color: var(--c-primary);
+    }
+
+    /* ===== OVERVIEW STATS BAR (disabled per PM) ===== */
+    .stats-bar {
+      display: none;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-item .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .stat-item .stat-num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .stat-item .stat-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+    }
+
+    .stat-sep {
+      width: 1px;
+      height: 28px;
+      background: var(--c-border);
+      flex-shrink: 0;
+    }
+
+    .stat-item .mini-ring {
+      width: 28px;
+      height: 28px;
+      position: relative;
+    }
+
+    .stat-item .mini-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .stat-item .mini-ring .ring-val {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+
+    /* ===== CONTENT LAYOUT ===== */
+    .tab-panel {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .content-layout {
+      display: flex;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    /* Tree panel */
+    .tree-panel {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--c-white);
+      border-radius: 0;
+      border: none;
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      box-shadow: none;
+      margin-left: 0;
+    }
+
+    .tree-panel-header {
+      padding: 14px 16px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree-panel-header svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--c-text-3);
+      fill: none;
+      stroke-width: 1.5;
+    }
+
+    .tree-search {
+      padding: 10px 12px 6px;
+    }
+
+    .tree-search-input {
+      width: 100%;
+      padding: 7px 12px 7px 32px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      font-size: 13px;
+      outline: none;
+      transition: all .2s;
+      background: var(--c-fill-1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 10px center;
+    }
+
+    .tree-search-input::placeholder {
+      color: var(--c-text-4);
+    }
+
+    .tree-search-input:focus {
+      border-color: var(--c-primary);
+      background-color: var(--c-white);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+    }
+
+    .tree-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px 12px;
+    }
+
+    .tree-org-title {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--c-text-3);
+      cursor: pointer;
+      gap: 6px;
+      user-select: none;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border-radius: var(--r-sm);
+      transition: background .15s;
+    }
+
+    .tree-org-title:hover {
+      background: var(--c-fill-1);
+    }
+
+    .tree-org-title .arrow {
+      display: flex;
+      align-items: center;
+      transition: transform .2s;
+      color: var(--c-text-4);
+    }
+
+    .tree-org-title .arrow svg {
+      width: 10px;
+      height: 10px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    .tree-org.is-open>.tree-org-title .arrow {
+      transform: rotate(90deg);
+    }
+
+    .tree-org-title .badge {
+      margin-left: auto;
+      font-size: 10px;
+      background: var(--c-fill-2);
+      color: var(--c-text-3);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .tree-org-title:hover .badge {
+      opacity: 1;
+    }
+
+    .tree-node {
+      padding: 6px 10px 6px 24px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      transition: all .12s;
+      margin: 1px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree-node:hover {
+      background: var(--c-fill-1);
+      color: var(--c-primary);
+    }
+
+    .tree-node.is-active {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      font-weight: 600;
+    }
+
+    .tree-node .node-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--r-sm);
+      font-size: 9px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-3);
+      background: var(--c-fill-2) !important;
+      border: 1px solid var(--c-border);
+      flex-shrink: 0;
+    }
+
+    .tree-node-clickable {
+      cursor: pointer;
+      color: var(--c-text-2);
+      transition: color .12s;
+    }
+
+    .tree-node-clickable:hover {
+      color: var(--c-primary);
+    }
+
+    .tree-org-title.is-active {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      font-weight: 600;
+    }
+
+    .tree-org-title .node-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--r-sm);
+      font-size: 9px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-3);
+      background: var(--c-fill-2) !important;
+      border: 1px solid var(--c-border);
+      flex-shrink: 0;
+    }
+
+    .tenant-type-tag {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 6px;
+      letter-spacing: .3px;
+    }
+
+    .tenant-type-tag.msp {
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    .tree-children {
+      /* smooth collapse handled by is-open class */
+    }
+
+    .node-avatar.is-enduser {
+      border-radius: 50% !important;
+    }
+
+    /* ===== RIGHT CONTENT ===== */
+    .right-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .tenant-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+
+    .tenant-name-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tenant-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--c-text-1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tenant-label::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: var(--c-primary);
+      border-radius: 2px;
+    }
+
+    .search-product {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-product input {
+      padding: 6px 12px 6px 32px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      font-size: 13px;
+      outline: none;
+      width: 200px;
+      transition: all .2s;
+      background: var(--c-fill-1);
+    }
+
+    .search-product input::placeholder {
+      color: var(--c-text-4);
+    }
+
+    .search-product input:focus {
+      border-color: var(--c-primary);
+      background: var(--c-white);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+    }
+
+    .search-product .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .search-product .search-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--c-text-4);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .search-product .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 0 16px;
+      height: 32px;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      font-size: 13px;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all .2s;
+      font-weight: 500;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+    }
+
+    .btn:hover {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-primary {
+      background: var(--c-primary);
+      color: var(--c-white);
+      border-color: var(--c-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--c-primary-hover);
+      border-color: var(--c-primary-hover);
+      color: var(--c-white);
+    }
+
+    .btn-sm {
+      height: 28px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    /* ===== TABLE CARD ===== */
+    .table-card {
+      background: var(--c-white);
+      border-radius: 0;
+      border: none;
+      border-top: 1px solid var(--c-border);
+      overflow: visible;
+      flex: 1;
+    }
+
+    .table-card-scroll {
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      background: var(--c-fill-1);
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--c-text-3);
+      font-weight: 600;
+      border-bottom: 1px solid var(--c-border);
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--c-border-light);
+      font-size: 13px;
+      color: var(--c-text-2);
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr {
+      transition: background .12s;
+    }
+
+    .data-table tbody tr:hover>td {
+      background: rgba(37, 99, 235, .02);
+    }
+
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .product-name {
+      font-weight: 600;
+      color: var(--c-text-1);
+      font-size: 14px;
+    }
+
+    .product-type {
+      font-size: 11px;
+      color: var(--c-text-3);
+      margin-top: 2px;
+      font-family: 'SF Mono', Monaco, Menlo, monospace;
+      letter-spacing: .3px;
+    }
+
+    /* Usage bar (consolidated) */
+    .usage-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .usage-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .usage-row .usage-code {
+      font-weight: 600;
+      color: var(--c-text-1);
+      width: 36px;
+      font-size: 11px;
+    }
+
+    .usage-bar {
+      height: 6px;
+      background: var(--c-fill-2);
+      border-radius: 3px;
+      overflow: hidden;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .usage-bar-inner {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .6s var(--ease);
+    }
+
+    .usage-bar-inner.green {
+      background: linear-gradient(90deg, #6EE7B7, var(--c-success));
+    }
+
+    .usage-bar-inner.orange {
+      background: linear-gradient(90deg, #FCD34D, var(--c-warning));
+    }
+
+    .usage-bar-inner.red {
+      background: linear-gradient(90deg, #FCA5A5, var(--c-danger));
+    }
+
+    .usage-pct {
+      font-size: 11px;
+      color: var(--c-text-3);
+      font-weight: 500;
+      width: 34px;
+    }
+
+    /* Feature tag */
+    .feat-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 1px 2px;
+    }
+
+    .feat-tag.on {
+      background: var(--c-success-bg);
+      color: var(--c-success);
+      border: 1px solid var(--c-success-border);
+    }
+
+    .feat-tag.off {
+      background: var(--c-fill-1);
+      color: var(--c-text-4);
+      border: 1px solid var(--c-border);
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-badge.active {
+      color: var(--c-success);
+      background: var(--c-success-bg);
+    }
+
+    .status-badge.trial {
+      color: #3B82F6;
+      background: var(--c-primary-bg);
+    }
+
+    .status-badge.expired {
+      color: var(--c-danger);
+      background: var(--c-danger-bg);
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Op links */
+    .op-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .op-link {
+      color: var(--c-primary);
+      cursor: pointer;
+      font-size: 13px;
+      background: none;
+      border: none;
+      padding: 2px 0;
+      font-weight: 500;
+      transition: color .15s;
+      white-space: nowrap;
+    }
+
+    .op-link:hover {
+      color: var(--c-primary-hover);
+    }
+
+    .op-link-danger {
+      color: var(--c-danger);
+    }
+
+    .op-link-danger:hover {
+      color: #F87171;
+    }
+
+    .op-sep {
+      display: inline-block;
+      width: 1px;
+      height: 14px;
+      background: var(--c-border);
+      margin: 0 6px;
+      vertical-align: middle;
+    }
+
+    /* Action more dropdown */
+    .action-more-wrap {
+      position: relative;
+    }
+
+    .action-more-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--c-text-3);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      transition: all .15s;
+      line-height: 1;
+    }
+
+    .action-more-btn:hover {
+      background: var(--c-fill-2);
+      color: var(--c-text-1);
+    }
+
+    .action-dropdown {
+      display: none;
+      position: fixed;
+      min-width: 100px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-md);
+      z-index: 9999;
+      padding: 4px 0;
+    }
+
+    .action-dropdown.open {
+      display: block;
+    }
+
+    .action-dropdown-item {
+      display: block;
+      width: 100%;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background .1s;
+    }
+
+    .action-dropdown-item:hover {
+      background: var(--c-fill-1);
+    }
+
+    .action-dropdown-item.danger {
+      color: var(--c-danger);
+    }
+
+    .action-dropdown-item.danger:hover {
+      background: var(--c-danger-bg);
+    }
+
+    .action-dropdown-divider {
+      height: 1px;
+      background: var(--c-border-light);
+      margin: 4px 12px;
+    }
+
+    /* Column settings button */
+    .btn-col-settings {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      font-size: 13px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-col-settings:hover {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+    }
+
+    .btn-col-settings svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .col-settings-panel {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-md);
+      padding: 12px 14px;
+      z-index: 60;
+      min-width: 180px;
+    }
+
+    .col-settings-panel.is-open {
+      display: block;
+    }
+
+    .col-settings-panel label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 13px;
+      color: var(--c-text-1);
+      cursor: pointer;
+    }
+
+    .col-settings-panel input[type="checkbox"] {
+      accent-color: var(--c-primary);
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--c-text-3);
+      border-top: 1px solid var(--c-border-light);
+    }
+
+    .pagination-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pg-select {
+      padding: 4px 24px 4px 10px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      color: var(--c-text-2);
+      background: var(--c-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
+    }
+
+    .pg-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-sm);
+      background: var(--c-white);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      font-size: 12px;
+      transition: all .15s;
+    }
+
+    .pg-btn:hover:not(:disabled) {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+    }
+
+    .pg-btn:disabled {
+      color: var(--c-text-4);
+      cursor: not-allowed;
+      opacity: .5;
+    }
+
+    .pg-btn.is-active {
+      background: var(--c-primary);
+      color: var(--c-white);
+      border-color: var(--c-primary);
+    }
+
+    /* ===== EXPAND ROW ===== */
+    .expand-btn {
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-4);
+      transition: all .15s;
+      padding: 0;
+      border-radius: var(--r-sm);
+    }
+
+    .expand-btn:hover {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+    }
+
+    .expand-btn.is-open {
+      color: var(--c-primary);
+    }
+
+    .expand-btn svg {
+      width: 14px;
+      height: 14px;
+      transition: transform .2s;
+    }
+
+    .expand-btn.is-open svg {
+      transform: rotate(90deg);
+    }
+
+    .expand-row>td {
+      padding: 0 !important;
+      background: var(--c-fill-1) !important;
+    }
+
+    .expand-content {
+      padding: 16px 20px 16px 52px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .3s var(--ease), padding .3s var(--ease);
+    }
+
+    .expand-content.is-open {
+      max-height: 600px;
+    }
+
+    .expand-content .section-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+      font-weight: 600;
+      margin-bottom: 10px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .expand-content .section-label::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      background: var(--c-primary);
+      border-radius: 2px;
+    }
+
+    .detail-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+
+    .detail-table th {
+      background: var(--c-fill-1);
+      padding: 8px 12px;
+      color: var(--c-text-3);
+      font-weight: 600;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .detail-table td {
+      padding: 10px 12px;
+      color: var(--c-text-2);
+      border-top: 1px solid var(--c-border-light);
+      background: var(--c-white);
+    }
+
+    .sku-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--r-sm);
+      font-size: 11px;
+      font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      font-weight: 500;
+      letter-spacing: -.2px;
+      border: 1px solid var(--c-primary-border);
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+      animation: fadeIn .2s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .modal-box {
+      background: var(--c-white);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-lg);
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp .25s;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(16px);
+        opacity: 0
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      color: var(--c-text-1);
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      border: none;
+      background: none;
+      color: var(--c-text-3);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-md);
+      font-size: 18px;
+      transition: all .15s;
+    }
+
+    .modal-close:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--c-border-light);
+    }
+
+    /* ===== STEPPER ===== */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+      padding: 0 40px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--c-text-3);
+      transition: all .3s;
+    }
+
+    .step.active .step-num {
+      border-color: var(--c-primary);
+      background: var(--c-primary);
+      color: #fff;
+    }
+
+    .step.done .step-num {
+      border-color: var(--c-success);
+      background: var(--c-success);
+      color: #fff;
+    }
+
+    .step-label {
+      font-size: 13px;
+      color: var(--c-text-3);
+      font-weight: 500;
+    }
+
+    .step.active .step-label {
+      color: var(--c-primary);
+      font-weight: 600;
+    }
+
+    .step.done .step-label {
+      color: var(--c-success);
+    }
+
+    .step-line {
+      width: 60px;
+      height: 2px;
+      background: var(--c-border);
+      margin: 0 8px;
+    }
+
+    .step-line.done {
+      background: var(--c-success);
+    }
+
+    .step-content {
+      display: none;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    /* ===== FORM ===== */
+    .form-section {
+      margin-bottom: 8px;
+    }
+
+    .form-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--c-text-1);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--c-border-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-section-title .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--c-primary);
+      flex-shrink: 0;
+    }
+
+    .form-section-title .hint-text {
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--c-text-3);
+      margin-left: auto;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .form-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      width: 90px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      text-align: right;
+      flex-shrink: 0;
+      line-height: 34px;
+      font-weight: 500;
+    }
+
+    .form-label .req {
+      color: var(--c-danger);
+      margin-right: 2px;
+    }
+
+    .form-control {
+      flex: 1;
+    }
+
+    .form-select,
+    .form-input {
+      width: 100%;
+      padding: 0 12px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      font-size: 13px;
+      color: var(--c-text-1);
+      outline: none;
+      height: 34px;
+      background: var(--c-white);
+      transition: all .2s;
+    }
+
+    .form-select:focus,
+    .form-input:focus {
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--c-text-3);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .sku-preview-box {
+      background: var(--c-fill-1);
+      border-left: 3px solid var(--c-primary);
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sku-preview-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .sku-preview-value {
+      font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
+      color: var(--c-primary);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* Module cards (step 2) */
+    .module-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .module-card {
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 16px;
+      transition: all .2s;
+      background: var(--c-white);
+      position: relative;
+    }
+
+    .module-card.is-enabled {
+      border-color: var(--c-primary-border);
+      background: var(--c-primary-bg);
+    }
+
+    .module-card.is-disabled {
+      opacity: .45;
+    }
+
+    .module-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .module-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .module-card-code {
+      font-size: 11px;
+      color: var(--c-text-3);
+      font-family: 'SF Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .module-card-desc {
+      font-size: 12px;
+      color: var(--c-text-3);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .module-card-fields {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .module-card-fields label {
+      font-size: 12px;
+      color: var(--c-text-2);
+      font-weight: 500;
+    }
+
+    .module-card-fields input[type="number"],
+    .module-card-fields input[type="date"] {
+      padding: 5px 10px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      outline: none;
+      width: 100px;
+      transition: all .15s;
+    }
+
+    .module-card-fields input:focus {
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, .1);
+    }
+
+    .module-card-fields input:disabled {
+      background: var(--c-fill-1);
+      border-color: transparent;
+      color: var(--c-text-4);
+    }
+
+    .mod-type-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .mod-type-badge.qty {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+    }
+
+    .mod-type-badge.toggle {
+      background: var(--c-success-bg);
+      color: var(--c-success);
+    }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      display: inline-flex;
+      width: 38px;
+      height: 22px;
+      cursor: pointer;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--c-text-4);
+      border-radius: 22px;
+      transition: background .25s;
+    }
+
+    .toggle-track::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      top: 2px;
+      background: var(--c-white);
+      border-radius: 50%;
+      transition: transform .25s;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+    }
+
+    .toggle input:checked+.toggle-track {
+      background: var(--c-primary);
+    }
+
+    .toggle input:checked+.toggle-track::before {
+      transform: translateX(16px);
+    }
+
+    /* Upload area */
+    .upload-area {
+      border: 2px dashed var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: var(--c-fill-1);
+    }
+
+    .upload-area:hover {
+      border-color: var(--c-primary);
+      background: var(--c-primary-bg);
+    }
+
+    .upload-area .upload-icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--c-primary-bg);
+      border-radius: 50%;
+    }
+
+    .upload-area .upload-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--c-primary);
+      fill: none;
+      stroke-width: 1.5;
+    }
+
+    /* ===== HISTORY ===== */
+    .history-view-toggle {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+
+    .view-btn {
+      padding: 6px 14px;
+      border-radius: var(--r-md);
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all .2s;
+      font-weight: 500;
+    }
+
+    .view-btn.active {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+    }
+
+    .view-btn:hover {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--c-border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--c-primary);
+      background: var(--c-white);
+      z-index: 1;
+    }
+
+    .timeline-item.first::before {
+      background: var(--c-primary);
+    }
+
+    .timeline-time {
+      font-size: 12px;
+      color: var(--c-text-3);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .timeline-card {
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      padding: 12px 16px;
+    }
+
+    .timeline-card .tl-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      margin-bottom: 4px;
+    }
+
+    .timeline-card .tl-detail {
+      font-size: 12px;
+      color: var(--c-text-2);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .timeline-card .tl-detail span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .change-up {
+      color: var(--c-success);
+      font-weight: 600;
+    }
+
+    .change-down {
+      color: var(--c-danger);
+      font-weight: 600;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .history-table th {
+      background: var(--c-fill-1);
+      padding: 10px 12px;
+      color: var(--c-text-3);
+      font-weight: 600;
+      text-align: left;
+      font-size: 11px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .history-table td {
+      padding: 10px 12px;
+      border-top: 1px solid var(--c-border-light);
+      color: var(--c-text-2);
+    }
+
+    .history-table tbody tr {
+      transition: background .1s;
+    }
+
+    .history-table tbody tr:hover td {
+      background: rgba(37, 99, 235, .02);
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      flex-wrap: wrap;
+      border: 1px solid var(--c-border-light);
+    }
+
+    .filter-bar label {
+      font-size: 12px;
+      color: var(--c-text-2);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .filter-bar select {
+      padding: 5px 28px 5px 10px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      outline: none;
+      color: var(--c-text-2);
+      background: var(--c-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
+      appearance: none;
+    }
+
+    .time-filter {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .time-chip {
+      padding: 4px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--c-text-3);
+      transition: all .15s;
+      font-weight: 500;
+    }
+
+    .time-chip:hover {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+    }
+
+    .time-chip.active {
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+    }
+
+    /* Confirm dialog */
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .35);
+      backdrop-filter: blur(2px);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .confirm-overlay.visible {
+      display: flex;
+    }
+
+    .confirm-box {
+      background: var(--c-white);
+      border-radius: var(--r-xl);
+      padding: 28px;
+      width: 400px;
+      max-width: 90vw;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .confirm-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .confirm-icon.warn {
+      background: var(--c-warning-bg);
+    }
+
+    .confirm-icon.danger {
+      background: var(--c-danger-bg);
+    }
+
+    .confirm-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .confirm-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--c-text-1);
+      margin-bottom: 8px;
+    }
+
+    .confirm-desc {
+      font-size: 13px;
+      color: var(--c-text-2);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 40px;
+    }
+
+    .empty-state svg {
+      width: 80px;
+      height: 80px;
+      stroke: var(--c-text-4);
+      fill: none;
+      stroke-width: 1;
+      margin-bottom: 16px;
+    }
+
+    .empty-state .empty-title {
+      font-size: 14px;
+      color: var(--c-text-2);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .empty-state .empty-desc {
+      font-size: 13px;
+      color: var(--c-text-3);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--c-text-4);
+      margin-top: auto;
+      padding: 8px 0 6px;
+      letter-spacing: .2px;
+      border-top: 1px solid var(--c-border-light);
+      background: var(--c-white);
+    }
+
+    /* License page: right-content needs padding */
+    .right-content {
+      padding: 16px 20px;
+      background: var(--c-white);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== HEADER (Enhanced Navbar Demo) ===== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-area">
+        <div class="logo-mark"><img src="../assets/itom-logo.png" alt="EMS"></div>
+      </div>
+      <nav class="header-breadcrumb">
+        <a class="bc-item" href="#" style="color:var(--c-text-3);text-decoration:none"
+          onmouseover="this.style.color='var(--c-primary)'" onmouseout="this.style.color='var(--c-text-3)'">组织管理</a>
+        <span class="sep">/</span>
+        <span class="current">授权管理</span>
+      </nav>
+    </div>
+    <div class="header-center">
+      <div class="cmd-trigger" onclick="openCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;flex-shrink:0">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>搜索租户、授权、页面…</span>
+        <span class="shortcut">⌘K</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- [DISABLED] 通知功能暂未上线
+      <button class="header-icon-btn" title="通知" onclick="openNotifDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+        <span class="badge-count">6</span>
+      </button>
+      -->
+      <!-- [DISABLED] AI 聊天功能暂未上线
+      <button class="header-icon-btn" title="AI 助手" onclick="openAIDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" stroke-linecap="round" />
+        </svg>
+      </button>
+      -->
+      <div class="lang-switcher" id="langSwitcher">
+        <button class="header-icon-btn" title="语言切换" onclick="toggleLangMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+          </svg>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-option active" onclick="switchLang('zh-CN','简体中文',this)">简体中文</div>
+          <div class="lang-option" onclick="switchLang('zh-TW','繁體中文',this)">繁體中文</div>
+          <div class="lang-option" onclick="switchLang('en','English',this)">English</div>
+        </div>
+      </div>
+      <button class="header-icon-btn" title="暗色模式 (⌘D)" onclick="toggleTheme()">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      </button>
+      <button class="header-icon-btn" title="全屏" onclick="toggleFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+        </svg>
+      </button>
+      <div class="header-sep"></div>
+      <div class="user-wrapper" id="userWrapper">
+        <button class="user-area" onclick="toggleUserMenu()">
+          <div class="user-avatar">A</div>
+          <span>Admin</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-item" onclick="showToast('个人信息')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            个人信息
+          </div>
+          <div class="user-dropdown-item" onclick="showToast('修改密码')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+            修改密码
+          </div>
+          <div class="user-dropdown-item" onclick="showToast('系统设置')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51H21a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+            </svg>
+            系统设置
+          </div>
+          <div class="user-dropdown-sep"></div>
+          <div class="user-dropdown-item danger" onclick="showToast('已退出登录')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            退出登录
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- [DISABLED] AI DRAWER — 功能暂未上线 -->
+  <!--
+  <div class="ai-drawer-overlay" id="aiOverlay" onclick="closeAIDrawer()"></div>
+  <div class="ai-drawer" id="aiDrawer">
+    <div class="ai-drawer-resize" id="aiResizeHandle"></div>
+    <div class="ai-drawer-header">
+      <div class="ai-drawer-title">
+        <svg class="ai-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 2l2.09 6.26L20 10.27l-4.91 3.82L16.18 21 12 17.27 7.82 21l1.09-6.91L4 10.27l5.91-2.01z"
+            stroke-linejoin="round" stroke-linecap="round" />
+        </svg>
+        EMS AI 助手
+        <span class="ai-badge">Beta</span>
+      </div>
+      <button class="ai-drawer-close" onclick="closeAIDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div style="padding:8px 16px 0;display:flex;flex-wrap:wrap;gap:6px;">
+      <span class="ai-cap-tag active"><span class="cap-dot"></span>Skills</span>
+      <span class="ai-cap-tag active"><span class="cap-dot"></span>知识库</span>
+      <span class="ai-cap-tag active"><span class="cap-dot"></span>MCP</span>
+      <span class="ai-cap-tag active"><span class="cap-dot"></span>Tool Use</span>
+    </div>
+    <div class="ai-drawer-body" id="aiDrawerBody">
+      <div class="ai-context-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4" />
+          <path d="M12 8h.01" />
+        </svg>
+        <span>已加载上下文：</span>
+        <span class="ai-context-tag">授权管理</span>
+        <span class="ai-context-tag">3 个租户</span>
+        <span class="ai-context-tag">12 个SKU</span>
+      </div>
+      <div class="ai-msg assistant">
+        你好！我是 EMS AI 助手，已加载当前授权管理上下文。<br><br>
+        我可以帮你：<br>
+        🔍 <strong>查询授权</strong> — 检索租户授权状态、到期提醒<br>
+        📊 <strong>用量分析</strong> — License 使用率趋势、容量预警<br>
+        📝 <strong>生成报告</strong> — 授权巡检报告、SKU 使用摘要<br>
+        ⚡ <strong>批量操作</strong> — 通过MCP批量生成/续期License
+      </div>
+      <div class="ai-quick-questions">
+        <button class="ai-quick-btn" onclick="askQuickQ(this)">哪些租户授权即将到期？</button>
+        <button class="ai-quick-btn" onclick="askQuickQ(this)">IT188 的 License 使用率如何？</button>
+        <button class="ai-quick-btn" onclick="askQuickQ(this)">帮我生成本月授权巡检摘要</button>
+        <button class="ai-quick-btn" onclick="askQuickQ(this)">哪些SKU使用率超80%？</button>
+      </div>
+    </div>
+    <div class="ai-drawer-footer">
+      <div class="ai-input-enhanced">
+        <div class="ai-input-row">
+          <input type="text" id="aiInput" placeholder="问 AI 任何问题… 支持 Skill / 知识库 / MCP"
+            onkeydown="if(event.key==='Enter')sendAIMsg()">
+          <button class="ai-send-btn" onclick="sendAIMsg()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  -->
+
+  <!-- [DISABLED] NOTIFICATION DRAWER — 功能暂未上线 -->
+  <!--
+  <div class="notif-drawer-overlay" id="notifOverlay" onclick="closeNotifDrawer()"></div>
+  <div class="notif-drawer" id="notifDrawer">
+    <div class="notif-drawer-header">
+      <div class="notif-drawer-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:20px;height:20px">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+        通知中心
+        <span class="notif-count">6</span>
+      </div>
+      <button class="ai-drawer-close" onclick="closeNotifDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="notif-tabs">
+      <div class="notif-tab active" onclick="switchNotifTab(this,'all')">全部</div>
+      <div class="notif-tab" onclick="switchNotifTab(this,'license')">授权告警 <span class="tab-badge">3</span></div>
+      <div class="notif-tab" onclick="switchNotifTab(this,'system')">系统通知 <span class="tab-badge">2</span></div>
+      <div class="notif-tab" onclick="switchNotifTab(this,'ops')">运维提醒 <span class="tab-badge">1</span></div>
+    </div>
+    <div class="notif-body" id="notifBody">
+      <div class="notif-item unread" data-cat="license">
+        <div class="notif-icon danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">租户 HuaAn Corp 授权即将到期</div>
+          <div class="notif-desc">NPM Standard 授权将于 <strong>3天后</strong>（2026-05-07）到期，当前在线设备 45/50。建议尽快续期。</div>
+          <div class="notif-time">10 分钟前</div>
+        </div>
+      </div>
+      <div class="notif-item unread" data-cat="license">
+        <div class="notif-icon danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">租户 IT188 License 数量已用尽</div>
+          <div class="notif-desc">ITOM Enterprise 已使用 <strong>200/200</strong> 个 License，新设备无法纳管。需要扩容或清理。</div>
+          <div class="notif-time">30 分钟前</div>
+        </div>
+      </div>
+      <div class="notif-item unread" data-cat="license">
+        <div class="notif-icon warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">租户 JGDemo 授权使用率超90%</div>
+          <div class="notif-desc">EMS Standard 已使用 <strong>92/100</strong> 个 License（92%），接近容量上限。</div>
+          <div class="notif-time">1 小时前</div>
+        </div>
+      </div>
+      <div class="notif-item" data-cat="system">
+        <div class="notif-icon info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">同步任务完成</div>
+          <div class="notif-desc">租户 IT188 的设备数据同步已完成，共同步 156 台设备，0 个错误。</div>
+          <div class="notif-time">2 小时前</div>
+        </div>
+      </div>
+      <div class="notif-item" data-cat="system">
+        <div class="notif-icon success">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">新产品 SKU 已上架</div>
+          <div class="notif-desc">EMS Enterprise v3.0 已成功上架到产品目录，可为租户分配授权。</div>
+          <div class="notif-time">3 小时前</div>
+        </div>
+      </div>
+      <div class="notif-item" data-cat="ops">
+        <div class="notif-icon warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">定期巡检提醒</div>
+          <div class="notif-desc">本月授权巡检尚未执行，建议检查所有租户的 License 到期情况和使用率。</div>
+          <div class="notif-time">昨天 18:00</div>
+        </div>
+      </div>
+    </div>
+    <div class="notif-footer">
+      <a href="#" onclick="showToast('查看全部通知');closeNotifDrawer()">查看全部通知</a>
+    </div>
+  </div>
+  -->
+
+  <!-- ===== COMMAND PALETTE ===== -->
+  <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this)closeCmd()">
+    <div class="cmd-box">
+      <div class="cmd-input-area">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" id="cmdInput" placeholder="搜索租户、授权、页面、操作…" autocomplete="off"
+          oninput="filterCmdResults(this.value)">
+      </div>
+      <div class="cmd-results" id="cmdResults"></div>
+      <div class="cmd-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> 导航</span>
+        <span><kbd>Enter</kbd> 打开</span>
+        <span><kbd>Esc</kbd> 关闭</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SIDEBAR (Collapsible — default collapsed) ===== -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="展开/收起菜单">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+      </svg>
+    </button>
+    <a class="sidebar-item" href="workspace-v2.html" title="工作台">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg></span>
+      <span class="s-label">工作台</span>
+    </a>
+    <div class="sidebar-group">组织管理</div>
+    <a class="sidebar-item" href="tenant-management-v2.html" title="租户管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg></span>
+      <span class="s-label">租户管理</span>
+    </a>
+    <a class="sidebar-item" href="product-management-v2.html" title="产品管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+          <path d="M3.27 6.96L12 12.01l8.73-5.05" />
+          <path d="M12 22.08V12" />
+        </svg></span>
+      <span class="s-label">产品管理</span>
+    </a>
+    <div class="sidebar-item active" title="授权管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg></span>
+      <span class="s-label">授权管理</span>
+    </div>
+    <div class="sidebar-group">权限管理</div>
+    <a class="sidebar-item" href="role-management-v2.html" title="角色管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg></span>
+      <span class="s-label">角色管理</span>
+    </a>
+    <a class="sidebar-item" href="org-structure-v2.html" title="组织架构">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="5" r="3" />
+          <path d="M12 8v4" />
+          <path d="M6 16h12" />
+          <path d="M6 16v4" />
+          <path d="M18 16v4" />
+          <path d="M12 12v4" />
+          <path d="M12 16v4" />
+        </svg></span>
+      <span class="s-label">组织架构</span>
+    </a>
+    <div class="sidebar-group">系统设置</div>
+    <a class="sidebar-item" href="personal-info-v2.html" title="个人信息">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg></span>
+      <span class="s-label">个人信息</span>
+    </a>
+    <a class="sidebar-item" href="third-party-v2.html" title="三方对接">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+        </svg></span>
+      <span class="s-label">三方对接</span>
+    </a>
+    <a class="sidebar-item" href="sync-management-v2.html" title="同步管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M23 4v2h-6" />
+          <path d="M1 20v-6h6" />
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10" />
+          <path d="M20.49 15a9 9 0 01-14.85 3.36L1 14" />
+        </svg></span>
+      <span class="s-label">同步管理</span>
+    </a>
+    <a class="sidebar-item" href="general-settings-v2.html" title="通用设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+        </svg></span>
+      <span class="s-label">通用设置</span>
+    </a>
+    <a class="sidebar-item" href="ai-settings-v2.html" title="AI访问设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">AI访问设置</span>
+    </a>
+    <div class="sidebar-group">ITOM 模块</div>
+    <a class="sidebar-item" href="../itom/alert-center-v2.html" title="告警中心">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+      <span class="s-label">告警中心</span>
+    </a>
+    <div class="sidebar-group">AI 管理</div>
+    <a class="sidebar-item" href="../ai/ai-management-v2.html" title="Agent Hub">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M9 14h6"/></svg></span>
+      <span class="s-label">Agent Hub</span>
+    </a>
+    <div class="org-switcher">
+      <div class="org-avatar">J</div>
+      <div class="org-info">
+        <div class="org-name">JGDemo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="main-inner">
+
+      <div class="page-header">
+        <h1 class="page-title">授权管理</h1>
+        <button class="btn btn-primary btn-sm" onclick="showToast('新增授权')">+ 新增授权</button>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchMainTab(0)">SaaS租户</div>
+        <div class="tab-item" onclick="switchMainTab(1)">OP租户</div>
+      </div>
+
+      <!-- ===== SaaS Tab Panel ===== -->
+      <div class="tab-panel" id="tab-panel-saas">
+
+        <!-- Overview Stats Bar -->
+        <div class="stats-bar" id="stats-bar"></div>
+
+        <div class="content-layout">
+          <!-- 左侧租户树 -->
+          <div class="tree-panel">
+            <div class="tree-panel-header">
+              <svg viewBox="0 0 24 24" stroke-linecap="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+              租户列表
+            </div>
+            <div class="tree-search">
+              <input class="tree-search-input" type="text" placeholder="搜索租户名称" oninput="filterSaasTree(this.value)">
+            </div>
+            <div class="tree-body" id="tree-body"></div>
+          </div>
+
+          <!-- Right content -->
+          <div class="right-content">
+            <div class="tenant-header">
+              <div class="tenant-name-area">
+                <span class="tenant-label" id="current-tenant">JGDemo</span>
+              </div>
+              <div class="tenant-name-area" style="gap:8px">
+                <div class="search-product">
+                  <div class="search-wrap">
+                    <span class="search-icon"><svg viewBox="0 0 24 24" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg></span>
+                    <input type="text" placeholder="搜索产品名称" id="search-input">
+                  </div>
+                </div>
+                <button class="btn btn-sm" onclick="exportData()">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  导出
+                </button>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-card-scroll">
+                <table class="data-table" id="main-table">
+                  <thead>
+                    <tr>
+                      <th style="width:32px"></th>
+                      <th>产品名称</th>
+                      <th>授权用量</th>
+                      <th>功能模块</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="table-body"></tbody>
+                </table>
+              </div>
+              <div class="pagination">
+                <div>共 <strong id="total-count">0</strong> 条</div>
+                <div class="pagination-right">
+                  <select class="pg-select">
+                    <option>15 条/页</option>
+                    <option>30 条/页</option>
+                  </select>
+                  <button class="pg-btn" disabled>‹</button>
+                  <button class="pg-btn is-active">1</button>
+                  <button class="pg-btn" disabled>›</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end tab-panel-saas -->
+
+      <!-- ===== OP Tab Panel ===== -->
+      <div class="tab-panel" id="tab-panel-op" style="display:none">
+
+        <!-- OP Overview Stats Bar -->
+        <div class="stats-bar" id="op-stats-bar"></div>
+
+        <div class="content-layout">
+          <!-- 左侧 OP 租户树 -->
+          <div class="tree-panel">
+            <div class="tree-panel-header">
+              <svg viewBox="0 0 24 24" stroke-linecap="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+              租户列表
+            </div>
+            <div class="tree-search">
+              <input class="tree-search-input" type="text" placeholder="搜索租户名称" oninput="filterOpTree(this.value)">
+            </div>
+            <div class="tree-body" id="op-tree-body"></div>
+          </div>
+
+          <!-- Right content -->
+          <div class="right-content">
+            <div class="tenant-header">
+              <div class="tenant-name-area">
+                <span class="tenant-label" id="op-current-tenant">周大福</span>
+              </div>
+              <div class="tenant-name-area" style="gap:8px">
+                <div class="search-product">
+                  <div class="search-wrap">
+                    <span class="search-icon"><svg viewBox="0 0 24 24" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg></span>
+                    <input type="text" placeholder="搜索产品名称">
+                  </div>
+                </div>
+                <div style="position:relative" id="op-col-settings-wrap">
+                  <button class="btn-col-settings" onclick="toggleOpColSettings()">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    列设置
+                  </button>
+                  <div class="col-settings-panel" id="op-col-settings-panel"></div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="void(0)">+ 添加产品</button>
+                <button class="btn btn-sm" onclick="void(0)">导出</button>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-card-scroll">
+                <table class="data-table" id="op-table">
+                  <thead>
+                    <tr>
+                      <th class="op-col-product">产品名称</th>
+                      <th class="op-col-type">产品类型</th>
+                      <th class="op-col-url">URL</th>
+                      <th class="op-col-version">版本</th>
+                      <th class="op-col-status">状态</th>
+                      <th class="op-col-licenseQty">License数量</th>
+                      <th class="op-col-remaining">剩余License</th>
+                      <th class="op-col-config">配置</th>
+                      <th class="op-col-retention">数据存储周期(天)</th>
+                      <th class="op-col-expiry">有效期至</th>
+                      <th class="op-col-createdAt">开通时间</th>
+                      <th class="op-col-updatedAt">最近更新时间</th>
+                      <th class="op-col-ops">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="op-table-body"></tbody>
+                </table>
+              </div>
+              <div class="pagination" id="op-pagination">
+                <div>共 <strong id="op-total-count">1</strong> 条</div>
+                <div class="pagination-right">
+                  <select class="pg-select">
+                    <option>15 条/页</option>
+                    <option>30 条/页</option>
+                  </select>
+                  <button class="pg-btn" disabled>‹</button>
+                  <button class="pg-btn is-active">1</button>
+                  <button class="pg-btn" disabled>›</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- end tab-panel-op -->
+
+      <div class="footer">EMS v0.2.1 (Build 1222) &nbsp;·&nbsp; 2026-04-28 08:47</div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: 更新 License (Stepper) ===== -->
+  <div class="modal-overlay" id="modal-update">
+    <div class="modal-box" style="width:880px;max-width:92vw">
+      <div class="modal-header">
+        <h3>更新 License</h3>
+        <button class="modal-close" onclick="closeModal('modal-update')">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Stepper -->
+        <div class="stepper" id="stepper">
+          <div class="step active" data-step="1"><span class="step-num">1</span><span class="step-label">选择产品</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="2"><span class="step-num">2</span><span class="step-label">配置模块</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="3"><span class="step-num">3</span><span class="step-label">确认提交</span>
+          </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step-content active" id="step-1">
+          <div class="form-section">
+            <div class="form-section-title"><span class="dot"></span> 基础信息</div>
+            <div class="form-row">
+              <label class="form-label"><span class="req">*</span>租户名称</label>
+              <div class="form-control"><select class="form-select">
+                  <option selected>JGDemo</option>
+                  <option>Demo3</option>
+                  <option>HKT</option>
+                  <option>Hysan</option>
+                </select></div>
+            </div>
+            <div class="form-row">
+              <label class="form-label"><span class="req">*</span>产品线</label>
+              <div class="form-control">
+                <select class="form-select" id="sel-product" onchange="onProductLineChange()">
+                  <option value="">请选择产品线</option>
+                  <option value="EMS">EMS 平台</option>
+                  <option value="ITOM" selected>Champ-ITOM</option>
+                  <option value="NPM">Champ-NPM</option>
+                  <option value="ITSM">Champ-ITSM</option>
+                  <option value="ITAM">Champ-ITAM</option>
+                  <option value="PMS">Champ-PMS</option>
+                  <option value="FSM">Champ-FSM</option>
+                  <option value="CPE">CPE</option>
+                </select>
+                <div class="form-hint">选择产品线后自动加载功能模块</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-label"><span class="req">*</span>License版本</label>
+              <div class="form-control">
+                <select class="form-select" id="sel-version" onchange="updateSkuPreview()">
+                  <option value="">请选择</option>
+                  <option value="ENT-SAAS" selected>ENT-SAAS — 企业 SaaS 订阅</option>
+                  <option value="ENT-OP">ENT-OP — 企业 OP 订阅</option>
+                  <option value="ENT-OPL">ENT-OPL — 企业 OP 永久（仅 CNY）</option>
+                  <option value="MSP-SAAS">MSP-SAAS — MSP SaaS 订阅</option>
+                  <option value="MSP-OP">MSP-OP — MSP OP 订阅</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-label"><span class="req">*</span>发行区域</label>
+              <div class="form-control">
+                <select class="form-select" id="sel-region" onchange="updateSkuPreview()">
+                  <option value="-C" selected>-C — 国内（CNY）</option>
+                  <option value="-I">-I — 海外（USD）</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-label"></label>
+              <div class="form-control">
+                <div class="sku-preview-box">
+                  <span class="sku-preview-label">SKU 规则</span>
+                  <span class="sku-preview-value" id="sku-prefix">ITOM-[模块]-ENT-SAAS-C</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-content" id="step-2">
+          <div class="form-section">
+            <div class="form-section-title">
+              <span class="dot"></span> 功能模块授权
+              <span class="hint-text">📊 数量型 = 填写数量 · 🔘 开关型 = 仅开/关</span>
+            </div>
+            <div class="module-cards" id="module-cards"></div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-content" id="step-3">
+          <div class="form-section">
+            <div class="form-section-title"><span class="dot"></span> 授权文件 <span class="req">*</span></div>
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('csv-file-input').click()"
+              style="cursor:pointer">
+              <input type="file" id="csv-file-input" accept=".csv" style="display:none"
+                onchange="handleCsvUpload(this)">
+              <div class="upload-icon"><svg viewBox="0 0 24 24" stroke-linecap="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg></div>
+              <div id="upload-text" style="font-size:13px;color:var(--c-text-2);font-weight:500">点击上传或拖拽 CSV 文件到此区域
+              </div>
+              <div id="upload-hint" style="font-size:11px;color:var(--c-text-4);margin-top:6px">仅支持 .csv 格式，最大 10MB
+              </div>
+            </div>
+          </div>
+          <div class="form-section" style="margin-top:20px">
+            <div class="form-section-title"><span class="dot"></span> 配置确认摘要</div>
+            <div id="confirm-summary"
+              style="background:var(--c-fill-1);border-radius:var(--r-md);padding:16px;font-size:13px;color:var(--c-text-2);line-height:2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-update-footer">
+        <button class="btn" id="btn-prev" style="display:none" onclick="stepPrev()">上一步</button>
+        <div style="flex:1"></div>
+        <button class="btn" onclick="closeModal('modal-update')">取消</button>
+        <button class="btn btn-primary" id="btn-next" onclick="stepNext()">下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: License 历史 ===== -->
+  <div class="modal-overlay" id="modal-history">
+    <div class="modal-box" style="width:1000px;max-width:96vw">
+      <div class="modal-header">
+        <h3>License 更新历史 — <span id="history-title">JGDemo / Champ-ITOM</span></h3>
+        <button class="modal-close" onclick="closeModal('modal-history')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:16px 24px">
+        <div
+          style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div class="history-view-toggle">
+            <button class="view-btn active" onclick="switchHistView('timeline',this)">时间线</button>
+            <button class="view-btn" onclick="switchHistView('table',this)">表格</button>
+          </div>
+          <div class="time-filter">
+            <span class="time-chip" onclick="filterTime(7,this)">近7天</span>
+            <span class="time-chip active" onclick="filterTime(30,this)">近30天</span>
+            <span class="time-chip" onclick="filterTime(90,this)">近90天</span>
+            <span class="time-chip" onclick="filterTime(0,this)">全部</span>
+          </div>
+        </div>
+        <div id="history-timeline"></div>
+        <div id="history-table-wrap" style="display:none">
+          <div style="border:1px solid var(--c-border);border-radius:var(--r-md);overflow:auto">
+            <table class="history-table" id="history-table">
+              <thead>
+                <tr>
+                  <th>模块</th>
+                  <th>SKU</th>
+                  <th>时间</th>
+                  <th>有效期变更</th>
+                  <th>数量变更</th>
+                  <th>操作人</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="pagination" style="border:none;padding:12px 0 0">
+          <div>共 <strong id="hist-count">0</strong> 条</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONFIRM DIALOG ===== -->
+  <div class="confirm-overlay" id="confirm-dialog">
+    <div class="confirm-box">
+      <div class="confirm-icon warn" id="confirm-icon">
+        <svg viewBox="0 0 24 24" stroke="var(--c-warning)">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      </div>
+      <div class="confirm-title" id="confirm-title">确认停用？</div>
+      <div class="confirm-desc" id="confirm-desc">停用后该产品的所有功能将不可用，租户下的用户将无法访问相关服务。</div>
+      <div class="confirm-actions">
+        <button class="btn" onclick="closeConfirm()">取消</button>
+        <button class="btn btn-primary" id="confirm-ok" onclick="closeConfirm()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== PRODUCTS CATALOG ===== */
+    var PRODUCTS = {
+      ITOM: {
+        label: 'Champ-ITOM', type: '监控软件产品', modules: [
+          { code: 'SIM', name: '基础设备监控', desc: 'ping可达性/延迟/丢包/带宽利用率', unit: '监控对象/月', kind: 'qty' },
+          { code: 'COM', name: '网络设备监控', desc: 'CPU/内存/端口/流量/NetFlow/配置备份/拓扑/Syslog', unit: '监控对象/月', kind: 'qty' },
+          { code: 'COR', name: '核心服务器/DB监控', desc: '服务器/OS/VM/云主机/数据库/应用监控', unit: '监控对象/月', kind: 'qty' },
+          { code: 'SMARTALERT', name: 'AI智能告警', desc: '多源告警根因分析与自动修复闭环', unit: '套/年', kind: 'toggle' },
+          { code: 'AUTOOPS', name: '自动化运维', desc: '自定义任务·自动发现·告警联动·告警自愈', unit: '套/年', kind: 'toggle' }
+        ]
+      },
+      NPM: {
+        label: 'Champ-NPM', type: '监控软件产品', modules: [
+          { code: 'SIM', name: '基础网络品质', desc: '端到端链路延迟/丢包率/可用性', unit: '监控对象/月', kind: 'qty' },
+          { code: 'COR', name: '应用访问品质', desc: '页面加载/DNS解析/TTFB/下载速度', unit: '监控对象/月', kind: 'qty' }
+        ]
+      },
+      ITSM: {
+        label: 'Champ-ITSM', type: '运维软件产品', modules: [
+          { code: 'MGT', name: '主管账号', desc: '全权限管理', unit: '账号/月', kind: 'qty' },
+          { code: 'FUL', name: '执行员账号', desc: '执行层操作', unit: '账号/月', kind: 'qty' },
+          { code: 'USR', name: '用户层账号', desc: '提单/查看工单状态', unit: '账号/月', kind: 'qty' }
+        ]
+      },
+      ITAM: {
+        label: 'Champ-ITAM', type: '运维软件产品', modules: [
+          { code: 'ASS', name: '资产数License', desc: '全生命周期管理', unit: '资产数/月', kind: 'qty' },
+          { code: 'MGT', name: '主管账号', desc: '资产管理配置', unit: '账号/月', kind: 'qty' },
+          { code: 'FUL', name: '执行员账号', desc: '资产操作/盘点', unit: '账号/月', kind: 'qty' }
+        ]
+      },
+      PMS: {
+        label: 'Champ-PMS', type: '运维软件产品', modules: [
+          { code: 'MGT', name: '主管账号', desc: '创建/修改/删除基础设置', unit: '账号/月', kind: 'qty' },
+          { code: 'PM', name: '项目经理账号', desc: '项目执行/进度跟踪', unit: '账号/月', kind: 'qty' }
+        ]
+      },
+      FSM: {
+        label: 'Champ-FSM', type: '运维软件产品', modules: [
+          { code: 'MGT', name: '主管账号', desc: '管理工程师/创建工单', unit: '账号/月', kind: 'qty' },
+          { code: 'ENG', name: '现场工程师账号', desc: '认领工单/处理维修', unit: '账号/月', kind: 'qty' }
+        ]
+      },
+      CPE: {
+        label: 'CPE', type: '探针硬件', modules: [
+          { code: 'BOX-BUY', name: 'CPE探针盒子（购买）', desc: '可监控对象≤15个', unit: '台', kind: 'qty' },
+          { code: 'BOX-RENT', name: 'CPE探针盒子（租赁）', desc: '可监控对象≤15个', unit: '台/月', kind: 'qty' }
+        ]
+      },
+      EMS: {
+        label: 'EMS平台', type: '平台产品', modules: [
+          { code: 'PLAT', name: '基础平台', desc: '开通版本下的基础平台功能', unit: '平台', kind: 'toggle' }
+        ]
+      }
+    };
+
+    /* ===== HIERARCHICAL TREE DATA =====
+     * level 0: JG（根节点，SaaS平台方）
+     * level 1: MSP / JG直属最终用户
+     * level 2: MSP 下属最终用户
+     */
+    var TREE_DATA = {
+      id: 'JG', name: 'JG', type: 'jg',
+      children: [
+        {
+          id: 'it188', name: 'it188', type: 'msp',
+          children: [
+            { id: 'DEV', name: 'DEV', type: 'enduser' },
+            { id: 'mx', name: 'mx', type: 'enduser' },
+            { id: 'Prod', name: 'Prod', type: 'enduser' }
+          ]
+        },
+        {
+          id: 'msp', name: 'msp', type: 'msp',
+          children: []
+        },
+        {
+          id: 'SST', name: 'SST', type: 'msp',
+          children: [
+            { id: 'Sankorp', name: 'Sankorp', type: 'enduser' }
+          ]
+        },
+        {
+          id: 'HKT', name: 'HKT', type: 'msp', children: [
+            { id: 'HKT-client1', name: 'HKT客户A', type: 'enduser' },
+            { id: 'HKT-client2', name: 'HKT客户B', type: 'enduser' }
+          ]
+        },
+        { id: 'bitget', name: 'bitget', type: 'enduser' },
+        { id: 'AT', name: 'AT', type: 'enduser' }
+      ]
+    };
+
+    /* Per-tenant license data keyed by tenant id */
+    var LICENSE_DATA = {
+      'JG': [
+        { product: 'ITSM', name: 'ITSM', licenses: { MGT: 2110, FUL: 2000, USR: 2000 }, remaining: { MGT: 1895, FUL: 1539, USR: 1609 }, features: {}, openDate: '2025-05-30' },
+        { product: 'NPM', name: '云拨测', licenses: { SIM: 20999, COR: 20999 }, remaining: { SIM: 19299, COR: 19599 }, features: {}, openDate: '2025-05-30' },
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 2000, COM: 2000, COR: 2000 }, remaining: { SIM: 1065, COM: 1005, COR: 1100 }, features: { SMARTALERT: true, AUTOOPS: false }, openDate: '2025-05-30' },
+        { product: 'FSM', name: 'FEMS-Standard', licenses: { MGT: 2000, ENG: 2000 }, remaining: { MGT: 1600, ENG: 1600 }, features: {}, openDate: '2025-07-01' },
+        { product: 'ITAM', name: 'ITAM', licenses: { ASS: 100000, MGT: 10000, FUL: 10000 }, remaining: { ASS: 98000, MGT: 10000, FUL: 9500 }, features: {}, openDate: '2025-05-30' }
+      ],
+      'it188': [
+        { product: 'ITSM', name: 'ITSM', licenses: { MGT: 500, FUL: 400, USR: 400 }, remaining: { MGT: 380, FUL: 260, USR: 300 }, features: {}, openDate: '2025-06-01' },
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 600, COM: 600, COR: 500 }, remaining: { SIM: 320, COM: 280, COR: 310 }, features: { SMARTALERT: true, AUTOOPS: false }, openDate: '2025-06-01' },
+        { product: 'NPM', name: '云拨测', licenses: { SIM: 5000, COR: 5000 }, remaining: { SIM: 4200, COR: 4500 }, features: {}, openDate: '2025-06-01' }
+      ],
+      'DEV': [
+        { product: 'ITSM', name: 'ITSM', licenses: { MGT: 110, FUL: 100, USR: 100 }, remaining: { MGT: 95, FUL: 61, USR: 71 }, features: {}, openDate: '2025-06-15' },
+        { product: 'NPM', name: '云拨测', licenses: { SIM: 1000, COR: 1000 }, remaining: { SIM: 800, COR: 850 }, features: {}, openDate: '2025-06-15' },
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 200, COM: 200, COR: 150 }, remaining: { SIM: 120, COM: 95, COR: 100 }, features: { SMARTALERT: true }, openDate: '2025-06-15' }
+      ],
+      'mx': [
+        { product: 'ITSM', name: 'ITSM', licenses: { MGT: 50, FUL: 50, USR: 50 }, remaining: { MGT: 45, FUL: 38, USR: 42 }, features: {}, openDate: '2025-07-01' },
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 100, COM: 100, COR: 80 }, remaining: { SIM: 60, COM: 55, COR: 50 }, features: {}, openDate: '2025-07-01' }
+      ],
+      'Prod': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 50, COM: 50, COR: 30 }, remaining: { SIM: 48, COR: 28, COM: 46 }, features: {}, openDate: '2025-08-01' }
+      ],
+      'msp': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 300, COM: 300, COR: 200 }, remaining: { SIM: 280, COM: 270, COR: 190 }, features: { SMARTALERT: true }, openDate: '2025-06-15' }
+      ],
+      'Sankorp': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 400, COM: 400, COR: 300 }, remaining: { SIM: 350, COM: 330, COR: 260 }, features: { SMARTALERT: true, AUTOOPS: true }, openDate: '2025-07-01' },
+        { product: 'NPM', name: '云拨测', licenses: { SIM: 2000, COR: 2000 }, remaining: { SIM: 1800, COR: 1900 }, features: {}, openDate: '2025-07-01' }
+      ],
+      'tsdb': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 150, COM: 150, COR: 100 }, remaining: { SIM: 130, COM: 120, COR: 85 }, features: { SMARTALERT: true }, openDate: '2025-07-15' }
+      ],
+      'HKT': [
+        { product: 'ITSM', name: 'ITSM', licenses: { MGT: 300, FUL: 250, USR: 500 }, remaining: { MGT: 260, FUL: 200, USR: 430 }, features: {}, openDate: '2025-05-30' },
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 500, COM: 500, COR: 400 }, remaining: { SIM: 350, COM: 320, COR: 290 }, features: { SMARTALERT: true }, openDate: '2025-05-30' }
+      ],
+      'HKT-client1': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 100, COM: 100, COR: 80 }, remaining: { SIM: 75, COM: 68, COR: 55 }, features: {}, openDate: '2025-08-01' }
+      ],
+      'HKT-client2': [
+        { product: 'ITSM', name: 'ITSM', licenses: { MGT: 30, FUL: 20, USR: 50 }, remaining: { MGT: 28, FUL: 18, USR: 45 }, features: {}, openDate: '2025-09-01' }
+      ],
+      'bitget': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 80, COM: 80, COR: 50 }, remaining: { SIM: 70, COM: 65, COR: 42 }, features: {}, openDate: '2025-08-15' }
+      ],
+      'AT': [
+        { product: 'ITOM', name: 'ITOM', licenses: { SIM: 60, COM: 60, COR: 40 }, remaining: { SIM: 55, COM: 50, COR: 35 }, features: {}, openDate: '2025-09-01' }
+      ]
+    };
+
+    var HISTORY_DATA = [
+      { org: 'JG', mod: 'SIM', sku: 'ITOM-SIM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2026-04-10 10:06', oldExp: '2027-04-27', newExp: '2027-04-30', oldQty: '1,200', newQty: '1,400 ↑', oldRem: '1,182', newRem: '1,363', user: 'ella' },
+      { org: 'JG', mod: 'COM', sku: 'ITOM-COM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2026-04-10 10:06', oldExp: '2027-02-28', newExp: '2027-04-30', oldQty: '1,200', newQty: '1,700 ↑', oldRem: '938', newRem: '1,177', user: 'ella' },
+      { org: 'JG', mod: 'SMARTALERT', sku: 'ITOM-SMARTALERT-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2026-03-15 09:30', oldExp: '—', newExp: '2027-03-15', oldQty: '—', newQty: '1 套', oldRem: '—', newRem: '—', user: 'ella' },
+      { org: 'it188', mod: 'SIM', sku: 'ITOM-SIM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2026-04-10 10:05', oldExp: '2026-07-16', newExp: '2027-04-27', oldQty: '400', newQty: '600 ↑', oldRem: '280', newRem: '320', user: 'ella' },
+      { org: 'DEV', mod: 'SIM', sku: 'ITOM-SIM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2025-07-18 17:17', oldExp: '2026-06-30', newExp: '2026-07-16', oldQty: '100', newQty: '200 ↑', oldRem: '96', newRem: '120', user: 'JG_JT' },
+      { org: 'DEV', mod: 'COM', sku: 'ITOM-COM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2025-07-18 17:17', oldExp: '2026-06-30', newExp: '2026-07-18', oldQty: '100', newQty: '200 ↑', oldRem: '94', newRem: '95', user: 'JG_JT' },
+      { org: 'HKT', mod: 'SIM', sku: 'ITOM-SIM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2025-07-18 13:58', oldExp: '—', newExp: '2026-06-30', oldQty: '0', newQty: '500 ↑', oldRem: '0', newRem: '350', user: 'SUN' },
+      { org: 'HKT', mod: 'COM', sku: 'ITOM-COM-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2025-07-18 13:58', oldExp: '—', newExp: '2026-06-30', oldQty: '0', newQty: '500 ↑', oldRem: '0', newRem: '320', user: 'SUN' },
+      { org: 'JG', mod: 'COR', sku: 'ITOM-COR-ENT-SAAS-C', ver: 'ENT-SAAS', time: '2025-06-06 16:44', oldExp: '—', newExp: '2025-09-06', oldQty: '0', newQty: '500 ↑', oldRem: '0', newRem: '500', user: 'JG_JT' }
+    ];
+
+    /* ===== STATE ===== */
+    var currentTenantId = 'JG';
+    var TENANT_DATA = LICENSE_DATA['JG'] || [];    // active view data
+
+    /* ===== AVATAR COLORS ===== */
+    var AVATAR_COLORS = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#4F46E5', '#BE185D', '#6366F1', '#EA580C'];
+    function avatarColor(name) { var h = 0; for (var i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i); return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; }
+
+    /* ===== RENDER TREE ===== */
+    function renderTree() {
+      var container = document.getElementById('tree-body');
+      var html = '';
+      // Root node: JG
+      var root = TREE_DATA;
+      var childCount = countDescendants(root);
+      html += '<div class="tree-org is-open" data-id="' + root.id + '">';
+      html += '<div class="tree-org-title" onclick="toggleTreeOrg(this)">';
+      html += '<span class="arrow"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>';
+      html += '<span class="node-avatar" style="background:#2563EB;margin-right:6px">JG</span> ' + root.name + ' <span class="badge">' + childCount + '</span>';
+      html += '</div>';
+      html += '<div class="tree-children">';
+      // Level 1 children
+      (root.children || []).forEach(function (child) {
+        if (child.type === 'msp' && child.children && child.children.length > 0) {
+          // MSP with sub-users → expandable group
+          var subCount = child.children.length;
+          html += '<div class="tree-org is-open" data-id="' + child.id + '" style="margin-left:8px">';
+          html += '<div class="tree-org-title" onclick="toggleTreeOrg(this)">';
+          html += '<span class="arrow"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>';
+          html += '<span class="node-avatar" style="background:' + avatarColor(child.name) + ';margin-right:4px">' + child.name.charAt(0).toUpperCase() + '</span>';
+          html += '<span class="tree-node-clickable" onclick="event.stopPropagation();switchTenant(\'' + child.id + '\',this)">' + child.name + '</span>';
+          html += ' <span class="badge">' + subCount + '</span>';
+          html += '<span class="tenant-type-tag msp">MSP</span>';
+          html += '</div>';
+          html += '<div class="tree-children">';
+          child.children.forEach(function (eu) {
+            var activeClass = eu.id === currentTenantId ? ' is-active' : '';
+            html += '<div class="tree-node' + activeClass + '" style="padding-left:36px" onclick="switchTenant(\'' + eu.id + '\',this)">';
+            html += '<span class="node-avatar is-enduser" style="background:' + avatarColor(eu.name) + '">' + eu.name.charAt(0).toUpperCase() + '</span> ' + eu.name;
+            html += '</div>';
+          });
+          html += '</div></div>';
+        } else if (child.type === 'msp') {
+          // MSP without sub-users → leaf-like node
+          var activeClass = child.id === currentTenantId ? ' is-active' : '';
+          html += '<div class="tree-node' + activeClass + '" style="padding-left:28px" onclick="switchTenant(\'' + child.id + '\',this)">';
+          html += '<span class="node-avatar" style="background:' + avatarColor(child.name) + '">' + child.name.charAt(0).toUpperCase() + '</span> ' + child.name;
+          html += '<span class="tenant-type-tag msp">MSP</span>';
+          html += '</div>';
+        } else {
+          // JG直属最终用户
+          var activeClass = child.id === currentTenantId ? ' is-active' : '';
+          html += '<div class="tree-node' + activeClass + '" style="padding-left:28px" onclick="switchTenant(\'' + child.id + '\',this)">';
+          html += '<span class="node-avatar is-enduser" style="background:' + avatarColor(child.name) + '">' + child.name.charAt(0).toUpperCase() + '</span> ' + child.name;
+          html += '</div>';
+        }
+      });
+      html += '</div></div>';
+      container.innerHTML = html;
+    }
+
+    function countDescendants(node) {
+      if (!node.children || node.children.length === 0) return 0;
+      var count = node.children.length;
+      node.children.forEach(function (c) { count += countDescendants(c); });
+      return count;
+    }
+
+    /* ===== RENDER STATS ===== */
+    function renderStats() {
+      var totalProducts = 0, activeLic = 0, expiringSoon = 0, totalUsed = 0, totalLic = 0;
+      TENANT_DATA.forEach(function (item) {
+        totalProducts++;
+        var pInfo = PRODUCTS[item.product];
+        if (!pInfo) return;
+        pInfo.modules.forEach(function (m) {
+          if (m.kind === 'qty' && item.licenses[m.code] !== undefined) {
+            activeLic++;
+            var lic = item.licenses[m.code], rem = item.remaining[m.code] || 0;
+            totalUsed += (lic - rem); totalLic += lic;
+            if (rem / lic < 0.15) expiringSoon++;
+          }
+        });
+      });
+      var usagePct = totalLic > 0 ? Math.round(totalUsed / totalLic * 100) : 0;
+      var ringR = 10, ringC = 2 * Math.PI * ringR, ringOff = ringC * (1 - usagePct / 100);
+      var usageColor = usagePct > 85 ? 'var(--c-danger)' : usagePct > 60 ? 'var(--c-warning)' : 'var(--c-success)';
+
+      document.getElementById('stats-bar').innerHTML =
+        '<div class="stat-item"><span class="stat-dot" style="background:var(--c-primary)"></span><span class="stat-num">' + totalProducts + '</span><span class="stat-label">产品</span></div>' +
+        '<div class="stat-sep"></div>' +
+        '<div class="stat-item"><span class="stat-dot" style="background:var(--c-success)"></span><span class="stat-num">' + activeLic + '</span><span class="stat-label">活跃授权</span></div>' +
+        '<div class="stat-sep"></div>' +
+        '<div class="stat-item"><span class="stat-dot" style="background:' + (expiringSoon > 0 ? 'var(--c-danger)' : 'var(--c-success)') + '"></span><span class="stat-num" style="color:' + (expiringSoon > 0 ? 'var(--c-danger)' : 'var(--c-text-1)') + '">' + expiringSoon + '</span><span class="stat-label">用量紧张</span></div>' +
+        '<div class="stat-sep"></div>' +
+        '<div class="stat-item"><div class="mini-ring"><svg width="28" height="28"><circle cx="14" cy="14" r="' + ringR + '" fill="none" stroke="var(--c-fill-2)" stroke-width="3"/><circle cx="14" cy="14" r="' + ringR + '" fill="none" stroke="' + usageColor + '" stroke-width="3" stroke-dasharray="' + ringC + '" stroke-dashoffset="' + ringOff + '" stroke-linecap="round" style="transition:stroke-dashoffset 1s ease"/></svg><span class="ring-val" style="color:' + usageColor + '">' + usagePct + '</span></div><span class="stat-label">使用率</span></div>';
+    }
+
+    /* ===== RENDER TABLE ===== */
+    function renderTable() {
+      var tbody = document.getElementById('table-body');
+      var html = '';
+      if (TENANT_DATA.length === 0) {
+        html = '<tr><td colspan="6" style="text-align:center;padding:40px 0;color:var(--c-text-4)">该租户暂无已开通的产品</td></tr>';
+        tbody.innerHTML = html;
+        document.getElementById('total-count').textContent = '0';
+        return;
+      }
+      TENANT_DATA.forEach(function (item, idx) {
+        var pInfo = PRODUCTS[item.product];
+        if (!pInfo) return;
+
+        var usageHtml = '<div class="usage-summary">';
+        pInfo.modules.forEach(function (m) {
+          if (m.kind === 'qty' && item.licenses[m.code] !== undefined) {
+            var lic = item.licenses[m.code], rem = item.remaining[m.code] || 0;
+            var used = lic - rem, pct = lic > 0 ? Math.round(used / lic * 100) : 0;
+            var barCls = pct > 90 ? 'red' : (pct > 70 ? 'orange' : 'green');
+            usageHtml += '<div class="usage-row"><span class="usage-code">' + m.code + '</span><div class="usage-bar"><div class="usage-bar-inner ' + barCls + '" style="width:' + pct + '%"></div></div><span class="usage-pct">' + pct + '%</span></div>';
+          }
+        });
+        usageHtml += '</div>';
+
+        var featHtml = '';
+        var enabledToggleMods = pInfo.modules.filter(function (m) { return m.kind === 'toggle' && item.features && item.features[m.code]; });
+        if (enabledToggleMods.length > 0) {
+          enabledToggleMods.forEach(function (m) {
+            featHtml += '<span class="feat-tag on">' + m.code + ' ✓</span> ';
+          });
+        } else {
+          featHtml = '<span style="color:var(--c-text-4)">—</span>';
+        }
+
+        html += '<tr>';
+        html += '<td><button class="expand-btn" onclick="toggleExpand(this,\'exp-' + idx + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button></td>';
+        html += '<td><div class="product-name">' + (item.name || pInfo.label) + '</div><div class="product-type">' + item.product + ' · ' + (item.openDate || '') + '</div></td>';
+        html += '<td>' + usageHtml + '</td>';
+        html += '<td>' + featHtml + '</td>';
+        html += '<td><span class="status-badge active">活跃</span></td>';
+        html += '<td><div class="op-links"><button class="op-link" onclick="openUpdate(\'' + item.product + '\')">更新License</button><button class="op-link" onclick="openHistory(\'' + item.product + '\')">历史</button>';
+        html += '<div class="action-more-wrap"><button class="action-more-btn" onclick="toggleActionMenu(this)">⋯</button>';
+        html += '<div class="action-dropdown"><button class="action-dropdown-item" onclick="showConfirm(\'stop\');closeAllActionMenus()">停用</button><div class="action-dropdown-divider"></div><button class="action-dropdown-item danger" onclick="showConfirm(\'delete\');closeAllActionMenus()">删除</button></div></div>';
+        html += '</div></td>';
+        html += '</tr>';
+
+        html += '<tr class="expand-row" id="exp-' + idx + '" style="display:none"><td colspan="6"><div class="expand-content" id="exp-content-' + idx + '">';
+        html += '<div class="section-label">功能模块 LICENSE 明细</div>';
+        html += '<table class="detail-table"><thead><tr><th>功能模块</th><th>SKU</th><th>授权/状态</th><th>已用/剩余</th><th>使用率</th></tr></thead><tbody>';
+        pInfo.modules.forEach(function (m) {
+          var sku = item.product + '-' + m.code + '-ENT-SAAS-C';
+          if (m.kind === 'qty') {
+            var lic = item.licenses[m.code] || 0, rem = item.remaining[m.code] || 0, used = lic - rem;
+            var pct = lic > 0 ? Math.round(used / lic * 100) : 0;
+            var barCls = pct > 90 ? 'red' : (pct > 70 ? 'orange' : 'green');
+            html += '<tr><td><strong style="color:var(--c-text-1)">' + m.code + '</strong> — ' + m.name + '</td><td><span class="sku-tag">' + sku + '</span></td>';
+            html += '<td>' + lic.toLocaleString() + '</td>';
+            html += '<td>' + used.toLocaleString() + ' / ' + rem.toLocaleString() + '</td>';
+            html += '<td><div class="usage-bar" style="width:80px;display:inline-block;vertical-align:middle"><div class="usage-bar-inner ' + barCls + '" style="width:' + pct + '%"></div></div> <span style="font-size:11px;color:var(--c-text-3)">' + pct + '%</span></td></tr>';
+          } else {
+            var on = item.features && item.features[m.code];
+            html += '<tr><td><strong style="color:var(--c-text-1)">' + m.code + '</strong> — ' + m.name + '</td><td><span class="sku-tag">' + sku + '</span></td>';
+            html += '<td>' + (on ? '<span class="feat-tag on">已开通</span>' : '<span class="feat-tag off">未开通</span>') + '</td>';
+            html += '<td>—</td><td>—</td></tr>';
+          }
+        });
+        html += '</tbody></table></div></td></tr>';
+      });
+      tbody.innerHTML = html;
+      document.getElementById('total-count').textContent = TENANT_DATA.length;
+    }
+
+    /* ===== MODULE CARDS (Step 2) ===== */
+    function renderModuleCards(pl) {
+      var pInfo = PRODUCTS[pl]; if (!pInfo) return;
+      var ver = document.getElementById('sel-version').value || '[VER]';
+      var reg = document.getElementById('sel-region').value || '-C';
+      var container = document.getElementById('module-cards');
+      var html = '';
+      pInfo.modules.forEach(function (m, i) {
+        var sku = pl + '-' + m.code + '-' + ver + reg;
+        var enabled = i < Math.min(pInfo.modules.length, 4);
+        var isToggle = m.kind === 'toggle';
+        html += '<div class="module-card ' + (enabled ? 'is-enabled' : 'is-disabled') + '">';
+        html += '<div class="module-card-head"><div><div class="module-card-title">' + m.code + ' <span class="mod-type-badge ' + (isToggle ? 'toggle' : 'qty') + '">' + (isToggle ? '开关' : '数量') + '</span></div>';
+        html += '<div class="module-card-code">' + m.name + '</div></div>';
+        html += '<label class="toggle"><input type="checkbox"' + (enabled ? ' checked' : '') + ' onchange="toggleModCard(this)"><span class="toggle-track"></span></label></div>';
+        html += '<div class="module-card-desc">' + m.desc + '</div>';
+        html += '<div style="font-size:11px;color:var(--c-primary);font-family:monospace;margin-bottom:8px">' + sku + '</div>';
+        if (isToggle) {
+          html += '<div class="module-card-fields"><label>有效期</label><input type="date" value="2027-04-30"' + (enabled ? '' : ' disabled') + '></div>';
+        } else {
+          html += '<div class="module-card-fields"><label>数量</label><input type="number" value="0" min="0"' + (enabled ? '' : ' disabled') + '><label style="margin-left:8px">有效期</label><input type="date" value="2027-04-30"' + (enabled ? '' : ' disabled') + '></div>';
+        }
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+    function toggleModCard(cb) {
+      var card = cb.closest('.module-card');
+      var inputs = card.querySelectorAll('input[type="number"],input[type="date"]');
+      if (cb.checked) { card.classList.remove('is-disabled'); card.classList.add('is-enabled'); inputs.forEach(function (i) { i.disabled = false; }); }
+      else { card.classList.add('is-disabled'); card.classList.remove('is-enabled'); inputs.forEach(function (i) { i.disabled = true; }); }
+    }
+
+    /* ===== STEPPER ===== */
+    var currentStep = 1;
+    function goToStep(n) {
+      currentStep = n;
+      document.querySelectorAll('.step-content').forEach(function (el) { el.classList.remove('active'); });
+      document.getElementById('step-' + n).classList.add('active');
+      document.querySelectorAll('.stepper .step').forEach(function (s) {
+        var sn = parseInt(s.getAttribute('data-step'));
+        s.classList.remove('active', 'done');
+        if (sn < n) s.classList.add('done');
+        else if (sn === n) s.classList.add('active');
+      });
+      document.querySelectorAll('.stepper .step-line').forEach(function (l, i) {
+        l.classList.toggle('done', i < n - 1);
+      });
+      document.getElementById('btn-prev').style.display = n > 1 ? '' : 'none';
+      document.getElementById('btn-next').textContent = n < 3 ? '下一步' : '确认提交';
+      if (n === 3) renderConfirmSummary();
+    }
+    function stepNext() {
+      if (currentStep === 2) { onProductLineChange(); }
+      if (currentStep < 3) goToStep(currentStep + 1);
+      else {
+        if (!document.getElementById('csv-file-input').files.length) {
+          document.getElementById('upload-area').style.borderColor = 'var(--c-danger)';
+          document.getElementById('upload-hint').textContent = '请先上传 CSV 授权文件';
+          document.getElementById('upload-hint').style.color = 'var(--c-danger)';
+          return;
+        }
+        closeModal('modal-update'); alert('提交成功（原型演示）');
+      }
+    }
+
+    function handleCsvUpload(input) {
+      var area = document.getElementById('upload-area');
+      var txt = document.getElementById('upload-text');
+      var hint = document.getElementById('upload-hint');
+      if (input.files.length) {
+        var f = input.files[0];
+        if (!f.name.toLowerCase().endsWith('.csv')) {
+          area.style.borderColor = 'var(--c-danger)';
+          txt.textContent = '格式错误';
+          txt.style.color = 'var(--c-danger)';
+          hint.textContent = '仅支持 .csv 格式，请重新选择';
+          hint.style.color = 'var(--c-danger)';
+          input.value = '';
+          return;
+        }
+        area.style.borderColor = 'var(--c-success)';
+        txt.textContent = '✓ ' + f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+        txt.style.color = 'var(--c-success)';
+        hint.textContent = '点击可重新选择';
+        hint.style.color = 'var(--c-text-4)';
+      }
+    }
+    function stepPrev() { if (currentStep > 1) goToStep(currentStep - 1); }
+    function renderConfirmSummary() {
+      var pl = document.getElementById('sel-product').value || '—';
+      var ver = document.getElementById('sel-version').value || '—';
+      var reg = document.getElementById('sel-region').value || '—';
+      document.getElementById('confirm-summary').innerHTML =
+        '<strong>产品线：</strong>' + pl + '<br>' +
+        '<strong>License版本：</strong>' + ver + '<br>' +
+        '<strong>发行区域：</strong>' + reg + '<br>' +
+        '<strong>SKU前缀：</strong>' + document.getElementById('sku-prefix').textContent;
+    }
+
+    /* ===== PRODUCT LINE CHANGE ===== */
+    function onProductLineChange() {
+      var pl = document.getElementById('sel-product').value;
+      renderModuleCards(pl);
+      updateSkuPreview();
+    }
+    function updateSkuPreview() {
+      var pl = document.getElementById('sel-product').value || '[Product]';
+      var ver = document.getElementById('sel-version').value || '[VER]';
+      var selReg = document.getElementById('sel-region');
+      if (ver === 'ENT-OPL') selReg.innerHTML = '<option value="-C" selected>-C — 国内（CNY）</option>';
+      else if (selReg.options.length < 2) {
+        var cur = selReg.value;
+        selReg.innerHTML = '<option value="-C">-C — 国内（CNY）</option><option value="-I">-I — 海外（USD）</option>';
+        selReg.value = cur || '-C';
+      }
+      var reg = selReg.value || '-C';
+      document.getElementById('sku-prefix').textContent = pl + '-[模块]-' + ver + reg;
+    }
+
+    /* ===== HISTORY ===== */
+    function renderHistory(product) {
+      // Filter history by current tenant
+      var filtered = HISTORY_DATA.filter(function (r) { return r.org === currentTenantId; });
+      if (product) filtered = filtered.filter(function (r) { return r.sku.indexOf(product) === 0; });
+      if (filtered.length === 0) filtered = HISTORY_DATA.filter(function (r) { return r.org === currentTenantId; });
+      if (filtered.length === 0) filtered = HISTORY_DATA; // fallback
+
+      var tlHtml = '<div class="timeline">';
+      filtered.forEach(function (r, i) {
+        tlHtml += '<div class="timeline-item' + (i === 0 ? ' first' : '') + '">';
+        tlHtml += '<div class="timeline-time">' + r.time + ' · ' + r.user + '</div>';
+        tlHtml += '<div class="timeline-card">';
+        tlHtml += '<div class="tl-title"><span class="sku-tag" style="margin-right:8px">' + r.sku + '</span> ' + r.mod + '</div>';
+        tlHtml += '<div class="tl-detail">';
+        tlHtml += '<span>数量: ' + r.oldQty + ' → <strong class="' + (r.newQty.indexOf('↑') > -1 ? 'change-up' : '') + '">' + r.newQty + '</strong></span>';
+        tlHtml += '<span>有效期: ' + r.oldExp + ' → ' + r.newExp + '</span>';
+        tlHtml += '</div></div></div>';
+      });
+      tlHtml += '</div>';
+      document.getElementById('history-timeline').innerHTML = tlHtml;
+
+      var tblHtml = '';
+      filtered.forEach(function (r) {
+        tblHtml += '<tr>';
+        tblHtml += '<td><strong style="color:var(--c-text-1)">' + r.mod + '</strong></td>';
+        tblHtml += '<td><span class="sku-tag">' + r.sku + '</span></td>';
+        tblHtml += '<td style="white-space:nowrap">' + r.time + '</td>';
+        tblHtml += '<td>' + r.oldExp + ' → ' + r.newExp + '</td>';
+        tblHtml += '<td class="' + (r.newQty.indexOf('↑') > -1 ? 'change-up' : '') + '">' + r.oldQty + ' → ' + r.newQty + '</td>';
+        tblHtml += '<td>' + r.user + '</td>';
+        tblHtml += '</tr>';
+      });
+      document.getElementById('history-tbody').innerHTML = tblHtml;
+      document.getElementById('hist-count').textContent = filtered.length;
+    }
+    function switchHistView(view, btn) {
+      document.querySelectorAll('.view-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('history-timeline').style.display = view === 'timeline' ? '' : 'none';
+      document.getElementById('history-table-wrap').style.display = view === 'table' ? '' : 'none';
+    }
+    function filterTime(days, chip) {
+      document.querySelectorAll('.time-chip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+    }
+
+    /* ===== SIDEBAR / TREE ===== */
+    function toggleTreeOrg(el) {
+      var org = el.parentElement;
+      var children = org.querySelector('.tree-children');
+      if (!children) return;
+      if (org.classList.contains('is-open')) {
+        org.classList.remove('is-open');
+        children.style.display = 'none';
+      } else {
+        org.classList.add('is-open');
+        children.style.display = '';
+      }
+    }
+
+    function switchTenant(tenantId, el) {
+      currentTenantId = tenantId;
+      // Update active state in tree
+      document.querySelectorAll('.tree-node').forEach(function (n) { n.classList.remove('is-active'); });
+      if (el) {
+        // If clicked on a .tree-node-clickable inside org-title, highlight the org-title row
+        var node = el.closest('.tree-node') || el.closest('.tree-org-title');
+        if (el.classList.contains('tree-node-clickable')) {
+          // Highlight parent org
+          var parentOrg = el.closest('.tree-org');
+          if (parentOrg) parentOrg.querySelector('.tree-org-title').classList.add('is-active');
+        }
+        if (el.classList && el.classList.contains('tree-node')) el.classList.add('is-active');
+      }
+      // Switch data
+      TENANT_DATA = LICENSE_DATA[tenantId] || [];
+      // Find tenant info for breadcrumb
+      var tenantName = findTenantName(tenantId);
+      var tenantPath = findTenantPath(tenantId);
+      document.getElementById('current-tenant').textContent = tenantPath || tenantName;
+      // Re-render
+      renderStats();
+      renderTable();
+    }
+
+    function findTenantName(id) {
+      if (TREE_DATA.id === id) return TREE_DATA.name;
+      var found = '';
+      (function search(node) {
+        if (found) return;
+        if (node.id === id) { found = node.name; return; }
+        (node.children || []).forEach(search);
+      })(TREE_DATA);
+      return found || id;
+    }
+
+    function findTenantPath(id) {
+      if (TREE_DATA.id === id) return TREE_DATA.name;
+      var path = [];
+      (function search(node, trail) {
+        if (path.length) return;
+        var cur = trail.concat(node.name);
+        if (node.id === id) { path = cur; return; }
+        (node.children || []).forEach(function (c) { search(c, cur); });
+      })(TREE_DATA, []);
+      return path.join(' / ');
+    }
+
+    /* ===== EXPAND ===== */
+    function toggleExpand(btn, id) {
+      var r = document.getElementById(id);
+      var content = r.querySelector('.expand-content');
+      if (r.style.display === 'none') {
+        r.style.display = '';
+        btn.classList.add('is-open');
+        setTimeout(function () { content.classList.add('is-open'); }, 10);
+      } else {
+        content.classList.remove('is-open');
+        btn.classList.remove('is-open');
+        setTimeout(function () { r.style.display = 'none'; }, 300);
+      }
+    }
+
+    /* ===== MODALS ===== */
+    function openUpdate(product) {
+      currentStep = 1; goToStep(1);
+      document.getElementById('sel-product').value = product || 'ITOM';
+      onProductLineChange();
+      document.getElementById('modal-update').classList.add('visible');
+    }
+    function openHistory(product) {
+      var pInfo = PRODUCTS[product] || {};
+      document.getElementById('history-title').textContent = findTenantPath(currentTenantId) + ' / ' + (pInfo.label || product);
+      renderHistory(product);
+      document.getElementById('modal-history').classList.add('visible');
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
+    document.querySelectorAll('.modal-overlay').forEach(function (o) {
+      o.addEventListener('click', function (e) { if (e.target === o) o.classList.remove('visible'); });
+    });
+
+    /* ===== CONFIRM ===== */
+    function showConfirm(type) {
+      var d = document.getElementById('confirm-dialog');
+      var icon = document.getElementById('confirm-icon');
+      var title = document.getElementById('confirm-title');
+      var desc = document.getElementById('confirm-desc');
+      var okBtn = document.getElementById('confirm-ok');
+      if (type === 'delete') {
+        icon.className = 'confirm-icon danger';
+        icon.innerHTML = '<svg viewBox="0 0 24 24" stroke="var(--c-danger)"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+        title.textContent = '确认删除？';
+        desc.textContent = '删除后该产品的所有授权数据将被永久清除，此操作不可恢复。';
+        okBtn.style.background = 'var(--c-danger)'; okBtn.style.borderColor = 'var(--c-danger)';
+      } else {
+        icon.className = 'confirm-icon warn';
+        icon.innerHTML = '<svg viewBox="0 0 24 24" stroke="var(--c-warning)"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        title.textContent = '确认停用？';
+        desc.textContent = '停用后该产品的所有功能将不可用，租户下的用户将无法访问相关服务。';
+        okBtn.style.background = 'var(--c-primary)'; okBtn.style.borderColor = 'var(--c-primary)';
+      }
+      d.classList.add('visible');
+    }
+    function closeConfirm() { document.getElementById('confirm-dialog').classList.remove('visible'); }
+
+    /* ===== ACTION MORE DROPDOWN ===== */
+    function toggleActionMenu(btn) {
+      var dropdown = btn.nextElementSibling;
+      var wasOpen = dropdown.classList.contains('open');
+      closeAllActionMenus();
+      if (!wasOpen) {
+        var rect = btn.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 4) + 'px';
+        dropdown.style.left = (rect.right - dropdown.offsetWidth) + 'px';
+        dropdown.classList.add('open');
+        /* re-calc after display so offsetWidth is correct */
+        var dw = dropdown.offsetWidth;
+        dropdown.style.left = (rect.right - dw) + 'px';
+        /* keep within viewport */
+        var dr = dropdown.getBoundingClientRect();
+        if (dr.left < 4) dropdown.style.left = '4px';
+        if (dr.bottom > window.innerHeight - 4) dropdown.style.top = (rect.top - dr.height - 4) + 'px';
+      }
+    }
+    function closeAllActionMenus() {
+      document.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+    }
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.action-more-wrap')) closeAllActionMenus();
+    });
+
+    function exportData() {
+      var csv = '租户,产品,SKU,授权数,剩余\n';
+      TENANT_DATA.forEach(function (item) {
+        var pInfo = PRODUCTS[item.product]; if (!pInfo) return;
+        pInfo.modules.forEach(function (m) {
+          if (m.kind === 'qty' && item.licenses[m.code] !== undefined) {
+            csv += currentTenantId + ',' + item.product + '-' + m.code + ',' + item.product + '-' + m.code + '-ENT-SAAS-C,' + item.licenses[m.code] + ',' + (item.remaining[m.code] || 0) + '\n';
+          }
+        });
+      });
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = 'license-' + currentTenantId + '.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ===== INIT ===== */
+    renderTree();
+    renderStats();
+    renderTable();
+    onProductLineChange();
+
+    /* ===== TAB SWITCHING ===== */
+    function switchMainTab(idx) {
+      var tabs = document.querySelectorAll('.tab-bar .tab-item');
+      tabs.forEach(function (t, i) {
+        t.classList.toggle('active', i === idx);
+      });
+      document.getElementById('tab-panel-saas').style.display = idx === 0 ? '' : 'none';
+      document.getElementById('tab-panel-op').style.display = idx === 1 ? '' : 'none';
+    }
+
+    /* SaaS tree search filter */
+    function filterSaasTree(q) {
+      q = q.trim().toLowerCase();
+      if (!q) { renderTree(); return; }
+      var container = document.getElementById('tree-body');
+      var allChildren = [];
+      function collect(node) {
+        if (node.children) node.children.forEach(function (c) { allChildren.push(c); collect(c); });
+      }
+      collect(TREE_DATA);
+      var matched = allChildren.filter(function (c) { return c.name.toLowerCase().indexOf(q) !== -1; });
+      if (matched.length === 0) {
+        container.innerHTML = '<div class="tree-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>未找到匹配租户</span></div>';
+        return;
+      }
+      var html = '';
+      matched.forEach(function (child) {
+        var activeClass = child.id === currentTenantId ? ' is-active' : '';
+        var tag = child.type === 'msp' ? '<span class="tenant-type-tag msp">MSP</span>' : '';
+        html += '<div class="tree-node' + activeClass + '" onclick="switchTenant(\'' + child.id + '\',this)">';
+        html += '<span class="node-avatar" style="background:' + avatarColor(child.name) + '">' + child.name.charAt(0).toUpperCase() + '</span> ' + child.name + tag;
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    /* ===== OP TENANT TREE DATA ===== */
+    var OP_TREE_DATA = {
+      id: 'JG', name: 'JG', type: 'jg',
+      children: [
+        { id: 'op-zdf', name: '周大福', type: 'enduser' },
+        { id: 'op-dml', name: '达美乐', type: 'enduser' },
+        { id: 'op-anta', name: 'anta', type: 'enduser' }
+      ]
+    };
+    var opCurrentTenant = 'op-zdf';
+
+    var OP_LICENSE_DATA = {
+      'op-zdf': [
+        { product: 'ITOM', type: '监控软件产品', url: 'http://10.10.10.31', version: 'v1.0.0', status: '正常', licenseQty: 100, remaining: 100, config: '4cpu', retention: '永久', expiry: '2026-01-29 00:54:13', createdAt: '2026-01-28 08:00:00', updatedAt: '2026-01-28 16:54:17' }
+      ],
+      'op-dml': [
+        { product: 'ITOM', type: '监控软件产品', url: 'http://10.10.10.52', version: 'v1.0.0', status: '正常', licenseQty: 50, remaining: 50, config: '2cpu', retention: '180', expiry: '2026-08-15 00:00:00', createdAt: '2026-02-15 10:30:00', updatedAt: '2026-04-20 09:12:33' },
+        { product: 'NPM', type: '网络性能产品', url: 'http://10.10.10.53', version: 'v1.1.0', status: '正常', licenseQty: 30, remaining: 28, config: '2cpu', retention: '90', expiry: '2026-11-01 00:00:00', createdAt: '2026-05-01 14:00:00', updatedAt: '2026-05-03 11:20:45' }
+      ],
+      'op-anta': [
+        { product: 'ITOM', type: '监控软件产品', url: 'http://10.10.10.80', version: 'v1.0.0', status: '正常', licenseQty: 200, remaining: 180, config: '8cpu', retention: '365', expiry: '2027-03-01 00:00:00', createdAt: '2026-03-01 09:00:00', updatedAt: '2026-04-28 17:45:00' }
+      ]
+    };
+
+    function renderOpTree() {
+      var container = document.getElementById('op-tree-body');
+      var html = '';
+      var root = OP_TREE_DATA;
+      var childCount = countDescendants(root);
+      html += '<div class="tree-org is-open" data-id="' + root.id + '">';
+      html += '<div class="tree-org-title" onclick="toggleTreeOrg(this)">';
+      html += '<span class="arrow"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>';
+      html += '<span class="node-avatar" style="background:#2563EB;margin-right:6px">JG</span> ' + root.name + ' <span class="badge">' + childCount + '</span>';
+      html += '</div>';
+      html += '<div class="tree-children">';
+      (root.children || []).forEach(function (child) {
+        if (child.type === 'msp' && child.children && child.children.length > 0) {
+          var subCount = child.children.length;
+          html += '<div class="tree-org is-open" data-id="' + child.id + '" style="margin-left:8px">';
+          html += '<div class="tree-org-title" onclick="toggleTreeOrg(this)">';
+          html += '<span class="arrow"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>';
+          html += '<span class="node-avatar" style="background:' + avatarColor(child.name) + ';margin-right:4px">' + child.name.charAt(0).toUpperCase() + '</span>';
+          html += '<span class="tree-node-clickable" onclick="event.stopPropagation();switchOpTenant(\'' + child.id + '\',\'' + child.name + '\')">' + child.name + '</span>';
+          html += ' <span class="badge">' + subCount + '</span>';
+          html += '<span class="tenant-type-tag msp">MSP</span>';
+          html += '</div>';
+          html += '<div class="tree-children">';
+          child.children.forEach(function (eu) {
+            var activeClass = eu.id === opCurrentTenant ? ' is-active' : '';
+            html += '<div class="tree-node' + activeClass + '" style="padding-left:36px" onclick="switchOpTenant(\'' + eu.id + '\',\'' + eu.name + '\')">';
+            html += '<span class="node-avatar is-enduser" style="background:' + avatarColor(eu.name) + '">' + eu.name.charAt(0).toUpperCase() + '</span> ' + eu.name;
+            html += '</div>';
+          });
+          html += '</div></div>';
+        } else if (child.type === 'msp') {
+          var activeClass = child.id === opCurrentTenant ? ' is-active' : '';
+          html += '<div class="tree-node' + activeClass + '" style="padding-left:28px" onclick="switchOpTenant(\'' + child.id + '\',\'' + child.name + '\')">';
+          html += '<span class="node-avatar" style="background:' + avatarColor(child.name) + '">' + child.name.charAt(0).toUpperCase() + '</span> ' + child.name;
+          html += '<span class="tenant-type-tag msp">MSP</span>';
+          html += '</div>';
+        } else {
+          var activeClass = child.id === opCurrentTenant ? ' is-active' : '';
+          html += '<div class="tree-node' + activeClass + '" style="padding-left:28px" onclick="switchOpTenant(\'' + child.id + '\',\'' + child.name + '\')">';
+          html += '<span class="node-avatar is-enduser" style="background:' + avatarColor(child.name) + '">' + child.name.charAt(0).toUpperCase() + '</span> ' + child.name;
+          html += '</div>';
+        }
+      });
+      html += '</div></div>';
+      container.innerHTML = html;
+    }
+
+    function switchOpTenant(id, name) {
+      opCurrentTenant = id;
+      document.getElementById('op-current-tenant').textContent = name;
+      renderOpTree();
+      renderOpTable();
+    }
+
+    function renderOpTable() {
+      var data = OP_LICENSE_DATA[opCurrentTenant] || [];
+      var tbody = document.getElementById('op-table-body');
+      var html = '';
+      if (data.length === 0) {
+        html = '<tr><td colspan="13" style="text-align:center;padding:40px 0;color:var(--c-text-4)">该租户暂无已开通的产品</td></tr>';
+      } else {
+        data.forEach(function (item) {
+          html += '<tr>';
+          html += '<td class="op-col-product">' + item.product + '</td>';
+          html += '<td class="op-col-type">' + item.type + '</td>';
+          html += '<td class="op-col-url">' + item.url + '</td>';
+          html += '<td class="op-col-version">' + item.version + '</td>';
+          html += '<td class="op-col-status"><span style="color:var(--c-success)">● ' + item.status + '</span></td>';
+          html += '<td class="op-col-licenseQty">' + item.licenseQty + '</td>';
+          html += '<td class="op-col-remaining">' + item.remaining + '</td>';
+          html += '<td class="op-col-config">' + item.config + '</td>';
+          html += '<td class="op-col-retention">' + item.retention + '</td>';
+          html += '<td class="op-col-expiry">' + item.expiry + '</td>';
+          html += '<td class="op-col-createdAt">' + item.createdAt + '</td>';
+          html += '<td class="op-col-updatedAt">' + item.updatedAt + '</td>';
+          html += '<td class="op-col-ops"><div class="op-links"><button class="op-link">更新License</button><button class="op-link">历史</button>';
+          html += '<div class="action-more-wrap"><button class="action-more-btn" onclick="toggleActionMenu(this)">⋯</button>';
+          html += '<div class="action-dropdown"><button class="action-dropdown-item" onclick="closeAllActionMenus()">编辑</button><div class="action-dropdown-divider"></div><button class="action-dropdown-item danger" onclick="closeAllActionMenus()">删除</button></div></div>';
+          html += '</div></td>';
+          html += '</tr>';
+        });
+      }
+      tbody.innerHTML = html;
+      document.getElementById('op-total-count').textContent = data.length;
+      applyOpColumnVisibility();
+    }
+
+    /* ===== OP COLUMN SETTINGS ===== */
+    var OP_COLUMNS = [
+      { key: 'product', label: '产品名称', show: true, locked: true },
+      { key: 'type', label: '产品类型', show: true },
+      { key: 'url', label: 'URL', show: true },
+      { key: 'version', label: '版本', show: true },
+      { key: 'status', label: '状态', show: true },
+      { key: 'licenseQty', label: 'License数量', show: true },
+      { key: 'remaining', label: '剩余License', show: true },
+      { key: 'config', label: '配置', show: false },
+      { key: 'retention', label: '数据存储周期(天)', show: false },
+      { key: 'expiry', label: '有效期至', show: true },
+      { key: 'createdAt', label: '开通时间', show: true },
+      { key: 'updatedAt', label: '最近更新时间', show: false },
+      { key: 'ops', label: '操作', show: true, locked: true }
+    ];
+
+    function renderOpColSettings() {
+      var panel = document.getElementById('op-col-settings-panel');
+      var html = '<div style="font-size:12px;color:var(--c-text-3);margin-bottom:6px">选择显示列</div>';
+      OP_COLUMNS.forEach(function (c, i) {
+        var chk = c.show ? ' checked' : '';
+        var dis = c.locked ? ' disabled' : '';
+        html += '<label><input type="checkbox" data-op-col-idx="' + i + '"' + chk + dis + '> ' + c.label + '</label>';
+      });
+      panel.innerHTML = html;
+    }
+
+    function toggleOpColSettings() {
+      document.getElementById('op-col-settings-panel').classList.toggle('is-open');
+    }
+
+    document.addEventListener('click', function (e) {
+      var wrap = document.getElementById('op-col-settings-wrap');
+      if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('op-col-settings-panel').classList.remove('is-open');
+      }
+    });
+
+    document.addEventListener('change', function (e) {
+      if (e.target.dataset.opColIdx !== undefined) {
+        var idx = parseInt(e.target.dataset.opColIdx);
+        OP_COLUMNS[idx].show = e.target.checked;
+        applyOpColumnVisibility();
+      }
+    });
+
+    function applyOpColumnVisibility() {
+      OP_COLUMNS.forEach(function (c) {
+        var cls = '.op-col-' + c.key;
+        document.querySelectorAll(cls).forEach(function (el) {
+          el.style.display = c.show ? '' : 'none';
+        });
+      });
+    }
+
+    renderOpColSettings();
+    applyOpColumnVisibility();
+
+    function renderOpStats() {
+      var allData = [];
+      Object.keys(OP_LICENSE_DATA).forEach(function (k) { allData = allData.concat(OP_LICENSE_DATA[k]); });
+      var totalProducts = allData.length;
+      var totalLicense = 0, totalRemaining = 0;
+      allData.forEach(function (d) { totalLicense += d.licenseQty; totalRemaining += d.remaining; });
+      var usedPct = totalLicense > 0 ? Math.round((totalLicense - totalRemaining) / totalLicense * 100) : 0;
+      var tenantCount = Object.keys(OP_LICENSE_DATA).length;
+      var ringR = 11, ringC = 2 * Math.PI * ringR;
+      var ringOff = ringC * (1 - usedPct / 100);
+      var usageColor = usedPct > 85 ? 'var(--c-danger)' : usedPct > 60 ? 'var(--c-warning)' : 'var(--c-success)';
+      document.getElementById('op-stats-bar').innerHTML =
+        '<div class="stat-item"><span class="stat-dot" style="background:var(--c-primary)"></span><span class="stat-num">' + tenantCount + '</span><span class="stat-label">租户</span></div>' +
+        '<div class="stat-sep"></div>' +
+        '<div class="stat-item"><span class="stat-dot" style="background:var(--c-success)"></span><span class="stat-num">' + totalProducts + '</span><span class="stat-label">产品实例</span></div>' +
+        '<div class="stat-sep"></div>' +
+        '<div class="stat-item"><span class="stat-dot" style="background:var(--c-primary)"></span><span class="stat-num">' + totalLicense + '</span><span class="stat-label">License 总量</span></div>' +
+        '<div class="stat-sep"></div>' +
+        '<div class="stat-item"><div class="mini-ring"><svg width="28" height="28"><circle cx="14" cy="14" r="' + ringR + '" fill="none" stroke="var(--c-fill-2)" stroke-width="3"/><circle cx="14" cy="14" r="' + ringR + '" fill="none" stroke="' + usageColor + '" stroke-width="3" stroke-dasharray="' + ringC + '" stroke-dashoffset="' + ringOff + '" stroke-linecap="round" style="transition:stroke-dashoffset 1s ease"/></svg><span class="ring-val" style="color:' + usageColor + '">' + usedPct + '</span></div><span class="stat-label">使用率</span></div>';
+    }
+
+    function filterOpTree(q) {
+      q = q.trim().toLowerCase();
+      var container = document.getElementById('op-tree-body');
+      if (!q) { renderOpTree(); return; }
+      var matched = (OP_TREE_DATA.children || []).filter(function (c) { return c.name.toLowerCase().indexOf(q) !== -1; });
+      if (matched.length === 0) {
+        container.innerHTML = '<div class="tree-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>未找到匹配租户</span></div>';
+        return;
+      }
+      var html = '';
+      matched.forEach(function (child) {
+        var activeClass = child.id === opCurrentTenant ? ' is-active' : '';
+        html += '<div class="tree-node' + activeClass + '" onclick="switchOpTenant(\'' + child.id + '\',\'' + child.name + '\')">';
+        var euClass = child.type === 'enduser' ? ' is-enduser' : '';
+        var tag = child.type === 'msp' ? '<span class="tenant-type-tag msp">MSP</span>' : '';
+        html += '<span class="node-avatar' + euClass + '" style="background:' + avatarColor(child.name) + '">' + child.name.charAt(0).toUpperCase() + '</span> ' + child.name + tag;
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    /* ===== OP INIT ===== */
+    renderOpTree();
+    renderOpTable();
+    renderOpStats();
+  </script>
+
+  <!-- ===== Navbar Feature Scripts ===== -->
+  <script>
+    // Toast
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(function () { t.classList.remove('show'); }, 2000);
+    }
+
+    // Theme Toggle (with localStorage persist)
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isDark = html.getAttribute('data-theme') === 'dark';
+      var next = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      try { localStorage.setItem('ems-theme', next); } catch (e) { }
+      showToast(isDark ? '已切换到浅色主题' : '已切换到暗色主题');
+    }
+    // Restore theme on load
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+      } catch (e) { }
+    })();
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Sidebar Toggle (with localStorage persist)
+    function toggleSidebar() {
+      var sb = document.getElementById('sidebar');
+      sb.classList.toggle('expanded');
+      var isOpen = sb.classList.contains('expanded');
+      document.body.classList.toggle('sidebar-open', isOpen);
+      try { localStorage.setItem('ems-sidebar', isOpen ? 'expanded' : 'collapsed'); } catch (e) { }
+    }
+    // Restore sidebar on load
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-sidebar');
+        if (saved === 'expanded') {
+          document.getElementById('sidebar').classList.add('expanded');
+          document.body.classList.add('sidebar-open');
+        }
+      } catch (e) { }
+    })();
+
+    // User Menu
+    function toggleUserMenu() {
+      document.getElementById('userDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', function (e) {
+      var w = document.getElementById('userWrapper');
+      if (w && !w.contains(e.target)) document.getElementById('userDropdown').classList.remove('open');
+    });
+
+    /* [DISABLED] AI Drawer — 功能暂未上线
+    function openAIDrawer() { ... }
+    function closeAIDrawer() { ... }
+    function sendAIMsg() { ... }
+    function askQuickQ(btn) { ... }
+    function openNotifDrawer() { ... }
+    function closeNotifDrawer() { ... }
+    function switchNotifTab(el, cat) { ... }
+    */
+
+    // Language Switcher
+    function toggleLangMenu() {
+      document.getElementById('langMenu').classList.toggle('open');
+    }
+    function switchLang(code, label, el) {
+      document.querySelectorAll('.lang-option').forEach(function (o) { o.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('langMenu').classList.remove('open');
+      showToast('已切换语言: ' + label);
+    }
+    // Close lang menu on outside click
+    document.addEventListener('click', function (e) {
+      var sw = document.getElementById('langSwitcher');
+      if (sw && !sw.contains(e.target)) {
+        document.getElementById('langMenu').classList.remove('open');
+      }
+    });
+
+    // Command Palette
+    var CMD_DATA = [
+      { cat: '快速导航', title: '工作台', desc: '概览 Dashboard', icon: 'grid' },
+      { cat: '快速导航', title: '租户管理', desc: '组织管理 → 租户管理', icon: 'users' },
+      { cat: '快速导航', title: '产品管理', desc: '组织管理 → 产品管理', icon: 'box' },
+      { cat: '快速导航', title: '授权管理', desc: '组织管理 → License & SKU', icon: 'lock' },
+      { cat: '快速导航', title: '角色管理', desc: '权限管理 → 角色管理', icon: 'shield' },
+      { cat: '快速导航', title: '组织架构', desc: '权限管理 → 组织架构', icon: 'org' },
+      { cat: '快速导航', title: '个人信息', desc: '系统设置 → 个人信息', icon: 'user' },
+      { cat: '快速导航', title: '三方对接', desc: '系统设置 → 三方对接', icon: 'link' },
+      { cat: '快速导航', title: '同步管理', desc: '系统设置 → 同步管理', icon: 'sync' },
+      { cat: '快速导航', title: '通用设置', desc: '系统设置 → 通用设置', icon: 'settings' },
+      // { cat: '快速导航', title: 'AI访问设置', desc: '系统设置 → AI配置', icon: 'ai' },
+      { cat: '租户搜索', title: 'IT188 MSP', desc: '10 个产品授权 · 200 License', icon: 'tenant' },
+      { cat: '租户搜索', title: 'JGDemo', desc: '6 个产品授权 · 100 License', icon: 'tenant' },
+      { cat: '租户搜索', title: 'HuaAn Corp', desc: '3 个产品授权 · 50 License · 即将到期', icon: 'tenant-warn' },
+      { cat: '操作', title: '新增租户', desc: '创建新的租户账号', icon: 'plus' },
+      { cat: '操作', title: '生成 License', desc: '为指定租户生成新的授权', icon: 'key' },
+      { cat: '操作', title: '批量续期', desc: '批量续期即将到期的授权', icon: 'refresh' },
+      { cat: '操作', title: '导出报告', desc: '导出授权使用报告', icon: 'export' },
+      { cat: '系统操作', title: '切换暗色主题', desc: '系统显示偏好', icon: 'theme', keys: ['⌘', 'D'], action: function () { toggleTheme(); closeCmd(); } },
+      { cat: '系统操作', title: '全屏模式', desc: '切换全屏显示', icon: 'fullscreen', action: function () { toggleFullscreen(); closeCmd(); } },
+      // { cat: '系统操作', title: 'AI 助手', desc: '打开 AI 助手面板', icon: 'ai', action: function () { openAIDrawer(); closeCmd(); } },
+      // { cat: '系统操作', title: '通知中心', desc: '查看所有通知', icon: 'bell', action: function () { openNotifDrawer(); closeCmd(); } },
+    ];
+
+    var CMD_ICONS = {
+      grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+      users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+      box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+      lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+      shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      org: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="3"/><path d="M12 8v4"/><path d="M6 16h12"/><path d="M6 16v4"/><path d="M18 16v4"/><path d="M12 12v4"/><path d="M12 16v4"/></svg>',
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+      sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 4v2h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/><path d="M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>',
+      settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z"/></svg>',
+      ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg>',
+      tenant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>',
+      'tenant-warn': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+      key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+      refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 4v2h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/><path d="M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>',
+      export: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+      theme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
+      fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>',
+      bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>',
+    };
+
+    function getIconStyle(icon) {
+      if (icon === 'tenant-warn') return 'background:rgba(245,158,11,.1);color:#F59E0B';
+      return '';
+    }
+
+    var cmdFocusIdx = 0;
+    var cmdFiltered = [];
+
+    function renderCmdResults(items) {
+      cmdFiltered = items;
+      cmdFocusIdx = 0;
+      var container = document.getElementById('cmdResults');
+      if (!items.length) {
+        container.innerHTML = '<div class="cmd-empty">没有匹配结果，试试其他关键字</div>';
+        return;
+      }
+      var html = '';
+      var lastCat = '';
+      items.forEach(function (item, idx) {
+        if (item.cat !== lastCat) {
+          lastCat = item.cat;
+          html += '<div class="cmd-section-title">' + item.cat + '</div>';
+        }
+        var f = idx === 0 ? ' focused' : '';
+        var s = getIconStyle(item.icon);
+        var keys = item.keys ? '<div class="cmd-result-shortcut">' + item.keys.map(function (k) { return '<kbd>' + k + '</kbd>'; }).join('') + '</div>' : '';
+        html += '<div class="cmd-result-item' + f + '" data-idx="' + idx + '" onclick="execCmdItem(' + idx + ')" onmouseenter="focusCmdItem(' + idx + ')">';
+        html += '<div class="cmd-result-icon"' + (s ? ' style="' + s + '"' : '') + '>' + (CMD_ICONS[item.icon] || '') + '</div>';
+        html += '<div class="cmd-result-text"><div class="title">' + item.title + '</div><div class="desc">' + item.desc + '</div></div>';
+        html += keys + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function filterCmdResults(q) {
+      q = q.trim().toLowerCase();
+      if (!q) { renderCmdResults(CMD_DATA.slice(0, 12)); return; }
+      var results = CMD_DATA.filter(function (item) {
+        return item.title.toLowerCase().indexOf(q) !== -1
+          || item.desc.toLowerCase().indexOf(q) !== -1
+          || item.cat.toLowerCase().indexOf(q) !== -1;
+      });
+      renderCmdResults(results.slice(0, 20));
+    }
+
+    function focusCmdItem(idx) {
+      document.querySelectorAll('.cmd-result-item').forEach(function (el) { el.classList.remove('focused'); });
+      var el = document.querySelector('.cmd-result-item[data-idx="' + idx + '"]');
+      if (el) { el.classList.add('focused'); cmdFocusIdx = idx; }
+    }
+
+    function execCmdItem(idx) {
+      var item = cmdFiltered[idx];
+      if (item && item.action) item.action();
+      else { closeCmd(); showToast('导航到: ' + (item ? item.title : '')); }
+    }
+
+    function openCmd() {
+      document.getElementById('cmdOverlay').classList.add('open');
+      renderCmdResults(CMD_DATA.slice(0, 12));
+      setTimeout(function () { document.getElementById('cmdInput').focus(); }, 50);
+    }
+    function closeCmd() {
+      document.getElementById('cmdOverlay').classList.remove('open');
+      document.getElementById('cmdInput').value = '';
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', function (e) {
+      var cmdOpen = document.getElementById('cmdOverlay').classList.contains('open');
+      // ⌘D / Ctrl+D → Toggle Theme
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
+      // ⌘K / Ctrl+K → Command Palette
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        if (cmdOpen) closeCmd(); else openCmd();
+        return;
+      }
+      // Esc → close
+      if (e.key === 'Escape') {
+        if (cmdOpen) { closeCmd(); return; }
+      }
+      // Arrow keys in command palette
+      if (cmdOpen) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          var next = Math.min(cmdFocusIdx + 1, cmdFiltered.length - 1);
+          focusCmdItem(next);
+          var el = document.querySelector('.cmd-result-item.focused');
+          if (el) el.scrollIntoView({ block: 'nearest' });
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          var prev = Math.max(cmdFocusIdx - 1, 0);
+          focusCmdItem(prev);
+          var el2 = document.querySelector('.cmd-result-item.focused');
+          if (el2) el2.scrollIntoView({ block: 'nearest' });
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          execCmdItem(cmdFocusIdx);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEO Agent Hub — EMS NEO• AI驱动的企业IT运维平台</title>
+  <link rel="stylesheet" href="../assets/ems-v6-common.css">
+  <style>
+    /* ===== NEO Agent Hub · 严格 4/8/12/16/24 网格 · 零原生对话框 =====
+       Tab 层级：顶层 3 Tab（总览/治理/平台）· 治理下再 4 Sub-tab
+       ============================================================== */
+
+    /* ── 顶层 Tab bar（在 page-title 下方 · 全站顶层导航模式）── */
+    .ac-tabs {
+      display: flex;
+      gap: var(--sp-4);
+      padding: 0;
+      margin: 0 0 var(--sp-16) 0;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .ac-tab {
+      padding: var(--sp-12) var(--sp-16);
+      font-size: 14px;
+      color: var(--c-text-2);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-8);
+      transition: color .15s var(--ease);
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .ac-tab:hover { color: var(--c-text-1); }
+    .ac-tab.active {
+      color: var(--c-primary);
+      border-bottom-color: var(--c-primary);
+      font-weight: 600;
+    }
+
+    .ac-tab .tab-count {
+      background: var(--c-fill-2);
+      color: var(--c-text-2);
+      padding: 1px var(--sp-8);
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .ac-tab.active .tab-count {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+    }
+
+    .ac-panel { display: none; }
+    .ac-panel.active { display: block; }
+
+    /* ── 通用卡片 · 严格 padding 16px · 卡片之间 gap 12px ── */
+    .ac-card {
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-16);
+    }
+
+    .ac-card + .ac-card { margin-top: var(--sp-12); }
+
+    .ac-card-head {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-12);
+      padding-bottom: var(--sp-12);
+      margin-bottom: var(--sp-16);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .ac-card-head .head-title {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-8);
+    }
+
+    .ac-card-head .head-desc {
+      font-size: 11px;
+      color: var(--c-text-3);
+      font-weight: 400;
+    }
+
+    /* ── KPI grid ── */
+    .ac-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--sp-12);
+      margin-bottom: var(--sp-16);
+    }
+
+    .kpi-card {
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-16);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-8);
+    }
+
+    .kpi-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--c-text-3);
+    }
+
+    .kpi-head .kpi-tag {
+      background: var(--c-fill-2);
+      color: var(--c-text-2);
+      padding: 2px var(--sp-8);
+      border-radius: var(--r-sm);
+      font-size: 10px;
+      letter-spacing: .4px;
+    }
+
+    .kpi-head .kpi-tag.ok { background: rgba(34, 197, 94, .15); color: #15803d; }
+    .kpi-head .kpi-tag.warn { background: rgba(217, 119, 6, .15); color: #b45309; }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .kpi-value .unit {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--c-text-3);
+      margin-left: var(--sp-4);
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--c-text-2);
+    }
+
+    .kpi-bar {
+      height: 6px;
+      background: var(--c-fill-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .kpi-bar-fill { height: 100%; }
+
+    /* ── 场景分布 mini bars（KPI 卡内嵌 rows）── */
+    .kpi-scene-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-4);
+      font-size: 11px;
+    }
+
+    .kpi-scene-row {
+      display: grid;
+      grid-template-columns: 68px 1fr 32px;
+      gap: var(--sp-8);
+      align-items: center;
+    }
+
+    .kpi-scene-row .label { color: var(--c-text-2); }
+    .kpi-scene-row .track {
+      height: 5px;
+      background: var(--c-fill-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .kpi-scene-row .track > span { display: block; height: 100%; }
+    .kpi-scene-row .val { font-weight: 600; color: var(--c-text-1); text-align: right; }
+
+    /* ── 场景表现表 · 主线 M1-M6 ── */
+    .ac-scene-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .ac-scene-table th {
+      text-align: left;
+      background: var(--c-fill-1);
+      padding: var(--sp-12);
+      font-size: 11px;
+      color: var(--c-text-3);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .ac-scene-table td {
+      padding: var(--sp-12);
+      color: var(--c-text-1);
+      border-bottom: 1px solid var(--c-border-light);
+      vertical-align: middle;
+    }
+
+    .ac-scene-table tr:last-child td { border-bottom: none; }
+    .ac-scene-table tr:hover td { background: var(--c-fill-1); }
+
+    .scene-cell {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-8);
+    }
+
+    .scene-cell strong {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-8);
+      font-size: 13px;
+      color: var(--c-text-1);
+    }
+
+    .scene-cell small {
+      color: var(--c-text-3);
+      font-size: 11px;
+    }
+
+    .kpi-mini-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-8);
+      font-size: 12px;
+    }
+
+    .kpi-mini-bar .track {
+      width: 80px;
+      height: 5px;
+      background: var(--c-fill-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .kpi-mini-bar .track > span { display: block; height: 100%; }
+    .kpi-mini-bar .val { color: var(--c-text-2); font-weight: 500; }
+
+    .kpi-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-4);
+      padding: 2px var(--sp-8);
+      border-radius: var(--r-sm);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .kpi-status.ok { background: rgba(34, 197, 94, .12); color: #15803d; }
+    .kpi-status.warn { background: rgba(217, 119, 6, .12); color: #b45309; }
+    .kpi-status.miss { background: rgba(220, 38, 38, .10); color: #b91c1c; }
+
+    /* ── 待办快照 + 快速动作（总览底部 2 列）── */
+    .ac-grid-2 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: var(--sp-12);
+      margin-top: var(--sp-12);
+    }
+
+    .ac-approval-row {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto;
+      gap: var(--sp-12);
+      align-items: center;
+      padding: var(--sp-12);
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+    }
+
+    .ac-approval-row + .ac-approval-row { margin-top: var(--sp-8); }
+
+    .approval-kind {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px var(--sp-8);
+      border-radius: var(--r-sm);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .approval-kind.m3 { background: rgba(220, 38, 38, .1); color: #dc2626; }
+    .approval-kind.m4 { background: rgba(124, 58, 237, .1); color: #7c3aed; }
+    .approval-kind.m5 { background: rgba(217, 119, 6, .1); color: #d97706; }
+
+    .approval-subject {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .approval-subject strong {
+      font-size: 13px;
+      color: var(--c-text-1);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .approval-subject small { font-size: 11px; color: var(--c-text-3); }
+
+    .btn {
+      padding: var(--sp-8) var(--sp-16);
+      border-radius: var(--r-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-1);
+      transition: all .15s var(--ease);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-4);
+    }
+
+    .btn:hover { background: var(--c-fill-1); }
+    .btn.sm { padding: var(--sp-4) var(--sp-12); font-size: 12px; }
+    .btn.primary { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+    .btn.primary:hover { filter: brightness(.95); }
+    .btn.ghost { border-color: transparent; color: var(--c-primary); background: transparent; }
+    .btn.ghost:hover { background: var(--c-primary-bg); }
+
+    /* ── 快速动作卡 ── */
+    .qa-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-8);
+    }
+
+    .qa-item {
+      display: grid;
+      grid-template-columns: 32px 1fr auto;
+      gap: var(--sp-12);
+      align-items: center;
+      padding: var(--sp-12);
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: background .15s var(--ease);
+    }
+
+    .qa-item:hover { background: var(--c-primary-bg); }
+
+    .qa-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-md);
+      background: var(--c-white);
+      color: var(--c-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qa-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .qa-info { display: flex; flex-direction: column; gap: 2px; }
+    .qa-info strong { font-size: 13px; color: var(--c-text-1); }
+    .qa-info small { font-size: 11px; color: var(--c-text-3); }
+
+    /* ── 治理 Tab 内的 Sub-tab bar ── */
+    .ac-subtabs {
+      display: flex;
+      gap: var(--sp-4);
+      padding: var(--sp-4);
+      background: var(--c-fill-1);
+      border-radius: var(--r-lg);
+      margin-bottom: var(--sp-16);
+    }
+
+    .ac-subtab {
+      flex: 1;
+      padding: var(--sp-8) var(--sp-16);
+      font-size: 13px;
+      color: var(--c-text-2);
+      cursor: pointer;
+      border-radius: var(--r-md);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-8);
+      transition: all .15s var(--ease);
+      user-select: none;
+    }
+
+    .ac-subtab:hover { color: var(--c-text-1); }
+    .ac-subtab.active {
+      background: var(--c-white);
+      color: var(--c-primary);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .ac-subtab .count {
+      background: var(--c-fill-2);
+      color: var(--c-text-2);
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+
+    .ac-subtab.active .count {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+    }
+
+    .ac-subpanel { display: none; }
+    .ac-subpanel.active { display: block; }
+
+    /* ── T2 账单表 · T5 审计 · T6 override 通用样式 ── */
+    .ac-data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .ac-data-table th {
+      text-align: left;
+      background: var(--c-fill-1);
+      padding: var(--sp-12);
+      font-size: 11px;
+      color: var(--c-text-3);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .ac-data-table td {
+      padding: var(--sp-12);
+      color: var(--c-text-1);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .ac-data-table tr:last-child td { border-bottom: none; }
+    .ac-data-table tr:hover td { background: var(--c-fill-1); }
+
+    /* ── 底部辅助面板 · T3/T7/T8 三卡 ── */
+    .aux-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: var(--sp-12);
+      margin-top: var(--sp-16);
+    }
+
+    .aux-metric {
+      display: flex;
+      gap: var(--sp-24);
+      padding-top: var(--sp-8);
+    }
+
+    .aux-metric > div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .aux-metric strong {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .aux-metric small { font-size: 11px; color: var(--c-text-3); }
+
+    /* ── 权限矩阵 ── */
+    .perm-matrix {
+      display: grid;
+      grid-template-columns: 100px repeat(4, 1fr);
+      gap: 1px;
+      background: var(--c-border-light);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      font-size: 12px;
+      margin-top: var(--sp-8);
+    }
+
+    .perm-matrix .cell {
+      background: var(--c-white);
+      padding: var(--sp-8);
+      text-align: center;
+      color: var(--c-text-2);
+    }
+
+    .perm-matrix .cell.head { background: var(--c-fill-1); color: var(--c-text-1); font-weight: 600; }
+    .perm-matrix .cell.role { background: var(--c-fill-1); color: var(--c-text-1); text-align: left; font-weight: 500; }
+    .perm-matrix .cell.yes { color: #16a34a; font-weight: 600; }
+    .perm-matrix .cell.no { color: var(--c-text-3); }
+
+    /* ── T5 审计时间线 ── */
+    .audit-toolbar {
+      display: flex;
+      gap: var(--sp-8);
+      margin-bottom: var(--sp-12);
+    }
+
+    .audit-toolbar input,
+    .audit-toolbar select {
+      padding: var(--sp-8) var(--sp-12);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      font-size: 12px;
+      background: var(--c-white);
+      color: var(--c-text-1);
+    }
+
+    .audit-toolbar input { flex: 1; }
+
+    .audit-row {
+      display: grid;
+      grid-template-columns: 100px 80px 1fr 180px;
+      gap: var(--sp-12);
+      padding: var(--sp-12);
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      font-size: 12px;
+      align-items: center;
+      margin-bottom: var(--sp-8);
+    }
+
+    .audit-row:last-child { margin-bottom: 0; }
+    .audit-time { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--c-text-3); font-size: 11px; }
+    .audit-actor { color: var(--c-text-2); }
+    .audit-event { color: var(--c-text-1); }
+    .audit-event strong { color: var(--c-primary); font-weight: 500; }
+
+    .audit-refs {
+      display: flex;
+      gap: var(--sp-4);
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      font-size: 11px;
+    }
+
+    .audit-refs a {
+      color: var(--c-primary);
+      text-decoration: none;
+      padding: 2px var(--sp-8);
+      background: var(--c-primary-bg);
+      border-radius: var(--r-sm);
+    }
+
+    .audit-refs a:hover { filter: brightness(.95); }
+
+    /* ── T6 override reasons ── */
+    .override-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-16);
+    }
+
+    .override-reason-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--sp-12);
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      font-size: 12px;
+      align-items: center;
+      margin-bottom: var(--sp-8);
+    }
+
+    .override-reason-row:last-child { margin-bottom: 0; }
+    .override-reason-row .reason-count { display: flex; align-items: center; gap: var(--sp-8); }
+    .override-reason-row .reason-bar {
+      width: 80px;
+      height: 5px;
+      background: var(--c-fill-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .override-reason-row .reason-bar > span { display: block; height: 100%; background: #f59e0b; }
+
+    /* ── 平台 Tab · Banner ── */
+    .platform-banner {
+      background: linear-gradient(135deg, rgba(37, 99, 235, .06), rgba(139, 92, 246, .04));
+      border: 1px solid rgba(37, 99, 235, .2);
+      border-radius: var(--r-lg);
+      padding: var(--sp-16);
+      display: flex;
+      gap: var(--sp-16);
+      align-items: center;
+      margin-bottom: var(--sp-16);
+    }
+
+    .platform-banner .pb-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-lg);
+      background: rgba(37, 99, 235, .12);
+      color: var(--c-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .platform-banner .pb-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .platform-banner .pb-body { flex: 1; font-size: 13px; color: var(--c-text-2); line-height: 1.6; }
+    .platform-banner .pb-body strong { color: var(--c-text-1); }
+
+    /* ── Model / Agent / Skill card grids ── */
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-12);
+    }
+
+    .card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-12);
+    }
+
+    .model-card,
+    .agent-card,
+    .skill-card {
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-16);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-12);
+    }
+
+    .card-head-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-12);
+    }
+
+    .card-head-row .icon-square {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .card-head-row .card-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .card-head-row .card-info strong { font-size: 13px; color: var(--c-text-1); }
+    .card-head-row .card-info small { font-size: 11px; color: var(--c-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .card-metric-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-8);
+      padding: var(--sp-12);
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+    }
+
+    .card-metric-list > div { display: flex; flex-direction: column; gap: 2px; }
+    .card-metric-list > div strong { font-size: 14px; font-weight: 600; color: var(--c-text-1); }
+    .card-metric-list > div small { font-size: 10px; color: var(--c-text-3); text-transform: uppercase; letter-spacing: .3px; }
+
+    /* Value2 evidence banner */
+    .value-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, .06), rgba(37, 99, 235, .06));
+      border: 1px solid rgba(16, 185, 129, .3);
+      border-radius: var(--r-lg);
+      padding: var(--sp-16);
+      display: flex;
+      gap: var(--sp-16);
+      align-items: center;
+      margin-bottom: var(--sp-16);
+    }
+
+    .value-banner .vb-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-lg);
+      background: rgba(16, 185, 129, .12);
+      color: #059669;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .value-banner .vb-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .value-banner .vb-body { flex: 1; font-size: 13px; color: var(--c-text-2); line-height: 1.6; }
+    .value-banner .vb-body strong { color: var(--c-text-1); }
+    .value-banner .vb-actions { display: flex; gap: var(--sp-8); }
+
+    /* KPI achievement (总览底部 + 治理 T7) */
+    .kpi-achv-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-8);
+    }
+
+    .kpi-achv-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 90px 90px;
+      gap: var(--sp-12);
+      align-items: center;
+      padding: var(--sp-8) var(--sp-12);
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      font-size: 12px;
+    }
+
+    .kpi-achv-row .row-scene { font-weight: 600; color: var(--c-text-1); }
+    .kpi-achv-row .row-target { color: var(--c-text-2); }
+    .kpi-achv-row .row-current { color: var(--c-text-1); font-weight: 600; text-align: right; }
+    .kpi-achv-row .row-status { display: flex; justify-content: flex-end; }
+    /* ===== 场景档位（平台 Tab · sub-p-tier） ===== */
+    .tier-radio-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tier-radio {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--c-border);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--c-text-2);
+      background: var(--c-white);
+      transition: all .15s;
+      font-family: inherit;
+    }
+
+    .tier-radio:hover {
+      border-color: var(--c-primary);
+    }
+
+    .tier-radio.checked {
+      background: var(--c-primary-bg);
+      border-color: var(--c-primary-border);
+      color: var(--c-primary);
+    }
+
+    .tier-radio.disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .tier-radio.disabled:hover {
+      border-color: var(--c-border);
+    }
+
+    .tier-current {
+      font-size: 11px;
+      color: var(--c-text-3);
+      margin-top: 4px;
+    }
+
+    .tier-breaker-box {
+      padding: 12px 14px;
+      background: var(--c-fill-1);
+      border-radius: 8px;
+    }
+
+    .tier-breaker-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      margin-bottom: 8px;
+    }
+
+    .tier-breaker-input {
+      width: 90px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      outline: none;
+      background: var(--c-white);
+      color: var(--c-text-1);
+      font-family: inherit;
+    }
+
+    .tier-breaker-input:focus {
+      border-color: var(--c-primary);
+    }
+
+    .tier-channel-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--c-border);
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--c-text-2);
+      background: var(--c-white);
+      transition: all .15s;
+      font-family: inherit;
+    }
+
+    .tier-channel-chip:hover {
+      border-color: var(--c-primary);
+    }
+
+    .tier-channel-chip.checked {
+      background: var(--c-primary-bg);
+      border-color: var(--c-primary-border);
+      color: var(--c-primary);
+      font-weight: 500;
+    }
+
+    .tier-rule-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .tier-rule-overlay.visible {
+      display: flex;
+    }
+
+    .tier-rule-modal {
+      width: 520px;
+      max-width: 92vw;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: var(--c-white);
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+    }
+
+    .tier-rule-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .tier-rule-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+    }
+
+    .tier-rule-close {
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--c-text-3);
+      padding: 4px;
+      border-radius: 4px;
+      display: inline-flex;
+    }
+
+    .tier-rule-close:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .tier-rule-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tier-field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      margin-bottom: 6px;
+    }
+
+    .tier-form-input,
+    .tier-form-select {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 12px;
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      outline: none;
+      background: var(--c-white);
+      color: var(--c-text-1);
+      font-family: inherit;
+    }
+
+    .tier-form-input:focus,
+    .tier-form-select:focus {
+      border-color: var(--c-primary);
+    }
+
+    .tier-rule-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--c-border-light);
+    }
+
+    .wl-op-link {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 12px;
+      color: var(--c-primary);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .wl-op-link.danger {
+      color: var(--c-danger);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header" id="emsHeader"></header>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main">
+    <div class="main-inner">
+
+      <div class="page-title-bar" style="padding-bottom:0">
+        <h1 class="page-title">NEO Agent Hub
+          <span style="font-size:12px;font-weight:400;color:var(--c-text-3)">
+            v1 主线 6 场景（M1-M6）· T1-T8 治理 · 模型 / Agent / Skills / MCP · 一体化门户
+          </span>
+        </h1>
+      </div>
+
+      <!-- 顶层 3 Tab -->
+      <div class="ac-tabs" style="margin: 0 var(--sp-24) var(--sp-16) var(--sp-24)">
+        <a class="ac-tab active" data-tab="overview" onclick="acSwitchTab('overview'); return false;" href="#overview">总览</a>
+        <a class="ac-tab" data-tab="governance" onclick="acSwitchTab('governance'); return false;" href="#governance">
+          治理
+          <span class="tab-count">T1-T8</span>
+        </a>
+        <a class="ac-tab" data-tab="platform" onclick="acSwitchTab('platform'); return false;" href="#platform">
+          平台
+          <span class="tab-count">DevOps</span>
+        </a>
+      </div>
+
+      <div class="content">
+
+        <!-- ═════════════════════ Tab 1 · 总览 ═════════════════════ -->
+        <div class="ac-panel active" id="panel-overview">
+
+          <!-- 4 KPI -->
+          <div class="ac-kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>今日 AI 成本 <small style="color:var(--c-text-3)">· 每次调用记录</small></span>
+                <span class="kpi-tag">TODAY</span>
+              </div>
+              <div class="kpi-value">¥847<span class="unit">/ 预算 ¥5,000</span></div>
+              <div class="kpi-bar">
+                <div class="kpi-bar-fill" style="width:17%; background:linear-gradient(90deg,#22c55e,#3b82f6);"></div>
+              </div>
+              <div class="kpi-sub">12,847 次调用 · DeepSeek 37% · GPT-4o 35% · Claude 28%</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>采纳率 / Override 率 <small style="color:var(--c-text-3)">· 近 7 日</small></span>
+                <span class="kpi-tag ok">↑3.2%</span>
+              </div>
+              <div class="kpi-value">72<span class="unit">%</span></div>
+              <div class="kpi-bar">
+                <div class="kpi-bar-fill" style="width:72%; background:#16a34a;"></div>
+              </div>
+              <div class="kpi-sub">Override 8.2% · 待审批 4.5% · 上周 70.5%</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>场景调用分布</span>
+                <span class="kpi-tag">M1-M6</span>
+              </div>
+              <div class="kpi-scene-list">
+                <div class="kpi-scene-row"><span class="label">M1 降噪</span><div class="track"><span style="width:32%;background:#3b82f6"></span></div><span class="val">32%</span></div>
+                <div class="kpi-scene-row"><span class="label">M2 RCA</span><div class="track"><span style="width:24%;background:#8b5cf6"></span></div><span class="val">24%</span></div>
+                <div class="kpi-scene-row"><span class="label">M3 转单</span><div class="track"><span style="width:18%;background:#dc2626"></span></div><span class="val">18%</span></div>
+                <div class="kpi-scene-row"><span class="label">M4 变更</span><div class="track"><span style="width:8%;background:#7c3aed"></span></div><span class="val">8%</span></div>
+                <div class="kpi-scene-row"><span class="label">M5 请求</span><div class="track"><span style="width:6%;background:#d97706"></span></div><span class="val">6%</span></div>
+                <div class="kpi-scene-row"><span class="label">M6 NEO Agent</span><div class="track"><span style="width:12%;background:#0891b2"></span></div><span class="val">12%</span></div>
+              </div>
+            </div>
+
+            <div class="kpi-card" style="background:linear-gradient(180deg, rgba(34,197,94,.04), var(--c-white))">
+              <div class="kpi-head">
+                <span>T3 · 熔断状态</span>
+                <span class="kpi-tag ok">正常</span>
+              </div>
+              <div class="kpi-value" style="color:#15803d;font-size:22px">成本 17% · 错误率 0.3%</div>
+              <div class="kpi-bar">
+                <div class="kpi-bar-fill" style="width:17%; background:#22c55e;"></div>
+              </div>
+              <div class="kpi-sub">阈值：成本 80% 熔断（降级 L3）· 错误率 10% 熔断 · 预算 80% 告警</div>
+            </div>
+          </div>
+
+          <!-- 价值一/价值二定位 banner -->
+          <div class="value-banner">
+            <div class="vb-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <div class="vb-body">
+              <strong>本页承接 v1 主线 6 场景的全部 AI 治理与运营数据。</strong>
+              一线运维用 <strong>NEO Agent</strong> 提问；IT 主管 / 财务 / 合规看 <strong>治理 Tab</strong>；DevOps / 平台管理员管 <strong>平台 Tab</strong>。
+              档位口径：L1 自动执行 / L2 手工确认 / L3 业务审批 · 不做 L0。
+            </div>
+            <div class="vb-actions">
+              <button class="btn sm" onclick="acExportReport()">导出合规报告</button>
+              <button class="btn primary sm" onclick="acOpenBudgetConfig()">配置预算 / 熔断</button>
+            </div>
+          </div>
+
+          <!-- 主线 6 场景表现表 -->
+          <div class="ac-card">
+            <div class="ac-card-head">
+              <div class="head-title">
+                v1 主线 6 场景 · KPI 达成情况
+                <span class="head-desc">目标 / 现值 / 状态 · POC 校准中</span>
+              </div>
+              <button class="btn sm ghost" onclick="acSwitchTab('governance')">→ 治理 · 场景配置</button>
+            </div>
+            <table class="ac-scene-table">
+              <thead>
+                <tr>
+                  <th>场景</th>
+                  <th>档位</th>
+                  <th>本周调用</th>
+                  <th>核心 KPI</th>
+                  <th>目标</th>
+                  <th>成本</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="scene-cell"><strong>M1 · 告警降噪聚类</strong></div><small>ITOM 原始告警 → 事件组</small></td>
+                  <td><span class="tier-badge tier-l1">L1</span></td>
+                  <td>124,000</td>
+                  <td><div class="kpi-mini-bar"><span class="val">降噪 89.7%</span><div class="track"><span style="width:89%;background:#16a34a"></span></div></div>
+                    <div class="kpi-mini-bar" style="margin-top:6px"><span class="val">精准率 86.4% <a href="../itom/alert-noise-reduction.html" class="ai-audit-link" style="font-weight:400;margin-left:4px">运营监控 →</a></span><div class="track"><span style="width:86%;background:#16a34a"></span></div></div></td>
+                  <td>≥ 60%<br><small style="color:var(--c-text-3)">精准率 ≥ 85%</small></td>
+                  <td>¥3,872</td>
+                  <td><span class="kpi-status ok"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 优秀</span></td>
+                </tr>
+                <tr>
+                  <td><div class="scene-cell"><strong>M2 · RCA + 证据链</strong></div><small>Top3 根因 + CMDB 关联</small></td>
+                  <td><span class="tier-badge tier-l3">L3</span></td>
+                  <td>92,800</td>
+                  <td><div class="kpi-mini-bar"><span class="val">命中 73.4%</span><div class="track"><span style="width:73%;background:#22c55e"></span></div></div></td>
+                  <td>≥ 70%</td>
+                  <td>¥5,124</td>
+                  <td><span class="kpi-status ok"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 达标</span></td>
+                </tr>
+                <tr>
+                  <td><div class="scene-cell"><strong>M3 · 转单派工</strong></div><small>AI 起草工单 → 确认执行</small></td>
+                  <td><span class="tier-badge tier-l2">L2</span> <span class="tier-badge tier-l1 sm" style="margin-left:4px">L1 自动执行</span></td>
+                  <td>69,700</td>
+                  <td><div class="kpi-mini-bar"><span class="val">分单 91.2%</span><div class="track"><span style="width:91%;background:#16a34a"></span></div></div></td>
+                  <td>≥ 90%</td>
+                  <td>¥2,918</td>
+                  <td><span class="kpi-status ok"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 达标</span></td>
+                </tr>
+                <tr>
+                  <td><div class="scene-cell"><strong>M4 · 变更审批 + 风险评估</strong></div><small>AI 风险分析 · 人工决策</small></td>
+                  <td><span class="tier-badge tier-l2">L2</span></td>
+                  <td>31,000</td>
+                  <td><div class="kpi-mini-bar"><span class="val">风险覆盖 78%</span><div class="track"><span style="width:78%;background:#f59e0b"></span></div></div></td>
+                  <td>≥ 80%</td>
+                  <td>¥1,872</td>
+                  <td><span class="kpi-status warn">△ 差 2%</span></td>
+                </tr>
+                <tr>
+                  <td><div class="scene-cell"><strong>M5 · 服务请求 AI 审批</strong></div><small>VPN / 账号 / 权限</small></td>
+                  <td><span class="tier-badge tier-l2">L2</span> <span class="tier-badge tier-l1 sm" style="margin-left:4px">L1 自动执行</span></td>
+                  <td>23,200</td>
+                  <td><div class="kpi-mini-bar"><span class="val">自动通过 46%</span><div class="track"><span style="width:46%;background:#22c55e"></span></div></div></td>
+                  <td>≥ 40%</td>
+                  <td>¥948</td>
+                  <td><span class="kpi-status ok"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 达标</span></td>
+                </tr>
+                <tr>
+                  <td><div class="scene-cell"><strong>M6 · NEO Agent 全局对话</strong></div><small>Cmd+K · MCP · Skills · 5 模型</small></td>
+                  <td><span class="tier-badge tier-l3">L3</span></td>
+                  <td>46,424</td>
+                  <td><div class="kpi-mini-bar"><span class="val">快捷卡命中 82%</span><div class="track"><span style="width:82%;background:#16a34a"></span></div></div></td>
+                  <td>≥ 80%</td>
+                  <td>¥3,813</td>
+                  <td><span class="kpi-status ok"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 达标</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 待办 + 快速动作 -->
+          <div class="ac-grid-2">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">T1 · 待审批快照
+                  <span class="tier-badge tier-l2" style="margin-left:var(--sp-8)">L2 手工确认</span>
+                </div>
+                <button class="btn sm ghost" onclick="acSwitchTab('governance','t1')">全部 23 →</button>
+              </div>
+
+              <div class="ac-approval-row">
+                <span class="approval-kind m3">M3 转单</span>
+                <div class="approval-subject">
+                  <strong>INC-2024-1128 · Web-Server-01 CPU 95%</strong>
+                  <small>触发人：张伟 · 09:47 · P1</small>
+                </div>
+                <button class="btn sm" onclick="acQuickOverride('INC-2024-1128')">Override</button>
+                <button class="btn sm primary" onclick="acQuickApprove('INC-2024-1128')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 放行</button>
+              </div>
+
+              <div class="ac-approval-row">
+                <span class="approval-kind m4">M4 变更</span>
+                <div class="approval-subject">
+                  <strong>CHG-2024-015 · Switch-Core-01 固件升级</strong>
+                  <small>发起：王芳 · 风险 45% 中等 · 09:38</small>
+                </div>
+                <button class="btn sm" onclick="acQuickOverride('CHG-2024-015')">驳回</button>
+                <button class="btn sm primary" onclick="acQuickApprove('CHG-2024-015')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 批准</button>
+              </div>
+
+              <div class="ac-approval-row">
+                <span class="approval-kind m5">M5 请求</span>
+                <div class="approval-subject">
+                  <strong>SR-2024-0826 · 陈明 · GitHub 组织权限</strong>
+                  <small>类型：权限 · 高风险 · 需人工 · 09:18</small>
+                </div>
+                <button class="btn sm" onclick="acQuickOverride('SR-2024-0826')">驳回</button>
+                <button class="btn sm primary" onclick="acQuickApprove('SR-2024-0826')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 批准</button>
+              </div>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">快速动作</div>
+                <div class="head-desc">高频操作 · Portal 一键</div>
+              </div>
+
+              <div class="qa-list">
+                <div class="qa-item" onclick="acSwitchTab('governance','t2')">
+                  <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                  <div class="qa-info"><strong>查看本月账单</strong><small>预算 ¥45,000 · 已用 41% · 分模型下钻</small></div>
+                  <span style="color:var(--c-text-3)">→</span>
+                </div>
+                <div class="qa-item" onclick="acExportReport()">
+                  <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                  <div class="qa-info"><strong>导出合规审计报告</strong><small>近 30 日 · T1 + T5 + T6 + T2 全打包</small></div>
+                  <span style="color:var(--c-text-3)">→</span>
+                </div>
+                <div class="qa-item" onclick="acOpenBudgetConfig()">
+                  <div class="qa-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4"/></svg></div>
+                    <div class="qa-info"><strong>调整预算 / 熔断阈值</strong><small>成本 % + 错误率 % · 熔断降级到 L3</small></div>
+                  <span style="color:var(--c-text-3)">→</span>
+                </div>
+                <div class="qa-item" onclick="acSwitchTab('platform')">
+                  <div class="qa-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg></div>
+                  <div class="qa-info"><strong>模型 & Agent 平台</strong><small>接入配置 · Agent 库 · Skills · MCP</small></div>
+                  <span style="color:var(--c-text-3)">→</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═════════════════════ Tab 2 · 治理 ═════════════════════ -->
+        <div class="ac-panel" id="panel-governance">
+
+          <!-- Sub-tab bar：T1 / T2 / T5 / T6 -->
+          <div class="ac-subtabs">
+            <div class="ac-subtab active" data-sub="t1" onclick="acSwitchSubtab('t1')">
+              T1 · 待审批 <span class="count">23</span>
+            </div>
+            <div class="ac-subtab" data-sub="t2" onclick="acSwitchSubtab('t2')">
+              T2 · 成本账单
+            </div>
+            <div class="ac-subtab" data-sub="t5" onclick="acSwitchSubtab('t5')">
+              T5 · 审计日志 <span class="count">1,847</span>
+            </div>
+            <div class="ac-subtab" data-sub="t6" onclick="acSwitchSubtab('t6')">
+              T6 · Override <span class="count">12</span>
+            </div>
+          </div>
+
+          <!-- T1 -->
+          <div class="ac-subpanel active" id="sub-t1">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">待处理 · AI 确认与业务审批
+                  <span class="head-desc">共 23 条 · 展示最新 6 条</span>
+                </div>
+                <div style="display:flex;gap:var(--sp-8)">
+                  <button class="btn sm">批量驳回</button>
+                  <button class="btn sm primary" onclick="acBatchApprove()">批量确认 8 项</button>
+                </div>
+              </div>
+
+              <div id="t1-approval-list">
+                <!-- 由 JS 渲染，避免大段重复 HTML -->
+              </div>
+            </div>
+          </div>
+
+          <!-- T2 -->
+          <div class="ac-subpanel" id="sub-t2">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">本月成本账单
+                  <span class="head-desc">每次调用记录 · 用户 × 租户 × 场景 × 模型四维下钻</span>
+                </div>
+                <button class="btn sm ghost" onclick="acExportReport()">↓ 导出账单</button>
+              </div>
+
+              <div class="ac-kpi-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: var(--sp-16)">
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>本月累计</span></div>
+                  <div class="kpi-value" style="font-size:22px">¥18,547</div>
+                  <div class="kpi-sub">预算 ¥45,000 · 已用 41% · 预计月末 ¥42,800</div>
+                </div>
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>调用次数</span></div>
+                  <div class="kpi-value" style="font-size:22px">387,124</div>
+                  <div class="kpi-sub">日均 12,900 · 峰值 M1 降噪 68,400/日</div>
+                </div>
+                <div class="kpi-card" style="padding: var(--sp-12) var(--sp-16)">
+                  <div class="kpi-head"><span>单次平均</span></div>
+                  <div class="kpi-value" style="font-size:22px">¥0.048</div>
+                  <div class="kpi-sub">较上月 -12% · DeepSeek 占比升至 42%</div>
+                </div>
+              </div>
+
+              <table class="ac-data-table">
+                <thead>
+                  <tr>
+                    <th>场景</th>
+                    <th>档位</th>
+                    <th>调用次数</th>
+                    <th>Token 输入</th>
+                    <th>Token 输出</th>
+                    <th>本月成本</th>
+                    <th>成本占比</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>M1 降噪聚类</strong></td><td><span class="tier-badge tier-l1">L1</span></td><td>124,000</td><td>248M</td><td>12M</td><td>¥3,872</td><td><div class="kpi-mini-bar"><div class="track"><span style="width:21%;background:#3b82f6"></span></div><span class="val">20.9%</span></div></td></tr>
+                  <tr><td><strong>M2 RCA</strong></td><td><span class="tier-badge tier-l3">L3</span></td><td>92,800</td><td>464M</td><td>93M</td><td>¥5,124</td><td><div class="kpi-mini-bar"><div class="track"><span style="width:28%;background:#8b5cf6"></span></div><span class="val">27.6%</span></div></td></tr>
+                  <tr><td><strong>M3 转单派工</strong></td><td><span class="tier-badge tier-l2">L2</span></td><td>69,700</td><td>209M</td><td>28M</td><td>¥2,918</td><td><div class="kpi-mini-bar"><div class="track"><span style="width:16%;background:#dc2626"></span></div><span class="val">15.7%</span></div></td></tr>
+                  <tr><td><strong>M4 变更审批</strong></td><td><span class="tier-badge tier-l2">L2</span></td><td>31,000</td><td>155M</td><td>31M</td><td>¥1,872</td><td><div class="kpi-mini-bar"><div class="track"><span style="width:10%;background:#7c3aed"></span></div><span class="val">10.1%</span></div></td></tr>
+                  <tr><td><strong>M5 服务请求</strong></td><td><span class="tier-badge tier-l2">L2</span></td><td>23,200</td><td>46M</td><td>7M</td><td>¥948</td><td><div class="kpi-mini-bar"><div class="track"><span style="width:5%;background:#d97706"></span></div><span class="val">5.1%</span></div></td></tr>
+                  <tr><td><strong>M6 NEO Agent</strong></td><td><span class="tier-badge tier-l3">L3</span></td><td>46,424</td><td>232M</td><td>39M</td><td>¥3,813</td><td><div class="kpi-mini-bar"><div class="track"><span style="width:20%;background:#0891b2"></span></div><span class="val">20.6%</span></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- T5 -->
+          <div class="ac-subpanel" id="sub-t5">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">审计日志 · 全链路追溯
+                  <span class="head-desc">L1/L2 完整审计 · L3 只保 T5b Token 记录</span>
+                </div>
+                <button class="btn sm primary" onclick="acExportReport()">↓ 导出（CSV/PDF）</button>
+              </div>
+
+              <div class="audit-toolbar">
+                <input type="text" placeholder="搜索：触发人 · 审批人 · 工单号 · 场景..." />
+                <select><option>所有场景</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option></select>
+                <select><option>今日</option><option>近 7 日</option><option>近 30 日</option></select>
+              </div>
+
+              <div id="t5-audit-list">
+                <!-- 30 条 mock 由 JS 渲染 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- T6 -->
+          <div class="ac-subpanel" id="sub-t6">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">Override 记录 · 效果诊断数据源</div>
+                <div class="head-desc">Override 数据用于 AI 效果诊断 + 规则调优 · <strong>v1 不做在线学习</strong></div>
+              </div>
+
+              <div class="override-grid">
+                <div>
+                  <div style="font-size:12px;font-weight:600;color:var(--c-text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:var(--sp-12)">近 30 日 · 128 条 Override · 常见原因</div>
+                  <div class="override-reason-row"><span>变更窗口与业务高峰冲突</span><span class="reason-count"><div class="reason-bar"><span style="width:100%"></span></div><strong>34</strong></span></div>
+                  <div class="override-reason-row"><span>分单团队不正确（AI 派错组）</span><span class="reason-count"><div class="reason-bar"><span style="width:76%"></span></div><strong>26</strong></span></div>
+                  <div class="override-reason-row"><span>优先级低估（应升 P1）</span><span class="reason-count"><div class="reason-bar"><span style="width:59%"></span></div><strong>20</strong></span></div>
+                  <div class="override-reason-row"><span>申请人合规风险（人工复核）</span><span class="reason-count"><div class="reason-bar"><span style="width:53%"></span></div><strong>18</strong></span></div>
+                  <div class="override-reason-row"><span>CMDB 关联错误（AI 找错 CI）</span><span class="reason-count"><div class="reason-bar"><span style="width:44%"></span></div><strong>15</strong></span></div>
+                  <div class="override-reason-row"><span>其他（需人工判断）</span><span class="reason-count"><div class="reason-bar"><span style="width:44%"></span></div><strong>15</strong></span></div>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:600;color:var(--c-text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:var(--sp-12)">最近 Override 明细</div>
+                  <div id="t6-override-list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部 3 卡：T3 熔断 · T7 效果 · T8 权限 -->
+          <div class="aux-grid">
+            <div class="ac-card">
+              <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                <div class="head-title">T8 · 权限矩阵 <span class="head-desc">角色 × 场景操作</span></div>
+                <a href="javascript:void(0)" class="ai-audit-link" onclick="acOpenPermConfig()">编辑 →</a>
+              </div>
+              <div class="perm-matrix">
+                <span class="cell head">角色</span>
+                <span class="cell head">触发 AI</span>
+                <span class="cell head">确认 L2</span>
+                <span class="cell head">开 L1 自动执行</span>
+                <span class="cell head">Override</span>
+
+                <span class="cell role">U1 一线</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell no">—</span><span class="cell no">—</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 附原因</span>
+                <span class="cell role">U2 专业</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell no">—</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 附原因</span>
+                <span class="cell role">U3 中层</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg></span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 附原因</span>
+                <span class="cell role">U4 领导</span><span class="cell no">—</span><span class="cell no">—</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg>（预算/熔断）</span><span class="cell yes"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 审计留痕</span>
+              </div>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                <div class="head-title">T3 · 熔断阈值</div>
+                <a href="javascript:void(0)" class="ai-audit-link" onclick="acOpenBudgetConfig()">调整 →</a>
+              </div>
+              <div style="font-size:12px; color: var(--c-text-2); line-height: 1.7">
+                <div><strong>成本双阈值</strong>：预算 80% 告警 · 80% 熔断（降级 L3）</div>
+                <div><strong>错误率</strong>：≥ 10% 熔断（客户可配）</div>
+              </div>
+              <div class="aux-metric">
+                <div><strong style="color:#15803d">正常</strong><small>近 24h 未触发</small></div>
+                <div><strong>3</strong><small>近 90d 熔断次数</small></div>
+              </div>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head" style="border-bottom:none; margin-bottom: var(--sp-12); padding-bottom:0">
+                <div class="head-title">T5b · L1 简化审计</div>
+                <a href="javascript:acSwitchSubtab('t5')" class="ai-audit-link">查看完整审计 →</a>
+              </div>
+              <div style="font-size:12px; color: var(--c-text-2); line-height: 1.7">
+                L3 业务审批档（M2 RCA · M6 NEO Agent）不做完整决策审计，只保 <strong>AI 调用记录 + Token 消耗</strong>。
+              </div>
+              <div class="aux-metric">
+                <div><strong>169,224</strong><small>近 24h L1 调用</small></div>
+                <div><strong>¥8,937</strong><small>近 24h L1 成本</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════════════════ Tab 3 · 平台 ═════════════════════ -->
+        <div class="ac-panel" id="panel-platform">
+
+          <div class="platform-banner">
+            <div class="pb-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <div class="pb-body">
+              <strong>面向 AI 平台运营 · DevOps</strong>：模型接入 · Agent 库 · Skills · MCP 工具注册 · 场景默认档位配置。
+              治理动作（审批 / 账单 / 审计）在 <a href="javascript:acSwitchTab('governance')" style="color:var(--c-primary)">治理 Tab</a>。
+            </div>
+          </div>
+
+          <!-- Sub-tab: 模型 / Agent + Skills / MCP -->
+          <div class="ac-subtabs">
+            <div class="ac-subtab active" data-sub="p-model" onclick="acSwitchSubtab('p-model')">模型接入 <span class="count">5</span></div>
+            <div class="ac-subtab" data-sub="p-agent" onclick="acSwitchSubtab('p-agent')">Agent 库 <span class="count">6</span></div>
+            <div class="ac-subtab" data-sub="p-skill" onclick="acSwitchSubtab('p-skill')">Skills & MCP <span class="count">7</span></div>
+            <div class="ac-subtab" data-sub="p-tier" onclick="acSwitchSubtab('p-tier')">场景档位</div>
+          </div>
+
+          <div class="ac-subpanel active" id="sub-p-model">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">模型接入
+                  <span class="head-desc">客户可自选 · 默认推荐 DeepSeek（性价比 + 中文）</span>
+                </div>
+                <button class="btn sm primary">+ 接入模型</button>
+              </div>
+              <table class="ac-data-table">
+                <thead>
+                  <tr><th>模型</th><th>供应商</th><th>接入点</th><th>今日调用</th><th>今日成本</th><th>用于场景</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong style="color:#2563eb">DeepSeek V4 Pro</strong></td><td>DeepSeek</td><td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">api.deepseek.com/v1</code></td><td>5,824</td><td>¥312</td><td>M1 降噪 · M6 NEO Agent</td><td><span class="kpi-status ok">● 运行中</span></td></tr>
+                  <tr><td><strong style="color:#10a37f">ChatGPT 5.5</strong></td><td>OpenAI</td><td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">api.openai.com/v1</code></td><td>3,214</td><td>¥298</td><td>M2 RCA · M4 变更评估</td><td><span class="kpi-status ok">● 运行中</span></td></tr>
+                  <tr><td><strong style="color:#d97706">Opus 4.7</strong></td><td>Anthropic</td><td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">api.anthropic.com/v1</code></td><td>1,847</td><td>¥237</td><td>M4 复杂变更 · M6 疑难问答</td><td><span class="kpi-status ok">● 运行中</span></td></tr>
+                  <tr><td><strong style="color:#ea4335">Gemini 2.5 Ultra</strong></td><td>Google</td><td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">generativelanguage.googleapis.com</code></td><td>1,232</td><td>¥0</td><td>M6 多模态查询</td><td><span class="kpi-status warn">● 待激活</span></td></tr>
+                  <tr><td><strong style="color:#6d28d9">Qwen3 235B</strong></td><td>阿里通义</td><td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">10.172.1.50:8080/v1</code></td><td>730</td><td>¥0</td><td>私有化部署备份</td><td><span class="kpi-status ok">● 本地</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="ac-subpanel" id="sub-p-agent">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">Agent 库 · 6 个专项 Agent</div>
+                <button class="btn sm primary">+ 创建 Agent</button>
+              </div>
+
+              <div class="card-grid-3">
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#3b82f6"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></div>
+                    <div class="card-info"><strong>告警降噪 Agent</strong><small>M1 · DeepSeek V4 Pro</small></div>
+                    <span class="tier-badge tier-l3 sm">L3</span>
+                  </div>
+                  <div class="card-metric-list">
+                    <div><strong>2,491</strong><small>今日</small></div>
+                    <div><strong>96.8%</strong><small>准确率</small></div>
+                    <div><strong>¥168</strong><small>今日成本</small></div>
+                  </div>
+                </div>
+
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#8b5cf6"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><polyline points="3 12 8 12 10 7 14 17 16 12 21 12"/></svg></div>
+                    <div class="card-info"><strong>根因分析 Agent</strong><small>M2 · ChatGPT 5.5</small></div>
+                    <span class="tier-badge tier-l1 sm">L1</span>
+                  </div>
+                  <div class="card-metric-list">
+                    <div><strong>127</strong><small>今日</small></div>
+                    <div><strong>73.4%</strong><small>Top3 命中</small></div>
+                    <div><strong>¥298</strong><small>今日成本</small></div>
+                  </div>
+                </div>
+
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#dc2626"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V2h6v2"/></svg></div>
+                    <div class="card-info"><strong>工单起草 Agent</strong><small>M3 · DeepSeek V4 Pro</small></div>
+                    <span class="tier-badge tier-l2 sm">L2</span>
+                  </div>
+                  <div class="card-metric-list">
+                    <div><strong>892</strong><small>今日</small></div>
+                    <div><strong>91.2%</strong><small>分单准确</small></div>
+                    <div><strong>¥184</strong><small>今日成本</small></div>
+                  </div>
+                </div>
+
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#7c3aed"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/></svg></div>
+                    <div class="card-info"><strong>变更风险 Agent</strong><small>M4 · Opus 4.7</small></div>
+                    <span class="tier-badge tier-l2 sm">L2</span>
+                  </div>
+                  <div class="card-metric-list">
+                    <div><strong>34</strong><small>今日</small></div>
+                    <div><strong>78%</strong><small>高风险覆盖</small></div>
+                    <div><strong>¥237</strong><small>今日成本</small></div>
+                  </div>
+                </div>
+
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#d97706"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><circle cx="8" cy="15" r="4"/><path d="M11 12L20 3M16 7l3 3"/></svg></div>
+                    <div class="card-info"><strong>服务请求 Agent</strong><small>M5 · DeepSeek V4 Pro</small></div>
+                    <span class="tier-badge tier-l2 sm">L2</span>
+                  </div>
+                  <div class="card-metric-list">
+                    <div><strong>128</strong><small>今日</small></div>
+                    <div><strong>46%</strong><small>自动通过</small></div>
+                    <div><strong>¥42</strong><small>今日成本</small></div>
+                  </div>
+                </div>
+
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#0891b2"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+                    <div class="card-info"><strong>NEO Agent 编排 Agent</strong><small>M6 · 5 模型可切</small></div>
+                    <span class="tier-badge tier-l1 sm">L1</span>
+                  </div>
+                  <div class="card-metric-list">
+                    <div><strong>843</strong><small>今日</small></div>
+                    <div><strong>82%</strong><small>快捷卡命中</small></div>
+                    <div><strong>¥168</strong><small>今日成本</small></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ac-subpanel" id="sub-p-skill">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">Skills · 可复用工具能力 <span class="head-desc">NEO Agent / Agent 编排调用</span></div>
+                <button class="btn sm primary">+ 新增 Skill</button>
+              </div>
+              <table class="ac-data-table">
+                <thead>
+                  <tr><th>Skill 名称</th><th>触发方式</th><th>被调用</th><th>成功率</th><th>用于场景</th><th>档位</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>告警根因分析</strong></td><td>M2 / NEO Agent</td><td>127/日</td><td>92.4%</td><td>M2 RCA</td><td><span class="tier-badge tier-l3">L3</span></td></tr>
+                  <tr><td><strong>CMDB 影响分析</strong></td><td>M4 / NEO Agent</td><td>23/日</td><td>96.1%</td><td>M4 变更评估</td><td><span class="tier-badge tier-l3">L3</span></td></tr>
+                  <tr><td><strong>容量规划</strong></td><td>定时 / NEO Agent</td><td>18/日</td><td>93.5%</td><td>M4 · 隐性</td><td><span class="tier-badge tier-l3">L3</span></td></tr>
+                  <tr><td><strong>工单智能摘要</strong></td><td>M3 · 起草时</td><td>67/日</td><td>98.5%</td><td>M3 转单</td><td><span class="tier-badge tier-l2">L2</span></td></tr>
+                  <tr><td><strong>周报生成</strong></td><td>定时（周一 09:00）</td><td>3/周</td><td>100%</td><td>S10 · NEO Agent</td><td><span class="tier-badge tier-l3">L3</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">MCP 工具注册表 <span class="head-desc">Model Context Protocol · 跨产品能力接入</span></div>
+                <button class="btn sm primary">+ 注册 MCP 工具</button>
+              </div>
+              <div class="card-grid-2">
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#7C3AED"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></div>
+                    <div class="card-info"><strong>CMDB Connector</strong><small>读 CI / 影响面 / 服务映射</small></div>
+                    <span class="kpi-status ok">● 已启用</span>
+                  </div>
+                  <small style="color:var(--c-text-3)">调用：M2 RCA · M4 变更 · NEO Agent 问答</small>
+                </div>
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#059669"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16"/></svg></div>
+                    <div class="card-info"><strong>ITSM Connector</strong><small>建工单 / 查工单 / 更新状态</small></div>
+                    <span class="kpi-status ok">● 已启用</span>
+                  </div>
+                  <small style="color:var(--c-text-3)">调用：M3 转单 · M5 请求 · NEO Agent 问答</small>
+                </div>
+                <div class="agent-card">
+                  <div class="card-head-row">
+                    <div class="icon-square" style="background:#2563eb"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+                    <div class="card-info"><strong>网络设备 API</strong><small>SNMP · Netconf · SSH 命令</small></div>
+                    <span class="kpi-status ok">● 已启用</span>
+                  </div>
+                  <small style="color:var(--c-text-3)">调用：M4 变更执行 · NEO Agent 诊断</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-panel: 场景档位（04 §P6 场景默认档位配置 · 05 §P6 可配置项：档位/白名单/熔断/通知渠道） -->
+          <div class="ac-subpanel" id="sub-p-tier">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">场景档位矩阵
+                  <span class="head-desc">每个 M 场景独立配置 · 默认档位对齐 04 §P2 · 配置变更记录 T5 审计</span>
+                </div>
+              </div>
+              <table class="ac-data-table">
+                <thead>
+                  <tr><th>场景</th><th>默认档</th><th style="width:30%">当前生效档</th><th>规则说明</th></tr>
+                </thead>
+                <tbody id="tierTbody"></tbody>
+              </table>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">白名单规则（L1 自动执行）
+                  <span class="head-desc">默认空 · 客户主动配置 · 新增/修改走 T1 审批卡点</span>
+                </div>
+                <button class="btn sm primary" onclick="openTierRuleModal()">+ 新增白名单规则</button>
+              </div>
+              <table class="ac-data-table">
+                <thead>
+                  <tr><th>规则名称</th><th>场景</th><th>触发条件</th><th>自动动作（L1）</th><th>状态</th><th>操作</th></tr>
+                </thead>
+                <tbody id="wlTbody"></tbody>
+              </table>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">熔断阈值
+                  <span class="head-desc">全局熔断（T3）· 触发时 M1-M6 全部降级到 L3</span>
+                </div>
+              </div>
+              <div style="padding:16px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+                  <div class="tier-breaker-box">
+                    <div class="tier-breaker-label">成本阈值（当月 AI 成本 / 预算）</div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <input class="tier-breaker-input" id="tierBreakerCost" type="number" value="80" min="1" max="100"><span style="font-size:13px;color:var(--c-text-3)">%</span>
+                    </div>
+                  </div>
+                  <div class="tier-breaker-box">
+                    <div class="tier-breaker-label">错误率阈值（AI 调用失败率）</div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <input class="tier-breaker-input" id="tierBreakerErr" type="number" value="10" min="1" max="100"><span style="font-size:13px;color:var(--c-text-3)">%</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size:11px;color:var(--c-text-3);line-height:1.7">触发后自动执行：暂停受影响场景的自动写动作，保留只读分析和产品人工流程 → 通知 IT 主管与管理员 → 恢复需人工解除。当前熔断状态：<span style="color:var(--c-success);font-weight:500">未触发</span>（本月 AI 成本 ¥328 / 预算 ¥1,000 · 33% · 错误率 0.4%）</div>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <button class="btn sm" onclick="tierBreakerTrigger()">手动触发熔断（演练）</button>
+                  <button class="btn sm" onclick="tierBreakerRelease()">解除熔断</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">通知渠道
+                  <span class="head-desc">审批提醒 / 熔断告警 / AI 起草类通知的统一发送渠道</span>
+                </div>
+              </div>
+              <div style="padding:16px">
+                <div style="display:flex;gap:10px;flex-wrap:wrap" id="tierChannelGrid">
+                  <button class="tier-channel-chip checked" data-ch="邮件" onclick="tierToggleChannel(this)">邮件</button>
+                  <button class="tier-channel-chip" data-ch="钉钉" onclick="tierToggleChannel(this)">钉钉</button>
+                  <button class="tier-channel-chip" data-ch="企业微信" onclick="tierToggleChannel(this)">企业微信</button>
+                  <button class="tier-channel-chip" data-ch="Webhook" onclick="tierToggleChannel(this)">Webhook</button>
+                </div>
+                <div style="font-size:11px;color:var(--c-text-3);margin-top:10px">默认仅邮件。启用多渠道后，同一事件按渠道优先级去重推送（邮件 &gt; 钉钉 &gt; 企业微信 &gt; Webhook）。</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增白名单规则弹窗（提交后走 T1 审批 · 与 governance 审批队列口径一致） -->
+  <div class="tier-rule-overlay" id="tierRuleOverlay" onclick="if(event.target===this)closeTierRuleModal()">
+    <div class="tier-rule-modal">
+      <div class="tier-rule-head">
+        <span class="tier-rule-title">新增白名单规则</span>
+        <button class="tier-rule-close" onclick="closeTierRuleModal()" title="关闭">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="tier-rule-body">
+        <div>
+          <div class="tier-field-label">规则名称</div>
+          <input class="tier-form-input" id="tierRuleName" type="text" placeholder="例：P1 网络告警自动转单">
+        </div>
+        <div>
+          <div class="tier-field-label">所属场景</div>
+          <select class="tier-form-select" id="tierRuleScene">
+            <option value="M3 告警转工单">M3 告警转工单（自动转单）</option>
+            <option value="M5 服务请求">M5 服务请求（低风险自动通过）</option>
+            <option value="M1 告警降噪">M1 告警降噪（维护窗口静默等规则）</option>
+          </select>
+        </div>
+        <div>
+          <div class="tier-field-label">触发条件</div>
+          <input class="tier-form-input" id="tierRuleCond" type="text" placeholder="例：来源=ITOM 且 优先级=P1 且 分类=网络">
+        </div>
+        <div>
+          <div class="tier-field-label">自动动作（L1）</div>
+          <input class="tier-form-input" id="tierRuleAction" type="text" placeholder="例：自动转单给网络运维组">
+        </div>
+        <div style="font-size:11px;color:var(--c-text-3);line-height:1.7">提交后进入 <strong>T1 审批卡点</strong>（IT 主管审批），审批通过后生效；所有新增/修改/启停操作记录到 T5 审计。</div>
+      </div>
+      <div class="tier-rule-foot">
+        <button class="btn sm" onclick="closeTierRuleModal()">取消</button>
+        <button class="btn sm primary" onclick="submitTierRule()">提交审批</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== Tab 切换 ===== */
+    function acSwitchTab(name, subtab) {
+      document.querySelectorAll('.ac-tab').forEach(function (t) {
+        t.classList.toggle('active', t.getAttribute('data-tab') === name);
+      });
+      document.querySelectorAll('.ac-panel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'panel-' + name);
+      });
+      if (subtab) setTimeout(function () { acSwitchSubtab(subtab); }, 60);
+      var url = new URL(window.location);
+      url.searchParams.set('tab', name);
+      history.replaceState(null, '', url.toString());
+    }
+
+    function acSwitchSubtab(name) {
+      document.querySelectorAll('.ac-subtab').forEach(function (s) {
+        s.classList.toggle('active', s.getAttribute('data-sub') === name);
+      });
+      document.querySelectorAll('.ac-subpanel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'sub-' + name);
+      });
+    }
+
+    /* ===== 从 URL 读取 tab & sub ===== */
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var t = q.get('tab');
+      if (t && ['overview', 'governance', 'platform'].indexOf(t) >= 0) {
+        setTimeout(function () { acSwitchTab(t); }, 100);
+      }
+    })();
+
+    /* ===== T1 待审批列表（治理 Tab · Mock 6 条）===== */
+    var t1Data = [
+      { kind: 'M3', kindLabel: 'M3 · 转单', tier: 'L2', subject: 'INC-2024-1128 · Web-Server-01 CPU 95%', meta: '触发人：值班经理 张伟 · 09:47', preview: 'P1 紧急 · 派单基础架构组 · SLA 4h · 建议 5 分钟内重启 Java 应用' },
+      { kind: 'M4', kindLabel: 'M4 · 变更', tier: 'L2', subject: 'CHG-2024-015 · Switch-Core-01 IOS-XE 17.9.4 升级', meta: '发起：王芳（网络组）· AI 风险 45% 中等 · 09:38', preview: '变更窗口 01-20 02:00-04:00 · 影响 23 个下游设备 · 同类历史失败率 8%' },
+      { kind: 'M5', kindLabel: 'M5 · 请求', tier: 'L3', subject: 'SR-2024-0827 · 王芳 · VPN 账号续期', meta: '类型：VPN · 白名单命中 · 09:32', preview: '本部门 VPN 续期 · 合规规则通过 · 建议直通' },
+      { kind: 'M3', kindLabel: 'M3 · 转单', tier: 'L2', subject: 'INC-2024-1127 · DB-Master-02 磁盘 92%', meta: '触发人：张伟 · 09:25', preview: 'P2 重要 · 派单数据库组 · SLA 8h · 建议清理归档日志' },
+      { kind: 'M5', kindLabel: 'M5 · 请求', tier: 'L2', subject: 'SR-2024-0826 · 陈明 · GitHub 组织权限申请', meta: '类型：权限 · 高风险 · 09:18', preview: '跨部门权限 · 需 IT 主管审批 · 上次同类 3 天前拒绝' },
+      { kind: 'M3', kindLabel: 'M3 · 转单', tier: 'L2', subject: 'INC-2024-1126 · GBA-SZ-Core-SW01 OSPF 邻居震荡', meta: '触发人：张伟 · 08:52 · 已聚合 63 条', preview: 'P1 紧急 · 派单网络组 · 建议排查上行链路' }
+    ];
+
+    function renderT1() {
+      var list = document.getElementById('t1-approval-list');
+      if (!list) return;
+      list.innerHTML = t1Data.map(function (r) {
+        return [
+          '<div class="ac-approval-row" style="grid-template-columns:80px 1fr 1fr 80px auto auto; padding: var(--sp-12) var(--sp-16); margin-bottom: var(--sp-8)">',
+          '  <span class="approval-kind ' + r.kind.toLowerCase() + '">' + r.kindLabel + '</span>',
+          '  <div class="approval-subject"><strong>' + r.subject + '</strong><small>' + r.meta + '</small></div>',
+          '  <div class="approval-subject" style="min-width:0"><small style="color:var(--c-text-2)">' + r.preview + '</small></div>',
+          '  <span class="tier-badge tier-' + r.tier.toLowerCase() + '">' + r.tier + '</span>',
+          '  <button class="btn sm" onclick="acQuickOverride(\'' + r.subject.split(' ')[0] + '\')">Override</button>',
+          '  <button class="btn sm primary" onclick="acQuickApprove(\'' + r.subject.split(' ')[0] + '\')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 放行</button>',
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    /* ===== T5 审计 30 条 mock ===== */
+    var t5Data = [
+      { time: '09:47:22', actor: '张伟', scene: 'M3', event: '确认执行 AI 起草工单 <strong>INC-2024-1128</strong>（Web-Server-01 CPU 95%）· L2 · 采纳 AI 建议 100%', refs: [{ label: '告警', href: '../itom/alert-detail.html' }, { label: '工单', href: '../itsm/itsm-incident-detail.html' }] },
+      { time: '09:38:14', actor: '王芳', scene: 'M4', event: '提交变更 <strong>CHG-2024-015</strong> · AI 风险评估 45% 中等 · 待审批', refs: [{ label: '变更单', href: '../itsm/change-detail.html' }] },
+      { time: '09:32:07', actor: '系统', scene: 'M5', event: 'L1 自动执行通过 <strong>SR-2024-0827</strong>（VPN 续期）· 已创建 AD 账号 · 已通知王芳', refs: [{ label: '请求', href: '../itsm/service-request.html' }] },
+      { time: '09:25:14', actor: '张伟', scene: 'M3', event: '确认执行 AI 起草工单 <strong>INC-2024-1127</strong>（DB 磁盘 92%）· L2 · 编辑处理人后确认', refs: [{ label: '工单', href: '../itsm/itsm-incident-detail.html' }] },
+      { time: '09:18:33', actor: '待审批', scene: 'M5', event: '提交服务请求 <strong>SR-2024-0826</strong>（GitHub 权限）· AI 起草说明 · 待人工审批', refs: [{ label: '请求', href: '../itsm/service-request.html' }] },
+      { time: '09:15:33', actor: '李总监', scene: 'M4', event: 'Override 变更 <strong>CHG-2024-014</strong>（AI 建议批准 → 人工驳回）· 原因："窗口与业务高峰冲突"', refs: [{ label: 'Override', href: 'javascript:acSwitchSubtab(\'t6\')' }] },
+      { time: '08:52:41', actor: '系统', scene: 'M1', event: 'AI 降噪聚合 63 条 OSPF 告警为 1 组事件 · 归属 GBA-SZ-Core-SW01 · 匹配规则 "跨站拓扑关联聚合"', refs: [{ label: '降噪', href: '../itom/alert-noise-reduction.html' }] },
+      { time: '08:47:12', actor: '熔断守护', scene: 'T3', event: '每小时预算检查 · 成本 17% · 错误率 0.3% · 状态正常 · 未触发降级', refs: [{ label: '熔断配置', href: 'javascript:acOpenBudgetConfig()' }] },
+      { time: '08:34:08', actor: '张伟', scene: 'M3', event: 'Override 工单 <strong>INC-2024-1122</strong>（AI 派 DB 组 → 改派应用组）· 原因："AI 派错"', refs: [{ label: 'Override', href: 'javascript:acSwitchSubtab(\'t6\')' }] },
+      { time: '08:12:44', actor: '王芳', scene: 'M4', event: '批准变更 <strong>CHG-2024-013</strong>（MySQL 8.0 升级）· L2 · 采纳 AI 建议', refs: [{ label: '变更', href: '../itsm/change-detail.html' }] },
+      { time: '08:03:19', actor: '系统', scene: 'M2', event: 'NEO Agent 提问 "今天有什么值得关注的告警" · Skills 触发 (根因分析 x1)', refs: [] },
+      { time: '07:52:33', actor: '张伟', scene: 'M3', event: '批量确认 3 个 L2 · 类型均为 M3 转单派工 · 全部采纳 AI 建议', refs: [] },
+      { time: '07:41:08', actor: '值班切换', scene: 'M6', event: 'NEO Agent 生成夜班交接单 · 涵盖未闭工单 · L3 业务审批', refs: [] },
+      { time: '昨 22:57', actor: '陈明', scene: 'M5', event: '人工复核请求 <strong>SR-2024-0798</strong>（跨部门权限）· 原因："需董事会审批"', refs: [{ label: 'Override', href: 'javascript:acSwitchSubtab(\'t6\')' }] },
+      { time: '昨 22:12', actor: '系统', scene: 'M1', event: 'AI 建议新降噪规则 "Nexus BGP + 5min 去重"（隐藏 1,024 条噪声）· 待值班经理审批', refs: [{ label: '待审批', href: 'javascript:acSwitchSubtab(\'t1\')' }] },
+      { time: '昨 21:03', actor: '张伟', scene: 'M3', event: 'Override 工单 <strong>INC-2024-1099</strong> · 关联 CI 修正（AI 关联 Web-01 → Web-03）', refs: [] },
+      { time: '昨 20:47', actor: '熔断守护', scene: 'T3', event: '成本预算检查通过 · 全日累计 ¥6,412 · 82% 预算 · 未触发', refs: [] },
+      { time: '昨 19:32', actor: '系统', scene: 'M5', event: 'L1 白名单批量通过 12 条 VPN 续期请求 · 全部本部门 · 合规通过', refs: [] },
+      { time: '昨 18:24', actor: '王芳', scene: 'M4', event: '驳回变更 <strong>CHG-2024-011</strong> · 原因："回滚计划不清晰"', refs: [] },
+      { time: '昨 17:38', actor: '张伟', scene: 'M3', event: '确认创建工单 <strong>INC-2024-1078</strong> · L2 · 采纳 AI 建议', refs: [] },
+      { time: '昨 16:12', actor: '李总监', scene: 'T8', event: '权限矩阵变更 · U3 中层新增 "开 L1 白名单" 权限 · 审计留痕', refs: [] },
+      { time: '昨 15:22', actor: '系统', scene: 'M2', event: 'Agent 健康检查 · 根因分析 Agent 恢复正常（P95 延时 2.1s → 1.2s）', refs: [] },
+      { time: '昨 14:03', actor: '张伟', scene: 'M6', event: 'NEO Agent 提问 "工程师 K.H. Wong 现在在哪" · MCP CMDB 调用 · L1', refs: [] },
+      { time: '昨 12:47', actor: '系统', scene: 'M1', event: 'AI 降噪规则应用 · 抑制 F5 Pool Down 抖动 412 条', refs: [] },
+      { time: '昨 11:32', actor: '王芳', scene: 'M4', event: '批准变更 · CMDB 影响面自动更新 42 条 CI 关系', refs: [] },
+      { time: '昨 10:14', actor: '张伟', scene: 'M3', event: '放行工单 · 派工至 FSM 现场 · 工程师赵刚 45min ETA', refs: [] },
+      { time: '昨 09:03', actor: '陈明', scene: 'M5', event: '批准 GitHub 权限申请 · L2 · 采纳 AI 建议 · 已同步 SSO', refs: [] },
+      { time: '昨 08:47', actor: '熔断守护', scene: 'T3', event: '日预算重置 · 前日累计 ¥847 · 无触发', refs: [] },
+      { time: '前日 22:00', actor: '系统', scene: 'M6', event: 'NEO Agent 生成每日运维简报 · U4 已阅 · L1', refs: [] },
+      { time: '前日 20:15', actor: '张伟', scene: 'M3', event: '批量确认 5 个 L2 转单 · 全部 P2/P3 告警 · 采纳率 100%', refs: [] }
+    ];
+
+    function renderT5() {
+      var list = document.getElementById('t5-audit-list');
+      if (!list) return;
+      list.innerHTML = t5Data.map(function (r) {
+        var refsHtml = r.refs.length
+          ? '<div class="audit-refs">' + r.refs.map(function (rr) { return '<a href="' + rr.href + '">' + rr.label + '</a>'; }).join('') + '</div>'
+          : '<div class="audit-refs"><span style="color:var(--c-text-3)">—</span></div>';
+        return [
+          '<div class="audit-row">',
+          '  <span class="audit-time">' + r.time + '</span>',
+          '  <span class="audit-actor">' + r.actor + '</span>',
+          '  <span class="audit-event">' + r.event + '</span>',
+          refsHtml,
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    /* ===== T6 override 明细 ===== */
+    var t6Data = [
+      { time: '09:15:33', actor: '李总监', event: 'CHG-2024-014 · 驳回 · "窗口与业务高峰冲突"' },
+      { time: '08:34:08', actor: '张伟', event: 'INC-2024-1122 · 改派 · "AI 派 DB 组 → 应派应用组"' },
+      { time: '08:12:44', actor: '王芳', event: 'CHG-2024-012 · 升级为 P1 · "AI 低估影响面"' },
+      { time: '昨 22:57', actor: '陈明', event: 'SR-2024-0798 · 人工复核 · "跨部门权限需董事会审批"' },
+      { time: '昨 21:03', actor: '张伟', event: 'INC-2024-1099 · 关联 CI 修正 · "AI 关联 Web-01 → 应为 Web-03"' }
+    ];
+
+    function renderT6() {
+      var list = document.getElementById('t6-override-list');
+      if (!list) return;
+      list.innerHTML = t6Data.map(function (r) {
+        return [
+          '<div class="audit-row" style="grid-template-columns: 100px 90px 1fr">',
+          '  <span class="audit-time">' + r.time + '</span>',
+          '  <span class="audit-actor">' + r.actor + '</span>',
+          '  <span class="audit-event">' + r.event + '</span>',
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    renderT1(); renderT5(); renderT6();
+
+    /* ===== 动作 · 全部走自定义 modal · 无 alert/prompt ===== */
+    function acQuickApprove(id) {
+      showConfirmModal({
+        title: '手工确认',
+        message: '即将放行 AI 起草的动作 <strong>' + id + '</strong>。<br><br>系统将：<br>' +
+          '① 执行工单/变更/请求的落地动作<br>' +
+          '② 记录到 T5 审计（确认人/时间/前后状态）<br>' +
+          '③ Token 消耗计入 T2 账单<br>' +
+          '④ 通知相关处理人',
+        okText: '<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 放行',
+        onOk: function () {
+          showToast('<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ' + id + ' 已确认 · 结果已记录到 T5 审计', 'success');
+        }
+      });
+    }
+
+    function acQuickOverride(id) {
+      showInputModal({
+        title: 'Override / 驳回 · 原因（记录到 T6）',
+        message: '你不采纳 AI 起草的 <strong>' + id + '</strong>，请填写原因。所有 Override 会进入 T6 供效果诊断与规则调优使用。',
+        placeholder: '例：AI 派单团队不正确 · 应派应用组...',
+        multiline: true,
+        hintList: [
+          { label: '变更窗口与业务高峰冲突' },
+          { label: '分单团队不正确' },
+          { label: '优先级低估' },
+          { label: '申请人合规风险' },
+          { label: 'CMDB 关联错误' }
+        ],
+        okText: '提交 Override',
+        onSubmit: function (reason) {
+          showToast('Override 已留痕 · ' + id + ' · 原因："' + reason + '"', 'warn');
+        }
+      });
+    }
+
+    function acBatchApprove() {
+      showConfirmModal({
+        title: '批量确认 8 项',
+        message: '识别出 8 项低风险待审批（全部匹配 L1 白名单规则或客户已批准的白名单类别）：<br><br>' +
+          '· 4 项 M5 · VPN 续期<br>' +
+          '· 3 项 M3 · P2/P3 告警转单<br>' +
+          '· 1 项 M5 · 本部门 GitHub 权限<br><br>' +
+          '批量确认会执行落地动作 · 每项独立记录到 T5 审计。',
+        okText: '批量确认 8 项',
+        onOk: function () {
+          showToast('<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 已确认 8 项 · 全部记录到 T5 审计 · Token 消耗 ¥1.2', 'success');
+        }
+      });
+    }
+
+    function acExportReport() {
+      showConfirmModal({
+        title: '导出合规审计报告',
+        message: '将打包近 30 日的以下数据为 PDF + CSV：<br><br>' +
+          '<div style="background:var(--c-fill-1);border-radius:var(--r-md);padding:var(--sp-12);font-size:12px;line-height:1.7">' +
+          '· T1 · 审批流水（23 条）<br>' +
+          '· T2 · 成本账单（分场景/租户/模型/用户四维）<br>' +
+          '· T5 · 完整审计日志（1,847 条）<br>' +
+          '· T6 · Override 记录（128 条 + 原因分布）<br>' +
+          '</div><br>' +
+          '预计文件大小 8-12 MB · 生成 3-5 秒 · 完成后邮件通知。',
+        okText: '开始导出',
+        onOk: function () {
+          showToast('报告导出中 · 完成后邮件通知 admin@ems.local', 'success');
+        }
+      });
+    }
+
+    function acOpenBudgetConfig() {
+      showActionModal({
+        title: 'T3 · 熔断阈值 & T2 · 预算配置',
+        iconKind: 'warn',
+        sections: [
+          {
+            heading: '成本双阈值',
+            html: '<div style="line-height:1.8"><strong>预算总额</strong>：¥45,000 / 月<br>' +
+              '<strong>告警阈值</strong>：80%（¥36,000）→ 通知 IT 主管<br>' +
+              '<strong>熔断阈值</strong>：100%（¥45,000）→ 暂停自动写动作并回退产品人工流程</div>'
+          },
+          {
+            heading: '错误率阈值',
+            html: '<div style="line-height:1.8"><strong>AI 建议错误率</strong>：≥ 5% 触发熔断<br>' +
+              '<strong>熔断动作</strong>：暂停 L1/L2 写动作，仅保留只读分析</div>'
+          },
+          {
+            heading: '当前状态',
+            html: '<div style="display:flex;gap:var(--sp-16);padding:var(--sp-12);background:rgba(34,197,94,.08);border-radius:var(--r-md)">' +
+              '<div><strong style="color:#15803d">正常</strong> · 成本 17% · 错误率 0.3%</div>' +
+              '<div style="color:var(--c-text-3)">近 90 日熔断 3 次</div></div>'
+          }
+        ],
+        actions: [
+          { label: '取消', kind: '' },
+          {
+            label: '进入完整配置页', kind: 'primary', onClick: function () {
+              showToast('打开完整配置向导（mock）', 'success');
+            }
+          }
+        ]
+      });
+    }
+
+    function acOpenPermConfig() {
+      showActionModal({
+        title: 'T8 · 权限矩阵编辑',
+        iconKind: 'info',
+        sections: [
+          {
+            heading: '当前权限矩阵',
+            html: '<div style="font-size:12px;line-height:1.7">按角色 × 操作 分配 · 遵循最小权限原则<br>' +
+              '<span style="color:var(--c-text-3)">修改会自动记录到 T5 审计</span></div>'
+          }
+        ],
+        actions: [
+          { label: '取消', kind: '' },
+          {
+            label: '打开完整编辑器', kind: 'primary', onClick: function () {
+              showToast('打开完整权限编辑器（mock）', 'success');
+            }
+          }
+        ]
+      });
+    }
+
+    window.EMS_PAGE = {
+      activeMenu: 'ai/ai-center.html',
+      basePath: '../',
+      breadcrumb: 'NEO Agent Hub',
+      aiQuickActions: [
+        { title: '待审批快照', desc: '今日 AI 起草待审批', prompt: '今天有哪些 AI 起草的动作在等我审批？按优先级排序' },
+        { title: '成本预算', desc: '本月 AI 成本执行', prompt: '本月 AI 成本进度如何？是否会超预算？' },
+        { title: '熔断历史', desc: '近 30 日触发情况', prompt: '近 30 日熔断触发了几次？什么原因？' },
+        { title: '合规报告', desc: '生成月度合规报告', prompt: '生成本月 AI 治理合规报告' }
+      ]
+    };
+
+    /* ===== 场景档位（平台 Tab · sub-p-tier · 04 §P6 场景默认档位配置 · 数据口径与 governance/05 §P6 一致） ===== */
+    var TIER_DATA = [
+      { id: 'm1', name: 'M1 告警降噪聚类', desc: '去重 / 抑制 / 静默规则', def: 'L1', tiers: ['L1', 'L2', 'L3'], note: '去重/抑制/静默为 L1 硬编码窄场景；规则新增或变更走治理审批' },
+      { id: 'm2', name: 'M2 告警 RCA + 证据链', desc: 'AI 根因猜测 + 证据', def: 'L3', tiers: ['L2', 'L3'], note: '不做 L1：AI 不自动 confirm 根因' },
+      { id: 'm3', name: 'M3 告警转工单 + 分单派工', desc: 'AI 起草工单 + 确认抽屉', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '可切 L1 硬编码：客户配置白名单后完全自动' },
+      { id: 'm4', name: 'M4 变更审批 + AI 风险评估', desc: 'AI 起草风险评估 · 审批人决策', def: 'L2', tiers: ['L2', 'L3'], note: '不做 L1：变更审批永远不自动通过（合规硬约束）' },
+      { id: 'm5', name: 'M5 服务请求 AI 自动审批', desc: 'AI 分类 + 合规检查', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '可切 L1 白名单：客户自定义「低风险自动通过」规则' },
+      { id: 'm6', name: 'M6 全局对话 NEO Agent', desc: '只回答问题不动手', def: 'L3', tiers: ['L3'], note: '不做 L1：NEO Agent 无自动动作权' }
+    ];
+    var TIER_LABEL = { L1: 'L1 自动执行', L2: 'L2 手工确认', L3: 'L3 业务审批' };
+    function renderTierTable() {
+      var html = '';
+      TIER_DATA.forEach(function (s) {
+        var radios = s.tiers.map(function (t) {
+          return '<span class="tier-radio' + (t === s.def ? ' checked' : '') + '" data-scene="' + s.id + '" data-tier="' + t + '" onclick="pickTier(this)">' + t + '</span>';
+        }).join('');
+        if (s.tiers.indexOf('L1') === -1) radios = '<span class="tier-radio disabled" title="该场景不做 L1">L1</span>' + radios;
+        html += '<tr>'
+          + '<td><strong style="color:var(--c-text-1)">' + s.name + '</strong><div style="font-size:11px;color:var(--c-text-3);margin-top:2px">' + s.desc + '</div></td>'
+          + '<td><span class="tier-badge tier-' + s.def.toLowerCase() + ' sm">' + s.def + '</span></td>'
+          + '<td><div class="tier-radio-group">' + radios + '</div><div class="tier-current">当前：' + TIER_LABEL[s.def] + '</div></td>'
+          + '<td><div style="font-size:11px;color:var(--c-text-2);line-height:1.6">' + s.note + '</div></td>'
+          + '</tr>';
+      });
+      document.getElementById('tierTbody').innerHTML = html;
+    }
+    function pickTier(el) {
+      var scene = el.dataset.scene;
+      var tier = el.dataset.tier;
+      el.parentElement.querySelectorAll('.tier-radio').forEach(function (r) { r.classList.remove('checked'); });
+      el.classList.add('checked');
+      var cur = el.parentElement.parentElement.querySelector('.tier-current');
+      if (cur) cur.innerHTML = '当前：' + TIER_LABEL[tier];
+      window.showToast && showToast(scene.toUpperCase() + ' 档位已切换为 ' + tier + ' · 变更记录到 T5 审计（原型演示）', 'success');
+    }
+
+    var WL_DATA = [
+      { id: 'r1', name: 'P1 网络告警自动转单', scene: 'M3 告警转工单', cond: '来源=ITOM 且 优先级=P1 且 分类=网络', action: '自动转单给网络运维组', on: true },
+      { id: 'r2', name: 'VPN 证书续期自动审批', scene: 'M5 服务请求', cond: '分类=VPN 证书续期 且 申请人部门=本部门', action: '低风险自动通过', on: true },
+      { id: 'r3', name: '同 team 权限复制请求', scene: 'M5 服务请求', cond: '类型=权限复制 且 申请人与审批人同 team', action: '自动通过', on: false }
+    ];
+    function renderWlTable() {
+      var html = '';
+      WL_DATA.forEach(function (r) {
+        html += '<tr>'
+          + '<td><strong style="color:var(--c-text-1)">' + r.name + '</strong></td>'
+          + '<td>' + r.scene + '</td>'
+          + '<td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">' + r.cond + '</code></td>'
+          + '<td>' + r.action + '</td>'
+          + '<td>' + (r.on ? '<span class="kpi-status ok">● 启用</span>' : '<span class="kpi-status warn">● 已停用</span>') + '</td>'
+          + '<td><button class="wl-op-link" onclick="toggleWl(\'' + r.id + '\')">' + (r.on ? '停用' : '启用') + '</button> · <button class="wl-op-link danger" onclick="deleteWl(\'' + r.id + '\')">删除</button></td>'
+          + '</tr>';
+      });
+      document.getElementById('wlTbody').innerHTML = html;
+    }
+    function toggleWl(id) {
+      var r = WL_DATA.find(function (x) { return x.id === id; });
+      if (!r) return;
+      r.on = !r.on;
+      renderWlTable();
+      window.showToast && showToast('规则「' + r.name + '」已' + (r.on ? '启用' : '停用') + ' · 记录到 T5 审计（原型演示）', 'success');
+    }
+    function deleteWl(id) {
+      var r = WL_DATA.find(function (x) { return x.id === id; });
+      if (!r) return;
+      WL_DATA = WL_DATA.filter(function (x) { return x.id !== id; });
+      renderWlTable();
+      window.showToast && showToast('规则「' + r.name + '」已删除 · 记录到 T5 审计（原型演示）', 'success');
+    }
+    function openTierRuleModal() { document.getElementById('tierRuleOverlay').classList.add('visible'); }
+    function closeTierRuleModal() { document.getElementById('tierRuleOverlay').classList.remove('visible'); }
+    function submitTierRule() {
+      var name = document.getElementById('tierRuleName').value.trim();
+      if (!name) { window.showToast && showToast('请填写规则名称', 'warn'); return; }
+      var cond = document.getElementById('tierRuleCond').value.trim();
+      var action = document.getElementById('tierRuleAction').value.trim();
+      if (!cond || !action) { window.showToast && showToast('请填写触发条件与自动动作', 'warn'); return; }
+      closeTierRuleModal();
+      document.getElementById('tierRuleName').value = '';
+      document.getElementById('tierRuleCond').value = '';
+      document.getElementById('tierRuleAction').value = '';
+      window.showToast && showToast('规则「' + name + '」已提交 T1 审批（IT 主管）· 审批通过后生效', 'success');
+    }
+    function tierBreakerTrigger() {
+      window.showToast && showToast('熔断已触发（演练）：M1-M6 全部降级为 L3 · 已按通知渠道告警 IT 主管', 'warn');
+    }
+    function tierBreakerRelease() {
+      window.showToast && showToast('熔断已解除 · 各场景恢复配置档位', 'success');
+    }
+    function tierToggleChannel(el) {
+      el.classList.toggle('checked');
+      var channels = [];
+      document.querySelectorAll('#tierChannelGrid .tier-channel-chip.checked').forEach(function (c) { channels.push(c.dataset.ch); });
+      window.showToast && showToast('通知渠道：' + channels.join('、') + (channels.length ? '' : '（未选择）'), 'info');
+    }
+    renderTierTable();
+    renderWlTable();
+  </script>
+  <script src="../assets/ems-v6-components.js"></script>
+</body>
+
+</html>

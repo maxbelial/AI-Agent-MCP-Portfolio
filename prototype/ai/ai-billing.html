@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 计费中心 - EMS NEO</title>
+  <link rel="stylesheet" href="../assets/ems-v6-common.css">
+  <style>
+    .ab-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: var(--sp-12);
+    }
+
+    .ab-card {
+      background: var(--c-white);
+      border: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 1px 4px rgba(0, 0, 0, .06);
+      border-radius: 8px;
+      padding: var(--sp-12) var(--sp-16);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-12);
+    }
+
+    .ab-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ab-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: #fff;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .ab-icon.pink { background: #DB2777; }
+    .ab-icon.green { background: #059669; }
+    .ab-icon.amber { background: #D97706; }
+    .ab-icon.indigo { background: #4F46E5; }
+    .ab-icon.cyan { background: #0891B2; }
+    .ab-icon.blue { background: #2563EB; }
+
+    .ab-info { display: flex; flex-direction: column; min-width: 0; }
+    .ab-label { font-size: 12px; color: var(--c-text-3); margin-bottom: var(--sp-4); white-space: nowrap; }
+    .ab-value { font-size: 20px; font-weight: 700; color: var(--c-text-1); white-space: nowrap; }
+    .ab-sub { font-size: 11px; color: var(--c-text-3); margin-top: var(--sp-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .ab-section {
+      background: var(--c-white);
+      border: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 1px 4px rgba(0, 0, 0, .06);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ab-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-12) var(--sp-16);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .ab-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-8);
+    }
+
+    .ab-section-desc {
+      font-size: 11px;
+      color: var(--c-text-3);
+      font-weight: 400;
+      margin-left: var(--sp-4);
+    }
+
+    /* 计费模式徽标 */
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-4);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .mode-badge.managed { background: rgba(37, 99, 235, .08); color: #2563EB; }
+    .mode-badge.byok { background: rgba(124, 58, 237, .08); color: #7C3AED; }
+    .mode-badge.hybrid { background: rgba(5, 150, 105, .08); color: #059669; }
+
+    /* 池状态机 */
+    .pool-strip {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-8);
+      padding: var(--sp-12) var(--sp-16);
+    }
+
+    .pool-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-4);
+      padding: var(--sp-8) var(--sp-12);
+      border-radius: 8px;
+      background: var(--c-fill-1);
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .pool-stage .stage-name { font-weight: 600; font-size: 12px; color: var(--c-text-1); }
+    .pool-stage .stage-sub { font-size: 11px; }
+    .pool-stage.on { background: #FEF3C7; border: 1px solid #F59E0B; }
+    .pool-stage.on .stage-name { color: #B45309; }
+    .pool-stage.ok { background: #ECFDF5; border: 1px solid #10B981; }
+    .pool-stage.ok .stage-name { color: #047857; }
+    .pool-stage.danger { background: #FEF2F2; border: 1px solid #F87171; }
+    .pool-stage.danger .stage-name { color: #B91C1C; }
+
+    .pool-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--c-fill-1);
+      overflow: hidden;
+      margin: var(--sp-4) var(--sp-16) var(--sp-12);
+    }
+
+    .pool-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #059669, #D97706);
+    }
+
+    /* 价目表卡 */
+    .price-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-16);
+      padding: var(--sp-16);
+    }
+
+    .price-card {
+      border: 1px solid var(--c-border-light);
+      border-radius: 8px;
+      padding: var(--sp-16);
+    }
+
+    .price-card.retail { border-top: 3px solid #2563EB; }
+    .price-card.wholesale { border-top: 3px solid #7C3AED; }
+
+    .price-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--sp-12);
+    }
+
+    .price-card-title { font-size: 14px; font-weight: 600; color: var(--c-text-1); }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: var(--sp-8) 0;
+      border-bottom: 1px dashed var(--c-border-light);
+      font-size: 12px;
+      color: var(--c-text-2);
+    }
+
+    .price-row:last-child { border-bottom: none; }
+    .price-row .price-val { font-weight: 700; color: var(--c-text-1); font-size: 13px; }
+    .price-row .price-note { font-size: 11px; color: var(--c-text-3); }
+
+    .pending-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-4);
+      font-size: 11px;
+      font-weight: 500;
+      color: #B45309;
+      background: #FEF3C7;
+      border: 1px solid #F59E0B;
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+
+    /* 操作列（统一规范：前 2 直接 + ⋯ 折叠） */
+    .data-table td.row-actions { white-space: nowrap; display: table-cell; vertical-align: middle; }
+    .row-actions a { display: inline-flex; align-items: center; min-height: 24px; color: var(--c-primary); font-size: 12px; line-height: 20px; text-decoration: none; cursor: pointer; vertical-align: middle; }
+    .row-actions a:hover { text-decoration: underline; }
+    .row-actions .sep { display: inline-block; margin: 0 var(--sp-4); color: var(--c-border); font-size: 12px; line-height: 24px; vertical-align: middle; }
+    .action-more-wrap { position: relative; display: inline-flex; align-items: center; height: 24px; margin-left: var(--sp-4); vertical-align: middle; }
+    .action-more-btn {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      background: none;
+      border: none;
+      color: var(--c-text-2);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .action-more-btn:hover { background: var(--c-fill-1); color: var(--c-text-1); }
+    .action-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + var(--sp-4));
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+      padding: var(--sp-4);
+      z-index: 60;
+      min-width: 140px;
+    }
+    .action-dropdown.open { display: block; }
+    .action-dropdown a {
+      display: block;
+      padding: var(--sp-8) var(--sp-12);
+      font-size: 12px;
+      color: var(--c-text-2);
+      text-decoration: none;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .action-dropdown a:hover { background: var(--c-fill-1); color: var(--c-text-1); }
+
+    /* 密钥安全条 */
+    .security-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-8) var(--sp-16);
+      padding: var(--sp-12) var(--sp-16);
+      background: #F8FAFC;
+      border-top: 1px solid var(--c-border-light);
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .security-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-4);
+    }
+
+    .security-item svg {
+      width: 12px;
+      height: 12px;
+      stroke: #059669;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* 利润条 */
+    .profit-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 80px;
+      align-items: center;
+      gap: var(--sp-12);
+      padding: var(--sp-8) var(--sp-16);
+      font-size: 12px;
+    }
+
+    .profit-row .track { height: 6px; border-radius: 3px; background: var(--c-fill-1); overflow: hidden; }
+    .profit-row .track span { display: block; height: 100%; border-radius: 3px; background: #0D9488; }
+    .profit-row .val { text-align: right; font-weight: 600; color: var(--c-text-1); }
+
+    /* 弹窗 */
+    .ab-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, .45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .ab-overlay.open { display: flex; }
+    .ab-modal {
+      background: var(--c-white);
+      border-radius: 12px;
+      width: 560px;
+      max-width: calc(100vw - 48px);
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, .2);
+    }
+    .ab-modal.wide { width: 720px; }
+    .ab-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-16);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+    .ab-modal-title { font-size: 15px; font-weight: 600; color: var(--c-text-1); }
+    .ab-modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--c-text-3);
+      padding: var(--sp-4);
+      border-radius: 4px;
+      display: flex;
+    }
+    .ab-modal-close:hover { background: var(--c-fill-1); color: var(--c-text-1); }
+    .ab-modal-body { padding: var(--sp-16); }
+    .ab-modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--sp-8);
+      padding: var(--sp-12) var(--sp-16);
+      border-top: 1px solid var(--c-border-light);
+    }
+
+    .ab-field { margin-bottom: var(--sp-12); }
+    .ab-field-label { font-size: 12px; font-weight: 600; color: var(--c-text-2); margin-bottom: var(--sp-4); }
+    .ab-field-hint { font-size: 11px; color: var(--c-text-3); margin-top: var(--sp-4); line-height: 1.6; }
+    .ab-input, .ab-select {
+      width: 100%;
+      padding: var(--sp-8) var(--sp-12);
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      background: var(--c-white);
+      box-sizing: border-box;
+    }
+    .ab-input:focus, .ab-select:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, .1); }
+
+    .ab-pack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-12); }
+    .ab-pack {
+      border: 1px solid var(--c-border-light);
+      border-radius: 8px;
+      padding: var(--sp-12);
+      cursor: pointer;
+      text-align: center;
+    }
+    .ab-pack:hover { border-color: var(--c-primary); }
+    .ab-pack.selected { border-color: var(--c-primary); background: rgba(37, 99, 235, .04); box-shadow: 0 0 0 2px rgba(37, 99, 235, .12); }
+    .ab-pack .pack-name { font-size: 13px; font-weight: 600; color: var(--c-text-1); }
+    .ab-pack .pack-size { font-size: 11px; color: var(--c-text-3); margin: var(--sp-4) 0; }
+    .ab-pack .pack-price { font-size: 16px; font-weight: 700; color: var(--c-primary); }
+    .ab-pack .pack-unit { font-size: 11px; color: var(--c-text-3); }
+
+    #packOrderList .order-item { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-8) var(--sp-12); background: var(--c-fill-1); border-radius: var(--r-md); font-size: 12px; color: var(--c-text-1); }
+
+    .kpi-mini-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-8);
+    }
+
+    .kpi-mini-bar .track {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--c-fill-1);
+      overflow: hidden;
+    }
+
+    .kpi-mini-bar .track span {
+      display: block;
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .kpi-mini-bar .val {
+      font-size: 11px;
+      color: var(--c-text-2);
+      white-space: nowrap;
+    }
+
+    .bill-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-12);
+      margin-bottom: var(--sp-12);
+    }
+    .bill-sum-item {
+      background: var(--c-fill-1);
+      border-radius: 8px;
+      padding: var(--sp-12);
+    }
+    .bill-sum-item .bs-label { font-size: 11px; color: var(--c-text-3); margin-bottom: var(--sp-4); }
+    .bill-sum-item .bs-val { font-size: 18px; font-weight: 700; color: var(--c-text-1); }
+    .bill-sum-item .bs-sub { font-size: 11px; color: var(--c-text-3); margin-top: var(--sp-4); }
+
+    .currency-chips { display: flex; gap: var(--sp-8); }
+    .currency-chip {
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      font-size: 12px;
+      padding: var(--sp-4) var(--sp-12);
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .currency-chip.on { background: var(--c-primary); border-color: var(--c-primary); color: #fff; }
+    /* ===== AI 计费视角切换（5 管理员角色 · 12-ai-pricing-model 权威定稿）===== */
+    .ab-role-switch { display: flex; gap: var(--sp-4); margin: 0 0 var(--sp-8); padding: 4px; background: var(--c-fill-1); border: 1px solid var(--c-border-light); border-radius: 10px; width: fit-content; flex-wrap: wrap; }
+    .ab-role-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 14px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-size: 12px; color: var(--c-text-2); transition: all .15s; line-height: 1.35; }
+    .ab-role-btn:hover { background: var(--c-fill-2); }
+    .ab-role-btn.on { background: #fff; color: var(--c-primary); box-shadow: 0 1px 4px rgba(0,0,0,.08); font-weight: 600; }
+    .ab-role-btn small { font-size: 10px; color: var(--c-text-3); font-weight: 400; }
+    .ab-role-btn.on small { color: var(--c-primary); opacity: .8; }
+    .ab-role-hint { font-size: 11px; color: var(--c-text-3); margin: 0 0 var(--sp-16); }
+    .ab-role-hint strong { color: var(--c-text-2); }
+    .ab-permission-card { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-16); padding:var(--sp-12) var(--sp-16); margin:0 0 var(--sp-16); background:var(--c-white); border:1px solid var(--c-border-light); border-radius:8px; }
+    .ab-permission-main { display:flex; align-items:center; gap:var(--sp-12); min-width:0; }
+    .ab-permission-icon { width:34px; height:34px; display:grid; place-items:center; flex:none; border-radius:8px; color:var(--c-primary); background:var(--c-primary-bg); }
+    .ab-permission-icon svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; }
+    .ab-permission-title { color:var(--c-text-1); font-size:13px; font-weight:600; }
+    .ab-permission-desc { margin-top:2px; color:var(--c-text-3); font-size:11px; line-height:1.5; }
+    .ab-switch { position:relative; width:38px; height:22px; flex:none; }
+    .ab-switch input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; z-index:2; }
+    .ab-switch-track { position:absolute; inset:0; border-radius:11px; background:var(--c-border); transition:.18s; }
+    .ab-switch-track::after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.18); transition:.18s; }
+    .ab-switch input:checked + .ab-switch-track { background:var(--c-primary); }
+    .ab-switch input:checked + .ab-switch-track::after { transform:translateX(16px); }
+    .ab-switch input:focus-visible + .ab-switch-track { outline:2px solid var(--c-primary); outline-offset:2px; }
+    .ab-permission-status { display:flex; align-items:center; gap:8px; padding:9px 12px; margin:0 0 var(--sp-16); border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#1e40af; font-size:12px; }
+    .ab-permission-status.off { border-color:#fed7aa; background:#fff7ed; color:#9a3412; }
+    .ab-permission-status svg { width:16px; height:16px; flex:none; fill:none; stroke:currentColor; stroke-width:2; }
+    .billing-fields-hidden .billing-field { display:none; }
+  </style>
+</head>
+
+<body>
+  <script>
+    window.EMS_PAGE = {
+      activeMenu: 'ai/ai-billing.html',
+      basePath: '../',
+      breadcrumb: 'AI 计费中心',
+      aiQuickActions: [
+        { title: 'AI 计费分析', desc: '本月 credits 消耗与收入', prompt: '分析本月各租户 AI credits 消耗与转售毛利' },
+        { title: '租户超量预警', desc: '接近配额租户', prompt: '哪些租户 AI credits 接近配额，给出处置建议' },
+        { title: 'BYOK 用量审计', desc: '自带 Key 租户用量', prompt: '审计 BYOK 租户的 AI 调用量与异常' }
+      ]
+    };
+  </script>
+  <header class="header" id="emsHeader"></header>
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main">
+    <div class="main-inner">
+      <div class="page-title-bar" style="padding-bottom:0">
+        <h1 class="page-title">AI 计费中心</h1>
+        <p class="page-subtitle">AI 定价模型（12-ai-pricing-model 权威定稿）：AI 功能 License（按 Agent 逐项 · 功能费用）· 平台模型池 credits（token 费用 · 谁调扣谁的）· BYOK token 消耗量（MSP 自营定价 / 直客自用）· 视角按管理员角色区分</p>
+      </div>
+
+      <!-- 视角切换：5 管理员角色（12-ai-pricing-model §二 角色×部署矩阵） -->
+      <div class="ab-role-switch" id="billingRoleSwitch">
+        <button class="ab-role-btn" data-role="sys" onclick="switchBillingRole('sys')">SystemAdmin<small>平台管理员 · 全平台</small></button>
+        <button class="ab-role-btn on" data-role="msp-saas" onclick="switchBillingRole('msp-saas')">MSP Admin SaaS<small>SaaS 转售/自营</small></button>
+        <button class="ab-role-btn" data-role="msp-op" onclick="switchBillingRole('msp-op')">MSP Admin 私有化<small>私有化 · 自营</small></button>
+        <button class="ab-role-btn" data-role="user-saas" onclick="switchBillingRole('user-saas')">UserAdmin SaaS<small>直客租户</small></button>
+        <button class="ab-role-btn" data-role="user-op" onclick="switchBillingRole('user-op')">UserAdmin 私有化<small>私有化直客</small></button>
+      </div>
+      <div class="ab-role-hint" id="billingRoleHint">当前视角：<strong>MSP Admin SaaS</strong>——SaaS 部署 · MSP 运营：名下租户计费方案 / 转售毛利 / 池构成（转售+自用份额）</div>
+
+      <div class="ab-permission-card" data-brole="sys">
+        <div class="ab-permission-main">
+          <div class="ab-permission-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+          <div>
+            <div class="ab-permission-title">全平台 AI 用量计费</div>
+            <div class="ab-permission-desc">统一控制 MSP、下属租户和直客 ENT 的 Credits / Token 用量计费。</div>
+          </div>
+        </div>
+        <label class="ab-switch" title="开启或关闭全平台 AI 用量计费">
+          <input type="checkbox" id="aiUsageBillingToggle" onchange="setAiUsageBilling(this.checked)">
+          <span class="ab-switch-track"></span>
+        </label>
+      </div>
+
+      <div class="content">
+
+      <!-- KPI 卡（数值按视角切换 · renderRoleKpi） -->
+      <div class="ab-grid" id="billingKpiGrid">
+        <div class="ab-card">
+          <div class="ab-icon pink"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <div class="ab-info">
+            <span class="ab-label" id="kpi1Label">本月 AI 计费流水（MSP 视角 · 跨 4 租户）</span>
+            <span class="ab-value" id="kpi1Val">¥24,637</span>
+            <span class="ab-sub" id="kpi1Sub">含 credits 加购与转售 · 同比 +18.4% · 单租户成本见各租户 T2 账单</span>
+          </div>
+        </div>
+        <div class="ab-card">
+          <div class="ab-icon green"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          <div class="ab-info">
+            <span class="ab-label" id="kpi2Label">MSP 转售毛利</span>
+            <span class="ab-value" id="kpi2Val">¥8,719</span>
+            <span class="ab-sub" id="kpi2Sub">毛利率 35.4% · 批发价购入 · 平台池转售</span>
+          </div>
+        </div>
+        <div class="ab-card">
+          <div class="ab-icon amber"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="ab-info">
+            <span class="ab-label" id="kpi3Label">credits 池状态（转售+自用）</span>
+            <span class="ab-value" id="kpi3Val" style="color:#B45309">86% 已分配</span>
+            <span class="ab-sub" id="kpi3Sub">转售 430,000 + 自用 70,000 / 500,000 · Near capacity</span>
+          </div>
+        </div>
+        <div class="ab-card">
+          <div class="ab-icon indigo"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
+          <div class="ab-info">
+            <span class="ab-label" id="kpi4Label">BYOK token 消耗量</span>
+            <span class="ab-value" id="kpi4Val">309M tokens</span>
+            <span class="ab-sub" id="kpi4Sub">达美乐云端 2 连接 + 广发本地 · 不收模型费 · License 控制功能</span>
+          </div>
+        </div>
+        <div class="ab-card">
+          <div class="ab-icon cyan"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <div class="ab-info">
+            <span class="ab-label" id="kpi5Label">本地模型调用（BYOK）</span>
+            <span class="ab-value" id="kpi5Val">46,800 次</span>
+            <span class="ab-sub" id="kpi5Sub">广发本地 Qwen3 235B · token 计量 · 不计 credits</span>
+          </div>
+        </div>
+        <div class="ab-card">
+          <div class="ab-icon blue"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="ab-info">
+            <span class="ab-label" id="kpi6Label">本月平台池调用</span>
+            <span class="ab-value" id="kpi6Val">265,180</span>
+            <span class="ab-sub" id="kpi6Sub">credits · 环比 +12.6% · 平台池租户计费 · BYOK 按 token 计量</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 计费模式与租户计费方案（sys + msp-saas + user-saas 可见） -->
+      <div class="ab-section" id="tenantBillingSection" data-brole="sys msp-saas user-saas">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            <span id="tenantSectionTitle">租户 AI 计费方案</span>
+            <span class="ab-section-desc" id="tenantSectionDesc">计费模式 = 平台池（credits · 平台定价）或 BYOK（token 计量 · 不收模型费）· 私有化 MSP 自营见「MSP Admin 私有化」视角 · 租户隔离，互不可见</span>
+          </div>
+          <button class="btn btn-sm btn-primary" id="creditsPackButton" onclick="openPackModal()">+ 加购 credits 包</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>租户</th>
+                <th class="billing-field">计费模式</th>
+                <th>模型供给</th>
+                <th class="billing-field">月配额</th>
+                <th>本月已用</th>
+                <th class="billing-field">使用率</th>
+                <th class="billing-field">计费口径</th>
+                <th class="billing-field">本月计费</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tenantTbody">
+            </tbody>
+          </table>
+        </div>
+        <div id="allocationSummary" style="padding:var(--sp-12) var(--sp-16);font-size:11px;color:var(--c-text-3);border-top:1px solid var(--c-border-light)">
+          Allocation Summary：4 租户已分配 <strong style="color:var(--c-text-2)">430,000 / 500,000 credits</strong>（86%）· 其中 <strong style="color:var(--c-text-2)">转售 430,000 + 自用 70,000</strong>（MSP 自用份额 · 自用消耗同样扣 credits）· 剩余可分配 70,000 · 防超分配· 租户视角仅可见自身配额与账单
+        </div>
+      </div>
+
+      <!-- 平台收费标准（sys + msp-saas 可见） -->
+      <div class="ab-section" id="pricingStandardSection" data-brole="sys msp-saas" data-requires-usage-billing="true">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            平台收费标准
+            <span class="ab-section-desc" id="priceSectionDesc">平台模型池：credits 计量 · 平台定价；BYOK：token 消耗量显示 · 不收模型费 · AI 功能 License 控制（12-ai-pricing-model）</span>
+          </div>
+          <span class="pending-tag">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            价目表待商业化决策拍定
+          </span>
+        </div>
+        <div class="price-grid">
+          <div class="price-card retail">
+            <div class="price-card-head">
+              <span class="price-card-title">零售价目表（直接客户）</span>
+              <span class="mode-badge managed">标准</span>
+            </div>
+            <div class="price-row"><span>AI Credits 单价（平台池）</span><span class="price-val">¥0.10 / credit</span></div>
+            <div class="price-row"><span>BYOK（自带 Key / 本地模型）</span><span class="price-val">无模型费<span class="price-note"> · token 消耗量显示 · AI 功能 License 控制</span></span></div>
+            <div class="price-row"><span>AI 功能 License</span><span class="price-val">按 Agent 数 × 期限<span class="price-note"> · 平台统一收 · 功能费用</span></span></div>
+            <div class="price-row"><span>超量结算（超出订阅池）</span><span class="price-val">¥0.15 / credit<span class="price-note"> · ×1.5</span></span></div>
+            <div class="price-row"><span>订阅内含 credits 池</span><span class="price-val">SMB 5,000/月 · 中大型 30,000/月</span></div>
+            <div class="price-row"><span>加购包 AI-CRED-50K</span><span class="price-val">¥4,500<span class="price-note"> · ≈¥0.09/credit</span></span></div>
+            <div class="price-row"><span>加购包 AI-CRED-200K</span><span class="price-val">¥16,000<span class="price-note"> · ≈¥0.08/credit</span></span></div>
+            <div class="price-row"><span>加购包 AI-CRED-1M</span><span class="price-val">¥70,000<span class="price-note"> · ≈¥0.07/credit</span></span></div>
+            <div class="price-row"><span>私有化部署</span><span class="price-val">仅 BYOK<span class="price-note"> · 平台软件费按部署计（待定）</span></span></div>
+          </div>
+          <div class="price-card wholesale">
+            <div class="price-card-head">
+              <span class="price-card-title">MSP 批发价目表（承诺年池）</span>
+              <span class="mode-badge byok">批发</span>
+            </div>
+            <div class="price-row"><span>年池 ≥100 万 credits</span><span class="price-val">¥0.075 / credit<span class="price-note"> · -25%</span></span></div>
+            <div class="price-row"><span>年池 ≥300 万 credits</span><span class="price-val">¥0.07 / credit<span class="price-note"> · -30%</span></span></div>
+            <div class="price-row"><span>年池 ≥1,000 万 credits</span><span class="price-val">¥0.065 / credit<span class="price-note"> · -35%</span></span></div>
+            <div class="price-row"><span>MSP 自营（token 订阅）</span><span class="price-val">MSP 定价<span class="price-note"> · 厂商不抽成（暂定）</span></span></div>
+            <div class="price-row"><span>超量结算</span><span class="price-val">批发价 × 1.5</span></div>
+            <div class="price-row"><span>账单与对账</span><span class="price-val">月度账单 + 转售利润对账</span></div>
+            <div class="price-row"><span>季冠自身（MSP 之一）</span><span class="price-val">同口径无差异化</span></div>
+          </div>
+        </div>
+        <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3);line-height:1.7">
+          场景 credit 单价（12-ai-pricing-model）：对话/标签 1 · 摘要 2 · 检索 3 · 巡检 3 · 风险评估 5 · Agentic 工作流 10 · 降噪规则命中 0（确定性规则不消耗 AI 资源）。BYOK 调用不计 credits、按 token 消耗量显示。用量告警阈值默认 70%（可配）。
+        </div>
+      </div>
+
+      <!-- credits 池状态机（sys + msp-saas 可见） -->
+      <div class="ab-section" id="creditsPoolSection" data-brole="sys msp-saas" data-requires-usage-billing="true">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            credits 池状态机
+            <span class="ab-section-desc">Compliant → Near capacity（≥70% 告警）→ Over-allocated（超量价结算）</span>
+          </div>
+          <button class="btn btn-sm" onclick="openPoolConfig()">调整池额 / 超量策略</button>
+          <button class="btn btn-sm" onclick="openSelfUseModal()">调整自用份额</button>
+        </div>
+        <div class="pool-strip">
+          <div class="pool-stage ok">
+            <span class="stage-name">Compliant</span>
+            <span class="stage-sub">使用率 &lt; 70% · 正常计费</span>
+          </div>
+          <div class="pool-stage on">
+            <span class="stage-name">Near capacity（当前）</span>
+            <span class="stage-sub" id="poolNearSub">已分配 86% · 告警阈值 70% · 已告警 MSP + IT 主管</span>
+          </div>
+          <div class="pool-stage danger">
+            <span class="stage-name">Over-allocated</span>
+            <span class="stage-sub">超量部分按超量价 ×1.5 结算</span>
+          </div>
+        </div>
+        <div class="pool-bar"><div class="pool-bar-fill" style="width:86%"></div></div>
+        <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);display:flex;gap:var(--sp-24);font-size:12px;color:var(--c-text-2)">
+          <span>年池 <strong>6,000,000</strong> credits（批发 ¥0.075 · 合同周年重置）</span>
+          <span>月池 <strong id="poolMonthly">500,000</strong></span>
+          <span>已分配 <strong style="color:#B45309">430,000</strong></span>
+          <span>本月已消耗 <strong>265,180</strong></span>
+          <span>剩余可分配 <strong>70,000</strong></span>
+        </div>
+      </div>
+
+      <!-- 待审批加购订单（T1 审批流可见 · 审批通过后入池 · sys + msp-saas） -->
+      <div class="ab-section" id="packOrderBar" style="display:none" data-brole="sys msp-saas">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            待审批加购订单
+            <span class="ab-section-desc">credits 加购订单进入 T1 审批（IT 主管）· 审批通过后计入月池并更新池余额 · 审批入口：AI 治理 → T1 审批</span>
+          </div>
+        </div>
+        <div id="packOrderList" style="padding:var(--sp-8) var(--sp-16) var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-8)">
+        </div>
+      </div>
+
+      <!-- BYOK 连接管理（全部角色可见 · 各看各的连接） -->
+      <div class="ab-section" data-brole="sys msp-saas msp-op user-saas user-op">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            BYOK 连接管理
+            <span class="ab-section-desc">每个租户仅保留 1 条生效供给 · 支持云端 API Key 或本地模型 · 保存验证后同步至 AI 平台模型列表 · 平台统一记录 token 用量</span>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="openByokModal()">+ 新建 BYOK 连接</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>租户</th>
+                <th>供应商</th>
+                <th>模型实例</th>
+                <th>状态</th>
+                <th>出站验证</th>
+                <th>本月调用</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="byokTbody">
+            </tbody>
+          </table>
+        </div>
+        <div class="security-strip">
+          <span class="security-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>凭证信封加密存储 · KMS 管理主密钥</span>
+          <span class="security-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>JIT 解密 · 仅调用时解密 · 用后即焚</span>
+          <span class="security-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>每次解密 append-only 审计</span>
+          <span class="security-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>序列化剥离 key 字段 · 日志/账单/审计永不含明文</span>
+          <span class="security-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>配置权限仅「计费管理员」角色</span>
+        </div>
+      </div>
+
+      <!-- MSP 转售利润分析（仅 msp-saas 可见） -->
+      <div class="ab-section" id="resaleProfitSection" data-brole="msp-saas" data-requires-usage-billing="true">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            MSP 转售利润分析
+            <span class="ab-section-desc">平台池转售利润 =（转售价 - 批发价）× 消耗量 · 批发口径 ¥0.075 · BYOK 自营利润见「MSP Admin 私有化」视角</span>
+          </div>
+          <a href="../portal/reports.html" class="btn btn-sm">→ 报告中心 · AI 使用报告</a>
+        </div>
+        <div style="padding:var(--sp-8) 0">
+          <div class="profit-row">
+            <span>周大福（¥0.10 转售）</span>
+            <div class="track"><span style="width:100%"></span></div>
+            <span class="val">¥3,212</span>
+          </div>
+          <div class="profit-row">
+            <span>美心MX（¥0.12 转售）</span>
+            <div class="track"><span style="width:100%"></span></div>
+            <span class="val">¥3,212</span>
+          </div>
+          <div class="profit-row">
+            <span>达美乐（BYOK · token 计量）</span>
+            <div class="track"><span style="width:0%"></span></div>
+            <span class="val">¥0<span style="font-size:10px;color:var(--c-text-3)"> · 无平台费</span></span>
+          </div>
+          <div class="profit-row">
+            <span>广发证券（BYOK · token 计量）</span>
+            <div class="track"><span style="width:0%"></span></div>
+            <span class="val">¥0<span style="font-size:10px;color:var(--c-text-3)"> · 无平台费</span></span>
+          </div>
+        </div>
+        <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3)">
+          AI 计费使 MSP 的 AI 能力从成本中心变为利润中心（延伸价值：MSP 续约护城河）· 各租户 AI 用量明细见 <a href="ai-governance.html?sub=t2" style="color:var(--c-primary)">AI 治理 · T2 成本与用量 →</a>
+        </div>
+      </div>
+
+      <!-- SystemAdmin · AI 功能 License 汇总（仅 sys 可见） -->
+      <div class="ab-section" data-brole="sys">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            AI 功能 License 汇总（平台统一收）
+            <span class="ab-section-desc">AI 功能 = Agent · License 逐项控制开关 · 按 Agent 数 × 期限（功能费用）· 归 EMS NEO 平台产品线 · 与授权管理页同源 · Credits 为 token 用量费独立控制</span>
+          </div>
+          <a href="../org/license-management.html" class="btn btn-sm">→ 授权管理</a>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr><th>持有方</th><th>角色</th><th>Agent 功能项</th><th>Agent 数</th><th>期限</th><th>状态</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>季冠科技</strong></td><td>MSP</td><td>告警降噪 Agent · 根因分析 Agent · 工单起草 Agent</td><td>3</td><td>2026-08-27 ~ 2027-08-26</td><td><span class="status-badge success">生效</span></td></tr>
+              <tr><td><strong>周大福（CTF）</strong></td><td>直客租户</td><td>NEO Agent · 工单起草 Agent</td><td>2</td><td>2026-08-27 ~ 2027-08-26</td><td><span class="status-badge success">生效</span></td></tr>
+              <tr><td><strong>达美乐（Domino）</strong></td><td>直客租户</td><td>告警降噪 Agent · 根因分析 Agent · 风险评估 Agent · FSM 调度推荐 Agent</td><td>4</td><td>2026-08-27 ~ 2027-08-26</td><td><span class="status-badge success">生效</span></td></tr>
+              <tr><td><strong>广发证券</strong></td><td>直客租户</td><td>NEO Agent</td><td>1</td><td>2026-08-27 ~ 2027-02-26</td><td><span class="status-badge success">生效</span></td></tr>
+              <tr><td><strong>香港美心MX</strong></td><td>直客租户</td><td>告警降噪 Agent · 对话助手 Agent</td><td>2</td><td>2026-08-27 ~ 2027-08-26</td><td><span class="status-badge success">生效</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3)">
+          本月 License 收入 <strong style="color:var(--c-text-2)">¥46,800</strong>（12 Agent × 均摊月费）· BYOK 与私有化租户同样按 Agent 数收 License · 发放/续期操作在授权管理页
+        </div>
+      </div>
+
+      <!-- MSP Admin 私有化 · 自营订阅视图（仅 msp-op 可见） -->
+      <div class="ab-section" id="opSubscriptionSection" data-brole="msp-op" data-requires-usage-billing="true">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            租户订阅（MSP 自营 · token）
+            <span class="ab-section-desc">私有化部署无法订阅平台模型池 · 仅 BYOK（云端 API Key / 本地模型）· 租户订阅 MSP · MSP 按 token 自定价格 · 订阅利润归 MSP（厂商暂不抽成）· AI 功能 License 平台统一收</span>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="openPricingModal()">+ 配置订阅价 / 出账单</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr><th>租户</th><th>模型供给</th><th>token 用量（本月）</th><th>MSP 单价</th><th>订阅费</th><th>订阅利润</th><th>License 状态</th><th>操作</th></tr>
+            </thead>
+            <tbody id="opSubsTbody">
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3)">
+          本月自营订阅收入 <strong style="color:var(--c-text-2)" id="opSubsIncome">¥1,711</strong> · 订阅利润 <strong style="color:#059669" id="opSubsProfit">¥592</strong>（成本 = 云端 Key 账单 / 本地推理电力）· <strong>平台软件费：¥50,000 / 部署节点 / 年</strong>（按部署节点计 · 当前 1 节点 · 厂商收入）· 私有化 MSP 可控制租户/产品/大模型，除 License 外与平台管理员无区别
+        </div>
+      </div>
+
+      <div class="ab-section" id="usageOnlySection" data-brole="user-saas user-op" style="display:none">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            AI 技术用量
+          </div>
+          <button class="btn btn-sm" onclick="showToast('AI 调用记录已打开（原型演示）')">查看调用记录</button>
+        </div>
+        <div style="padding:var(--sp-12) var(--sp-16);display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--sp-16);font-size:12px">
+          <div><span style="color:var(--c-text-3)">本月调用</span><strong style="display:block;margin-top:4px;font-size:18px">128,460 次</strong></div>
+          <div><span style="color:var(--c-text-3)">输入 Token</span><strong style="display:block;margin-top:4px;font-size:18px">96.4M</strong></div>
+          <div><span style="color:var(--c-text-3)">输出 Token</span><strong style="display:block;margin-top:4px;font-size:18px">24.8M</strong></div>
+          <div><span style="color:var(--c-text-3)">调用成功率</span><strong style="display:block;margin-top:4px;font-size:18px">99.2%</strong></div>
+        </div>
+      </div>
+
+      <!-- UserAdmin · 直客租户视图（user-saas + user-op 可见） -->
+      <div class="ab-section" id="directTenantBillingSection" data-brole="user-saas user-op" data-requires-usage-billing="true">
+        <div class="ab-section-head">
+          <div class="ab-section-title">
+            我的 AI 用量与账单
+            <span class="ab-section-desc" id="userViewDesc">SaaS 直客：订阅平台（credits）或 BYOK（token）· 私有化直客：仅 BYOK · AI 功能 License 状态</span>
+          </div>
+        </div>
+        <div id="userSaasBlock">
+          <div style="padding:var(--sp-12) var(--sp-16);display:flex;gap:var(--sp-24);flex-wrap:wrap;font-size:12px">
+            <span>当前租户 <strong>周大福（CTF）· tn_corp</strong></span>
+            <span>计费模式 <strong>平台池（credits）</strong></span>
+            <span>本月 credits <strong>128,460 / 200,000（64%）</strong></span>
+            <span>本月计费 <strong>¥12,846</strong></span>
+            <span>BYOK <strong>未启用</strong></span>
+            <span>AI 功能 License <strong class="status-badge success" style="display:inline-block">NEO Agent + 工单起草 Agent · 2 Agent 生效</strong></span>
+          </div>
+          <table class="data-table" style="margin:0 var(--sp-16) var(--sp-12);width:calc(100% - 32px)">
+            <thead><tr><th>场景</th><th>Agent</th><th>credits</th><th>单价</th><th>金额</th></tr></thead>
+            <tbody>
+              <tr><td><strong>M1 告警降噪</strong></td><td>规则引擎 + A1/A2</td><td>52,180</td><td>¥0.10</td><td>¥5,218</td></tr>
+              <tr><td><strong>M3 转工单派工</strong></td><td>A1 + A3 + A7</td><td>31,240</td><td>¥0.10</td><td>¥3,124</td></tr>
+              <tr><td><strong>M2 RCA 证据链</strong></td><td>A2 工作流 ×10</td><td>24,600</td><td>¥0.10</td><td>¥2,460</td></tr>
+              <tr><td><strong>M6 NEO Agent</strong></td><td>A6 对话</td><td>20,440</td><td>¥0.10</td><td>¥2,044</td></tr>
+            </tbody>
+          </table>
+          <div style="padding:0 var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3)">租户视角仅可见自身配额与账单 · 明细与 T2 成本账单同源（每次调用六要素记录）· 导出走「查看账单」</div>
+        </div>
+        <div id="userOpBlock" style="display:none">
+          <div style="padding:var(--sp-12) var(--sp-16);display:flex;gap:var(--sp-24);flex-wrap:wrap;font-size:12px">
+            <span>当前租户 <strong>周大福（私有化）· tn_corp · 私有化</strong></span>
+            <span>模型供给 <strong>本地 Qwen3 235B</strong></span>
+            <span>本月 token <strong>89.2M tokens</strong></span>
+            <span>订阅来源 <strong>订阅 MSP（季冠）· ¥0.008 / 1K tokens</strong></span>
+            <span>本月订阅费 <strong>¥713</strong></span>
+            <span>AI 功能 License <strong class="status-badge success" style="display:inline-block">NEO Agent + 工单起草 Agent · 2 Agent 生效</strong></span>
+          </div>
+          <table class="data-table" style="margin:0 var(--sp-16) var(--sp-12);width:calc(100% - 32px)">
+            <thead><tr><th>场景</th><th>Agent</th><th>token 消耗（本月）</th><th>单价</th><th>费用</th></tr></thead>
+            <tbody>
+              <tr><td><strong>M1 告警降噪</strong></td><td>规则引擎 + A1/A2（本地）</td><td>38.6M</td><td>¥0.008/1K</td><td>¥309</td></tr>
+              <tr><td><strong>M2 RCA 证据链</strong></td><td>A2 工作流 ×10（本地）</td><td>27.4M</td><td>¥0.008/1K</td><td>¥219</td></tr>
+              <tr><td><strong>M6 NEO Agent</strong></td><td>A6 对话（本地）</td><td>23.2M</td><td>¥0.008/1K</td><td>¥185</td></tr>
+            </tbody>
+          </table>
+          <div style="padding:0 var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3)">私有化直客仅 BYOK · 模型费用由 MSP 定价收取（厂商不抽成）· AI 功能 License 平台统一收 · token 用量明细可导出</div>
+        </div>
+      </div>
+      </div><!-- /content -->
+    </div>
+  </div>
+
+  <!-- 弹窗：租户计费方案配置 -->
+  <div class="ab-overlay" id="cfgOverlay" onclick="if(event.target===this)closeModal('cfgOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title" id="cfgModalTitle">租户计费方案配置</span>
+        <button class="ab-modal-close" onclick="closeModal('cfgOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div class="ab-field">
+          <div class="ab-field-label">租户</div>
+          <input class="ab-input" id="cfgTenant" disabled>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">计费模式</div>
+          <select class="ab-select" id="cfgMode">
+            <option value="pool">A · 平台池（订阅平台模型 · credits 按调用扣 · 平台定价）</option>
+            <option value="byok">B · BYOK（云端 API Key / 本地模型 · token 消耗量显示 · 不收模型费 · AI 功能 License 控制）</option>
+          </select>
+          <div class="ab-field-hint">SaaS 租户可选平台池或 BYOK · 私有化租户仅 BYOK（无法订阅平台）· AI 功能 License 所有模式都要（12-ai-pricing-model）</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">月配额（credits）</div>
+          <input class="ab-input" id="cfgQuota" type="number" value="100000">
+          <div class="ab-field-hint">超配后按超量策略处理 · 分配汇总需 ≤ MSP 池余额（防超分配）</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">转售单价（¥ / credit）</div>
+          <input class="ab-input" id="cfgPrice" type="number" step="0.001" value="0.10">
+          <div class="ab-field-hint">批发参考价 ¥0.075 · 转售利润 =（转售价 - 批发价）× 消耗量</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">超量策略</div>
+          <select class="ab-select" id="cfgOver">
+            <option value="rate">按超量价结算（转售价 ×1.5）</option>
+            <option value="l1">降级为只读分析（禁止执行动作）</option>
+            <option value="stop">停用 AI（池耗尽即停）</option>
+          </select>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">账单币种</div>
+          <select class="ab-select" id="cfgCurrency">
+            <option value="CNY">CNY 人民币 ¥</option>
+            <option value="SGD">SGD 新加坡元 S$</option>
+            <option value="EUR">EUR 欧元 €</option>
+            <option value="USD">USD 美元 $</option>
+            <option value="HKD">HKD 港币 HK$</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="closeModal('cfgOverlay')">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="submitCfg()">保存（记录 T5 审计）</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：租户账单 -->
+  <div class="ab-overlay" id="billOverlay" onclick="if(event.target===this)closeModal('billOverlay')">
+    <div class="ab-modal wide">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title" id="billModalTitle">租户账单</span>
+        <button class="ab-modal-close" onclick="closeModal('billOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-12)">
+          <span style="font-size:12px;color:var(--c-text-2)">账单周期 <strong>2026-08-01 ~ 2026-08-21</strong> · 品牌化（MSP logo）</span>
+          <div class="currency-chips" id="billCurrencyChips">
+            <button class="currency-chip on" onclick="switchBillCurrency('CNY',this)">¥ CNY</button>
+            <button class="currency-chip" onclick="switchBillCurrency('SGD',this)">S$ SGD</button>
+            <button class="currency-chip" onclick="switchBillCurrency('EUR',this)">€ EUR</button>
+            <button class="currency-chip" onclick="switchBillCurrency('HKD',this)">HK$ HKD</button>
+          </div>
+        </div>
+        <div class="bill-summary">
+          <div class="bill-sum-item">
+            <div class="bs-label">配额内消耗</div>
+            <div class="bs-val" id="billInPool">128,460 credits</div>
+            <div class="bs-sub">配额 200,000 · 使用率 64%</div>
+          </div>
+          <div class="bill-sum-item">
+            <div class="bs-label">超量消耗</div>
+            <div class="bs-val" id="billOver">0 credits</div>
+            <div class="bs-sub">本月无超量</div>
+          </div>
+          <div class="bill-sum-item">
+            <div class="bs-label">本月计费合计</div>
+            <div class="bs-val" id="billTotal">¥12,846</div>
+            <div class="bs-sub" id="billTotalSub">¥0.10 / credit · 平台池模式</div>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>场景</th><th>Agent</th><th>credits</th><th>单价</th><th>金额</th></tr>
+          </thead>
+          <tbody id="billDetailTbody"></tbody>
+        </table>
+        <div class="ab-field-hint" style="margin-top:var(--sp-8)">明细口径与 NEO Agent Hub 治理 Tab T2 成本账单同源（每次调用六要素记录）· 币种按合同结算汇率折算（多币种）</div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="showToast('账单已导出 PDF（品牌化 · 记录 T5 审计 · 原型演示）')">导出 PDF</button>
+        <button class="btn btn-sm" onclick="showToast('账单已导出 CSV（记录 T5 审计 · 原型演示）')">导出 CSV</button>
+        <button class="btn btn-sm btn-primary" onclick="closeModal('billOverlay')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ab-overlay" id="operationDetailOverlay" onclick="if(event.target===this)closeModal('operationDetailOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title" id="operationDetailTitle">详情</span>
+        <button class="ab-modal-close" onclick="closeModal('operationDetailOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body" id="operationDetailBody"></div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm btn-primary" onclick="closeModal('operationDetailOverlay')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：新建 BYOK 连接 -->
+  <div class="ab-overlay" id="byokOverlay" onclick="if(event.target===this)closeModal('byokOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title">新建 BYOK 模型供给</span>
+        <button class="ab-modal-close" onclick="closeModal('byokOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div class="ab-field">
+          <div class="ab-field-label">租户</div>
+          <select class="ab-select" id="byokTenant">
+            <option>达美乐（Domino）· tn_domino</option>
+            <option>周大福（CTF）· tn_corp</option>
+            <option>广发证券 · tn_gf</option>
+            <option>香港美心MX · tn_hkt_other</option>
+          </select>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">连接类型</div>
+          <select class="ab-select" id="byokType" onchange="toggleByokType()">
+            <option value="cloud">云端 API Key</option>
+            <option value="local">本地模型服务</option>
+          </select>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">供应商</div>
+          <select class="ab-select" id="byokVendor">
+            <option>Azure OpenAI</option>
+            <option>Anthropic Claude on Bedrock</option>
+            <option>Google Gemini</option>
+            <option>OpenAI</option>
+            <option>DeepSeek</option>
+            <option>自定义 OpenAI 兼容端点</option>
+          </select>
+          <div class="ab-field-hint">监管市场租户仅能选择平台 AI Steward 已审批的供应商清单</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">服务地址</div>
+          <input class="ab-input" id="byokEndpoint" placeholder="https://api.example.com/v1">
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">模型标识</div>
+          <input class="ab-input" id="byokModel" placeholder="如 gpt-5.1 / qwen3-235b">
+        </div>
+        <div class="ab-field" id="byokKeyField">
+          <div class="ab-field-label">API Key 凭证</div>
+          <input class="ab-input" id="byokKey" type="password" placeholder="sk-••••••••••••••••">
+          <div class="ab-field-hint">信封加密存储 · KMS 管理 · JIT 解密 · 每次解密审计 · 永不落日志/账单</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">区域路由</div>
+          <select class="ab-select" id="byokRoute">
+            <option>Regional-only（数据仅区域内处理）</option>
+            <option>Global spillover（跨区域处理 · 需客户 consent）</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="closeModal('byokOverlay')">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="submitByok()">保存并出站验证</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：加购 credits 包 -->
+  <div class="ab-overlay" id="packOverlay" onclick="if(event.target===this)closeModal('packOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title">加购 AI Credits 包</span>
+        <button class="ab-modal-close" onclick="closeModal('packOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div class="ab-pack-grid" id="packGrid">
+          <div class="ab-pack selected" data-pack="AI-CRED-50K" onclick="selectPack(this)">
+            <div class="pack-name">AI-CRED-50K</div>
+            <div class="pack-size">50,000 credits</div>
+            <div class="pack-price">¥4,500</div>
+            <div class="pack-unit">≈ ¥0.09 / credit</div>
+          </div>
+          <div class="ab-pack" data-pack="AI-CRED-200K" onclick="selectPack(this)">
+            <div class="pack-name">AI-CRED-200K</div>
+            <div class="pack-size">200,000 credits</div>
+            <div class="pack-price">¥16,000</div>
+            <div class="pack-unit">≈ ¥0.08 / credit</div>
+          </div>
+          <div class="ab-pack" data-pack="AI-CRED-1M" onclick="selectPack(this)">
+            <div class="pack-name">AI-CRED-1M</div>
+            <div class="pack-size">1,000,000 credits</div>
+            <div class="pack-price">¥70,000</div>
+            <div class="pack-unit">≈ ¥0.07 / credit</div>
+          </div>
+        </div>
+        <div class="ab-field" style="margin-top:var(--sp-12)">
+          <div class="ab-field-label">加购至（credits 池）</div>
+          <select class="ab-select" id="packPoolSelect">
+            <option>MSP 批发池（当前 · 年池 6,000,000）</option>
+            <option>周大福 tn_corp 租户池</option>
+            <option>达美乐 tn_domino 租户池</option>
+            <option>广发证券 tn_gf 租户池</option>
+            <option>香港美心MX tn_hkt_other 租户池</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="closeModal('packOverlay')">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="submitPack()">提交订单（走 T1 审批）</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- 弹窗：MSP 自营定价配置 + 订阅账单（12-ai-pricing-model §四 · MSP 自营 · 厂商不抽成） -->
+  <div class="ab-overlay" id="pricingOverlay" onclick="if(event.target===this)closeModal('pricingOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title">MSP 自营订阅定价</span>
+        <button class="ab-modal-close" onclick="closeModal('pricingOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div class="ab-field">
+          <div class="ab-field-label">租户</div>
+          <select class="ab-select" id="priceTenant">
+            <option value="tn_corp">周大福（私有化）· tn_corp</option>
+            <option value="tn_domino">达美乐（私有化）· tn_domino</option>
+            <option value="tn_gf">广发证券（私有化）· tn_gf</option>
+          </select>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">token 单价（¥ / 1K tokens）</div>
+          <input class="ab-input" id="priceRate" type="number" step="0.001" value="0.008">
+          <div class="ab-field-hint">MSP 自定义定价 · 订阅费 = token 用量 × 单价 · 利润 = 订阅费 − 成本（云端 Key 账单 / 本地推理）· 厂商不抽成 · AI 功能 License 平台统一收</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">订阅周期</div>
+          <select class="ab-select" id="priceCycle">
+            <option>月度订阅（按量结算）</option>
+            <option>年度订阅（预付费 · 用量月度核销）</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="exportOpBill()">导出订阅账单</button>
+        <button class="btn btn-sm" onclick="closeModal('pricingOverlay')">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="submitPricing()">保存定价（记录 T5 审计）</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：MSP 自用份额（12-ai-pricing-model §三 · 池 = 转售 + 自用混合） -->（12-ai-pricing-model §三 · 池 = 转售 + 自用混合） -->
+  <div class="ab-overlay" id="selfUseOverlay" onclick="if(event.target===this)closeModal('selfUseOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title">MSP 池自用份额</span>
+        <button class="ab-modal-close" onclick="closeModal('selfUseOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div class="ab-field">
+          <div class="ab-field-label">自用份额（credits / 月）</div>
+          <input class="ab-input" id="selfUseQuota" type="number" value="70000">
+          <div class="ab-field-hint">池 = 转售配额 + 自用份额 · MSP 自用（治理面板/报表等 AI 功能）调用平台模型时，从自用份额扣 credits · 租户转售消耗不影响自用份额</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">自用超量策略</div>
+          <select class="ab-select" id="selfUseOver">
+            <option>自用份额耗尽后按超量价结算（×1.5）</option>
+            <option>自用份额耗尽后自动停用 MSP 自用 AI 功能（不影响租户转售）</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="closeModal('selfUseOverlay')">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="submitSelfUse()">保存（记录 T5 审计）</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：池额/超量策略 -->
+  <div class="ab-overlay" id="poolOverlay" onclick="if(event.target===this)closeModal('poolOverlay')">
+    <div class="ab-modal">
+      <div class="ab-modal-head">
+        <span class="ab-modal-title">池额与超量策略</span>
+        <button class="ab-modal-close" onclick="closeModal('poolOverlay')">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ab-modal-body">
+        <div class="ab-field">
+          <div class="ab-field-label">告警阈值（使用率 %）</div>
+          <input class="ab-input" id="poolAlertPct" type="number" value="70" min="1" max="100">
+          <div class="ab-field-hint">达到阈值 → 告警 MSP + IT 主管（70% 告警 · 80% 利用率规划）</div>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">池耗尽策略</div>
+          <select class="ab-select" id="poolExhaust">
+            <option>继续按超量价结算（×1.5）</option>
+            <option>降级为只读分析（禁止执行动作）</option>
+            <option>停用 AI（熔断 · 需人工解除）</option>
+          </select>
+        </div>
+        <div class="ab-field">
+          <div class="ab-field-label">年度池重置与结转</div>
+          <select class="ab-select">
+            <option>合同周年重置 · 未用不结转（默认）</option>
+            <option>合同周年重置 · 未用结转 ≤30%（合同协商）</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-modal-foot">
+        <button class="btn btn-sm" onclick="closeModal('poolOverlay')">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="submitPool()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/ems-v6-components.js"></script>
+  <script>
+    /* ===== 5 管理员角色视角（12-ai-pricing-model §二 角色×部署矩阵）===== */
+    var BILLING_ROLES = {
+      sys:      { label: 'SystemAdmin',      hint: '平台管理员（平台模型池运营）：全量租户 / 全量价目表 / License 与 credits 收入' },
+      'msp-saas':{ label: 'MSP Admin SaaS',   hint: 'SaaS 部署 · MSP 运营：名下租户计费方案 / 转售毛利 / 池构成（转售+自用份额）' },
+      'msp-op': { label: 'MSP Admin 私有化', hint: '私有化部署 · MSP 自营：无法订阅平台 · 租户订阅 MSP（token · MSP 定价 · 厂商不抽成）' },
+      'user-saas':{ label: 'UserAdmin SaaS', hint: 'SaaS 直客租户：自己的 credits 池 / 账单 / AI 功能 License' },
+      'user-op':{ label: 'UserAdmin 私有化', hint: '私有化直客：仅 BYOK（token 用量）· AI 功能 License' }
+    };
+
+    var _billingRole = 'msp-saas';
+    var AI_USAGE_BILLING_KEY = 'ems-ai-usage-billing-enabled';
+    var _aiUsageBillingEnabled = localStorage.getItem(AI_USAGE_BILLING_KEY) !== 'false';
+
+    function setAiUsageBilling(enabled) {
+      _aiUsageBillingEnabled = !!enabled;
+      localStorage.setItem(AI_USAGE_BILLING_KEY, String(_aiUsageBillingEnabled));
+      applyAiUsageBilling();
+      renderRoleKpi(_billingRole);
+      renderTenants(_billingRole);
+      renderOpSubs();
+      showToast('AI 用量计费设置已保存', 'success');
+    }
+
+    function applyAiUsageBilling() {
+      var toggle = document.getElementById('aiUsageBillingToggle');
+      if (toggle) toggle.checked = _aiUsageBillingEnabled;
+      document.querySelectorAll('[data-requires-usage-billing]').forEach(function (el) {
+        var roleVisible = el.dataset.brole.split(' ').indexOf(_billingRole) >= 0;
+        el.style.display = roleVisible && _aiUsageBillingEnabled ? '' : 'none';
+      });
+      var pack = document.getElementById('creditsPackButton');
+      if (pack) pack.style.display = _aiUsageBillingEnabled ? '' : 'none';
+      var desc = document.getElementById('tenantSectionDesc');
+      if (desc) {
+        desc.style.display = _aiUsageBillingEnabled ? '' : 'none';
+        if (_billingRole === 'msp-saas' || _billingRole === 'sys') desc.textContent = _aiUsageBillingEnabled
+          ? '平台模型按 Credits、BYOK 按 Token 展示 · 模型服务模式可按租户配置'
+          : '';
+        else desc.textContent = '平台模型使用 Credits · BYOK 使用 Token 技术用量 · 同一租户同一账期仅一种模式生效';
+      }
+      var summary = document.getElementById('allocationSummary');
+      if (summary) {
+        summary.style.display = _aiUsageBillingEnabled ? '' : 'none';
+        if (_billingRole === 'msp-saas' || _billingRole === 'sys') summary.innerHTML = _aiUsageBillingEnabled
+          ? 'Allocation Summary：4 租户已分配 <strong style="color:var(--c-text-2)">430,000 / 500,000 credits</strong>（86%）· 其中 <strong style="color:var(--c-text-2)">转售 430,000 + 自用 70,000</strong> · 剩余可分配 70,000'
+          : '';
+        else summary.innerHTML = '平台模型按 Credits 计量 · BYOK 按 Token 展示 · Agent License 与模型用量费用分开';
+      }
+      var usageOnlySection = document.getElementById('usageOnlySection');
+      if (usageOnlySection) {
+        var roleVisible = usageOnlySection.dataset.brole.split(' ').indexOf(_billingRole) >= 0;
+        usageOnlySection.style.display = roleVisible && !_aiUsageBillingEnabled ? '' : 'none';
+      }
+      var tenantBillingSection = document.getElementById('tenantBillingSection');
+      if (tenantBillingSection) tenantBillingSection.classList.toggle('billing-fields-hidden', !_aiUsageBillingEnabled);
+      var tenantSectionTitle = document.getElementById('tenantSectionTitle');
+      if (tenantSectionTitle) tenantSectionTitle.textContent = _aiUsageBillingEnabled ? '租户 AI 计费方案' : '租户 AI 用量';
+      if (tenantBillingSection && (_billingRole === 'user-saas' || _billingRole === 'user-op') && !_aiUsageBillingEnabled) {
+        tenantBillingSection.style.display = 'none';
+      }
+    }
+
+    /* BYOK 连接数据（deploy: saas / op · 12-ai-pricing-model：BYOK=云端 Key/本地模型 · token 计量） */
+    var BYOK_STORAGE_KEY = 'ems-ai-byok-connections-v1';
+    var DEFAULT_BYOK_CONNS = [
+      { id: 'byok-1', tenant: '达美乐（Domino）', tid: 'tn_domino', deploy: 'saas', vendor: 'Azure OpenAI', model: 'gpt-5.1', alias: '达美乐默认模型', endpoint: 'https://domino.openai.azure.com', status: ['success','运行中'], verify: '已通过 · 08-12', calls: '10,559' },
+      { id: 'byok-2', tenant: '广发证券', tid: 'tn_gf', deploy: 'saas', vendor: '本地 Qwen3 235B（一体机）', model: 'qwen3-235b', alias: '广发默认模型', endpoint: 'http://10.172.1.50:8080/v1', status: ['success','本地'], verify: '已通过 · 08-12', calls: '46,800', local: true },
+      { id: 'byok-op-1', tenant: '周大福（私有化）', tid: 'tn_corp', deploy: 'op', vendor: '本地 Qwen3 235B', model: 'qwen3-235b', alias: '周大福默认模型', endpoint: 'http://10.20.0.11:8080/v1', status: ['success','本地'], verify: '已通过 · 08-20', calls: '38,600', local: true },
+      { id: 'byok-op-2', tenant: '达美乐（私有化）', tid: 'tn_domino', deploy: 'op', vendor: 'DeepSeek', model: 'deepseek-v4', alias: '达美乐默认模型', endpoint: 'https://api.deepseek.com/v1', status: ['success','运行中'], verify: '已通过 · 08-20', calls: '24,100' },
+      { id: 'byok-op-3', tenant: '广发证券（私有化）', tid: 'tn_gf', deploy: 'op', vendor: '本地 Qwen3 235B', model: 'qwen3-235b', alias: '广发默认模型', endpoint: 'http://10.20.0.12:8080/v1', status: ['success','本地'], verify: '已通过 · 08-20', calls: '18,200', local: true }
+    ];
+    function loadByokConns() { try { var saved = JSON.parse(localStorage.getItem(BYOK_STORAGE_KEY) || 'null'); return Array.isArray(saved) ? saved : JSON.parse(JSON.stringify(DEFAULT_BYOK_CONNS)); } catch (e) { return JSON.parse(JSON.stringify(DEFAULT_BYOK_CONNS)); } }
+    function saveByokConns() { localStorage.setItem(BYOK_STORAGE_KEY, JSON.stringify(BYOK_CONNS)); }
+    var BYOK_CONNS = loadByokConns();
+
+    /* 按角色过滤 BYOK 连接：sys=全部 · msp-saas=SaaS · msp-op=私有化 · user=仅自己租户 */
+    function visibleByokConns(role) {
+      if (role === 'sys') return BYOK_CONNS;
+      if (role === 'msp-saas') return BYOK_CONNS.filter(function (c) { return c.deploy === 'saas'; });
+      if (role === 'msp-op') return BYOK_CONNS.filter(function (c) { return c.deploy === 'op'; });
+      if (role === 'user-saas') return BYOK_CONNS.filter(function (c) { return c.tid === 'tn_corp' && c.deploy === 'saas'; });
+      if (role === 'user-op') return BYOK_CONNS.filter(function (c) { return c.tid === 'tn_corp' && c.deploy === 'op'; });
+      return [];
+    }
+
+    function renderByokConns(role) {
+      var tbody = document.getElementById('byokTbody');
+      if (!tbody) return;
+      var rows = visibleByokConns(role);
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--c-text-3);padding:24px">当前租户未启用 BYOK 连接 · 点击右上角「+ 新建 BYOK 连接」（BYOK 不收模型费 · token 计量 · AI 功能 License 控制）</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(function (c) {
+        var detail = c.local
+          ? '<a onclick="openByokCalls(\'' + c.id + '\')">调用明细</a><span class="sep">·</span><a onclick="openByokHealth(\'' + c.id + '\')">健康状态</a>'
+          : '<a onclick="openByokDetail(\'' + c.id + '\')">详情</a><span class="sep">·</span><a onclick="revalidateByok(\'' + c.id + '\')">重新验证</a>';
+        var stopMsg = '确认停用该 BYOK 模型供给？停用后该租户的 AI 功能将不可用，不会自动切换到平台模型池。';
+        return '<tr>'
+          + '<td><strong>' + c.tenant + '</strong></td>'
+          + '<td>' + c.vendor + '</td>'
+          + '<td><strong>' + c.model + '</strong><br><span style="color:var(--c-text-3);font-size:11px">' + (c.alias || c.tenant + '默认模型') + '</span></td>'
+          + '<td><span class="status-badge ' + c.status[0] + '">' + c.status[1] + '</span></td>'
+          + '<td><span style="color:var(--c-text-3);font-size:12px">' + c.verify + '</span></td>'
+          + '<td>' + c.calls + '</td>'
+          + '<td class="row-actions" onclick="event.stopPropagation()">' + detail
+          + ('<span class="action-more-wrap"><button class="action-more-btn" onclick="toggleActionDropdown(event,\'' + c.id + '\')">⋯</button>'
+            + '<div class="action-dropdown" id="drop-' + c.id + '"><a onclick="openByokAudit(\'' + c.id + '\')">审计日志</a>'
+            + '<div style="height:1px;background:var(--c-border-light);margin:4px 0"></div>'
+            + '<a style="color:var(--c-danger)" onclick="showConfirmModal({title:\'停用连接\',message:\'' + stopMsg + '\',okText:\'停用\',danger:true,onOk:function(){disableByok(\'' + c.id + '\')}})\">停用连接</a></div></span>')
+          + '</td></tr>';
+      }).join('');
+    }
+
+    /* 租户计费方案数据（模式：pool 平台池 / byok） */
+    var TENANTS = [
+      { tid: 'tn_corp', name: '周大福（CTF）', sub: 'tn_corp · 上海/新加坡/法兰克福', mode: 'pool', supply: 'DeepSeek V4 Pro（平台池）', quota: '200,000', used: '128,460', callUsage: '128,460 次', pct: 64, color: '#059669', price: '¥0.10 / credit', bill: '¥12,846', st: ['success','正常'] },
+      { tid: 'tn_domino', name: '达美乐（Domino）', sub: 'tn_domino · 深圳/门店终端', mode: 'byok', supply: 'Azure gpt-5.1 + Bedrock opus-5（云端 Key）', quota: '—', used: '309M tokens', callUsage: '168,240 次', pct: null, color: '#059669', price: '无模型费 · License', bill: '—', st: ['success','正常'] },
+      { tid: 'tn_gf', name: '广发证券', sub: 'tn_gf · 上海/终端设备', mode: 'byok', supply: '本地 Qwen3 235B（一体机）', quota: '—', used: '46,800 次', callUsage: '46,800 次', pct: null, color: '#059669', price: '无模型费 · License', bill: '—', st: ['success','正常'] },
+      { tid: 'tn_hkt_other', name: '香港美心MX', sub: 'tn_hkt_other · 香港/核心机房', mode: 'pool', supply: 'DeepSeek V4 Pro（平台池）', quota: '80,000', used: '71,380', callUsage: '74,760 次', pct: 89, color: '#D97706', price: '¥0.12 / credit', bill: '¥8,566', st: ['warning','接近配额'] }
+    ];
+
+    function openOperationDetail(title, html) {
+      document.getElementById('operationDetailTitle').textContent = title;
+      document.getElementById('operationDetailBody').innerHTML = html;
+      document.getElementById('operationDetailOverlay').classList.add('open');
+    }
+
+    function detailTable(headers, rows) {
+      return '<div style="overflow-x:auto"><table class="data-table"><thead><tr>'
+        + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('')
+        + '</tr></thead><tbody>'
+        + rows.map(function (row) { return '<tr>' + row.map(function (v) { return '<td>' + v + '</td>'; }).join('') + '</tr>'; }).join('')
+        + '</tbody></table></div>';
+    }
+
+    function findTenant(tid) { return TENANTS.find(function (t) { return t.tid === tid; }); }
+    function findByok(id) { return BYOK_CONNS.find(function (c) { return c.id === id; }); }
+
+    function openTenantUsage(tid) {
+      var t = findTenant(tid);
+      if (!t) return;
+      openOperationDetail(t.name + ' · 用量与调用记录',
+        detailTable(['时间', 'Agent', '模型', '输入 Token', '输出 Token', '状态'], [
+          ['今天 10:32', 'FSM 调度推荐 Agent', t.supply, '8,420', '1,860', '<span class="status-badge success">成功</span>'],
+          ['今天 09:18', '根因分析 Agent', t.supply, '12,640', '2,410', '<span class="status-badge success">成功</span>'],
+          ['昨天 18:06', 'NEO Copilot', t.supply, '3,280', '740', '<span class="status-badge danger">失败</span>']
+        ]));
+    }
+
+    function openBillingHistory(tid) {
+      var t = findTenant(tid);
+      if (!t) return;
+      openOperationDetail(t.name + ' · 配额调整历史',
+        detailTable(['时间', '调整前', '调整后', '操作人', '原因'], [
+          ['2026-09-01 09:30', '150,000', t.quota, 'MSP 计费管理员', '月度容量调整'],
+          ['2026-08-01 10:10', '100,000', '150,000', '平台管理员', '新增 Agent 场景']
+        ]));
+    }
+
+    function disableTenantBilling(tid) {
+      var t = findTenant(tid);
+      if (!t) return;
+      t.st = ['info', '计费停用'];
+      t.bill = '已停止';
+      renderTenants(_billingRole);
+      showToast(t.name + ' 已停止生成新的 AI 用量账单', 'success');
+    }
+
+    function openByokDetail(id) {
+      var c = findByok(id);
+      if (!c) return;
+      openOperationDetail(c.tenant + ' · BYOK 连接详情', detailTable(['项目', '内容'], [
+        ['供应商', c.vendor], ['模型实例', c.model], ['服务地址', c.endpoint || '已配置'],
+        ['连接状态', c.status[1]], ['最近验证', c.verify], ['凭证', '已加密 · 不展示明文']
+      ]));
+    }
+
+    function openByokCalls(id) {
+      var c = findByok(id);
+      if (!c) return;
+      openOperationDetail(c.tenant + ' · BYOK 调用明细', detailTable(['时间', 'Agent', '输入 Token', '输出 Token', '耗时', '状态'], [
+        ['今天 10:32', 'FSM 调度推荐 Agent', '8,420', '1,860', '2.1s', '<span class="status-badge success">成功</span>'],
+        ['今天 09:18', '根因分析 Agent', '12,640', '2,410', '3.4s', '<span class="status-badge success">成功</span>'],
+        ['昨天 18:06', 'NEO Copilot', '3,280', '0', '10.0s', '<span class="status-badge danger">超时</span>']
+      ]));
+    }
+
+    function openByokHealth(id) {
+      var c = findByok(id);
+      if (!c) return;
+      openOperationDetail(c.tenant + ' · 模型健康状态', detailTable(['检查项', '当前值', '状态'], [
+        ['服务连通性', '正常', '<span class="status-badge success">通过</span>'],
+        ['推理延迟 P95', '1.8s', '<span class="status-badge success">正常</span>'],
+        ['显存使用率', '62%', '<span class="status-badge success">正常</span>'],
+        ['最近检查', '刚刚', '<span class="status-badge success">完成</span>']
+      ]));
+    }
+
+    function openByokAudit(id) {
+      var c = findByok(id);
+      if (!c) return;
+      openOperationDetail(c.tenant + ' · BYOK 审计日志', detailTable(['时间', '操作', '操作人', '结果'], [
+        ['今天 10:32', '调用时解密凭证', 'AI Runtime', '成功'],
+        ['今天 08:00', '连接健康检查', '平台任务', '通过'],
+        ['2026-09-20 16:24', '更新连接配置', '计费管理员', '成功']
+      ]));
+    }
+
+    function revalidateByok(id) {
+      var c = findByok(id);
+      if (!c) return;
+      c.verify = '已通过 · 刚刚';
+      c.status = ['success', c.local ? '本地' : '运行中'];
+      saveByokConns();
+      renderByokConns(_billingRole);
+      showToast(c.tenant + ' BYOK 连接验证通过', 'success');
+    }
+
+    function disableByok(id) {
+      var c = findByok(id);
+      if (!c) return;
+      c.status = ['info', '已停用'];
+      saveByokConns();
+      renderByokConns(_billingRole);
+      showToast(c.tenant + ' BYOK 连接已停用', 'success');
+    }
+
+    /* 各角色 KPI（6 卡 × label/val/sub） */
+    var ROLE_KPI = {
+      sys: [
+        ['平台 AI 收入（本月）', '¥58,412', 'License ¥46,800 + credits 销售 ¥11,612 · 私有化平台软件费另计'],
+        ['平台模型池 credits', '¥0.10 单价', '月池 500,000 · 已分配 430,000 · 覆盖 4 租户'],
+        ['credits 池状态（全平台）', '86% 已分配', '430,000 / 500,000 · Near capacity'],
+        ['BYOK token 消耗量', '418M tokens', '达美乐云端 + 广发本地 · 不收模型费 · License 控制'],
+        ['私有化部署', '2 处', 'MSP 自营 token 订阅 · 平台软件费待定'],
+        ['本月平台池调用', '265,180', 'credits · 环比 +12.6%']
+      ],
+      'msp-saas': [
+        ['本月 AI 计费流水（MSP 视角 · 跨 4 租户）', '¥24,637', '含 credits 加购与转售 · 同比 +18.4% · BYOK 租户 token 计量'],
+        ['MSP 转售毛利（平台池）', '¥8,719', '毛利率 35.4% · 批发价购入 · BYOK 自营利润见私有化部署视角'],
+        ['credits 池状态（转售+自用）', '86% 已分配', '转售 430,000 + 自用 70,000 / 500,000 · Near capacity'],
+        ['BYOK token 消耗量', '309M tokens', '达美乐云端 2 连接 + 广发本地 · 不收模型费 · License 控制'],
+        ['本地模型调用（BYOK）', '46,800 次', '广发本地 Qwen3 235B · token 计量 · 不计 credits'],
+        ['本月平台池调用', '265,180', 'credits · 环比 +12.6% · BYOK 按 token 计量']
+      ],
+      'msp-op': [
+        ['自营订阅收入（本月）', '¥1,711', '3 租户订阅 · token × MSP 单价 · 厂商不抽成'],
+        ['订阅利润', '¥592', '收入 − 成本（云端 Key 账单 / 本地推理）· License 平台收'],
+        ['订阅租户', '3', '周大福 / 达美乐 / 广发 · 私有化部署'],
+        ['BYOK token 消耗量', '198.4M tokens', '云端 DeepSeek Key + 本地 Qwen3 235B'],
+        ['AI 功能 License', '6 Agent 生效', '平台统一收 · MSP 转达 · 按 Agent 数×期限'],
+        ['模型供给', '2 种', '云端 API Key · 本地模型']
+      ],
+      'user-saas': [
+        ['本月费用（credits）', '¥12,846', '平台池 ¥0.10 / credit · 128,460 credits'],
+        ['我的 credits 池', '64% 已用', '128,460 / 200,000 · 配额内'],
+        ['BYOK', '未启用', '如需自带 Key 可新建连接（token 计量）'],
+        ['AI 功能 License', '2 Agent', 'NEO Agent · 工单起草 Agent · 2027-08-26 到期'],
+        ['本月调用', '128,460', 'credits · 环比 +9.2%'],
+        ['账单状态', '正常', '2026-08 账单 ¥12,846 · 已出账']
+      ],
+      'user-op': [
+        ['本月 token 用量', '89.2M', '本地 Qwen3 235B · 订阅 MSP ¥0.008/1K'],
+        ['本月订阅费', '¥713', '订阅来源：季冠 MSP（私有化）· 厂商不抽成'],
+        ['模型供给', '本地模型', '数据不出境 · token 计量'],
+        ['AI 功能 License', '2 Agent', 'NEO Agent · 工单起草 Agent · 2027-08-26 到期'],
+        ['BYOK', '本地已连接', '无需云端 Key'],
+        ['计费口径', '无 credits', '私有化仅 BYOK · 平台不收模型费']
+      ]
+    };
+
+    var AI_USAGE_ONLY_KPI = {
+      aggregate: [
+        ['本月 AI 调用', '418,260', '当前管理范围汇总'],
+        ['输入 Token', '462.8M', '仅技术用量 · 不计费'],
+        ['输出 Token', '114.8M', '仅技术用量 · 不计费'],
+        ['成功调用', '414,914', '成功率 99.2%'],
+        ['失败调用', '3,346', '可下钻失败原因与调用记录'],
+        ['平均响应时间', '2.4 秒', '按当前管理范围汇总']
+      ],
+      direct: [
+        ['本月 AI 调用', '128,460', '当前租户'],
+        ['输入 Token', '96.4M', '仅技术用量 · 不计费'],
+        ['输出 Token', '24.8M', '仅技术用量 · 不计费'],
+        ['成功调用', '127,432', '成功率 99.2%'],
+        ['失败调用', '1,028', '可下钻失败原因与调用记录'],
+        ['平均响应时间', '2.1 秒', '当前租户']
+      ]
+    };
+
+    function renderRoleKpi(role) {
+      var k = !_aiUsageBillingEnabled
+        ? ((role === 'user-saas' || role === 'user-op') ? AI_USAGE_ONLY_KPI.direct : AI_USAGE_ONLY_KPI.aggregate)
+        : (ROLE_KPI[role] || ROLE_KPI['msp-saas']);
+      for (var i = 0; i < 6; i++) {
+        document.getElementById('kpi' + (i + 1) + 'Label').textContent = k[i][0];
+        document.getElementById('kpi' + (i + 1) + 'Val').textContent = k[i][1];
+        document.getElementById('kpi' + (i + 1) + 'Sub').textContent = k[i][2];
+      }
+    }
+
+    function renderTenants(role) {
+      var tbody = document.getElementById('tenantTbody');
+      if (!tbody) return;
+      var rows = TENANTS;
+      var usageOnly = (role === 'msp-saas' || role === 'sys') && !_aiUsageBillingEnabled;
+      if (role === 'user-saas') rows = TENANTS.filter(function (t) { return t.tid === 'tn_corp'; });
+      tbody.innerHTML = rows.map(function (t) {
+        var bar = usageOnly || t.pct === null
+          ? '<span style="font-size:11px;color:var(--c-text-3)">—</span>'
+          : '<div class="kpi-mini-bar" style="width:96px"><div class="track"><span style="width:' + t.pct + '%;background:' + t.color + '"></span></div><span class="val">' + t.pct + '%</span></div>';
+        var badge = usageOnly
+          ? '<span class="mode-badge byok">用量展示</span>'
+          : t.mode === 'pool'
+          ? '<span class="mode-badge managed">平台池</span>'
+          : '<span class="mode-badge byok">BYOK</span>';
+        var quota = usageOnly ? '—' : t.quota;
+        var used = usageOnly ? t.callUsage + ' · ' + ({tn_corp:'96.4M',tn_domino:'309M',tn_gf:'118M',tn_hkt_other:'54.2M'}[t.tid] || '—') + ' tokens' : t.used;
+        var price = usageOnly ? '不计费' : t.price;
+        var bill = usageOnly ? '—' : t.bill;
+        var rowId = 'bill-row-' + t.tid;
+        return '<tr id="' + rowId + '">'
+          + '<td><strong>' + t.name + '</strong><br><small style="color:var(--c-text-3)">' + t.sub + '</small></td>'
+          + '<td class="billing-field">' + badge + '</td>'
+          + '<td>' + t.supply + '</td>'
+          + '<td class="billing-field">' + quota + '</td>'
+          + '<td>' + used + '</td>'
+          + '<td class="billing-field">' + bar + '</td>'
+          + '<td class="billing-field">' + price + '</td>'
+          + '<td class="billing-field">' + bill + '</td>'
+          + '<td><span class="status-badge ' + t.st[0] + '">' + t.st[1] + '</span></td>'
+          + '<td class="row-actions" onclick="event.stopPropagation()">' + (usageOnly
+          ? '<a onclick="openTenantUsage(\'' + t.tid + '\')">用量与调用记录</a>'
+          : ''
+          + '<a onclick="openBillingConfig(\'' + t.tid + '\',\'' + t.name + '\',\'' + t.mode + '\')">配置方案</a><span class="sep">·</span>'
+          + '<a onclick="openTenantBill(\'' + t.tid + '\',\'' + t.name + '\')">查看账单</a>'
+          + '<span class="action-more-wrap"><button class="action-more-btn" onclick="toggleActionDropdown(event,\'bill-' + t.tid + '\')">⋯</button>'
+          + '<div class="action-dropdown" id="drop-bill-' + t.tid + '">'
+          + '<a onclick="showToast(\'' + t.name + '账单已导出 CSV（记录 T5 审计 · 原型演示）\')">导出账单 CSV</a>'
+          + '<a onclick="openBillingHistory(\'' + t.tid + '\')">配额调整历史</a>'
+          + '<div style="height:1px;background:var(--c-border-light);margin:4px 0"></div>'
+          + '<a style="color:var(--c-danger)" onclick="showConfirmModal({title:\'停用 AI 计费\',message:\'确认停止该租户生成新的 AI 用量账单？Agent License 不受影响。\',okText:\'停用\',danger:true,onOk:function(){disableTenantBilling(\'' + t.tid + '\')}})\">停用 AI 计费</a>'
+          + '</div></span>') + '</td></tr>';
+      }).join('');
+    }
+
+    function switchBillingRole(role) {
+      if (!BILLING_ROLES[role]) role = 'msp-saas';
+      _billingRole = role;
+      localStorage.setItem('ems-billing-role', role);
+      document.querySelectorAll('#billingRoleSwitch .ab-role-btn').forEach(function (b) {
+        b.classList.toggle('on', b.dataset.role === role);
+      });
+      document.getElementById('billingRoleHint').innerHTML = '当前视角：<strong>' + BILLING_ROLES[role].label + '</strong>——' + BILLING_ROLES[role].hint;
+      document.querySelectorAll('[data-brole]').forEach(function (el) {
+        el.style.display = el.dataset.brole.split(' ').indexOf(role) >= 0 ? '' : 'none';
+      });
+      var packBar = document.getElementById('packOrderBar');
+      if (packBar && packBar.dataset.brole.split(' ').indexOf(role) < 0) packBar.style.display = 'none';
+      /* user 视图子块切换 */
+      var saas = document.getElementById('userSaasBlock');
+      var op = document.getElementById('userOpBlock');
+      if (saas) saas.style.display = role === 'user-saas' ? '' : 'none';
+      if (op) op.style.display = role === 'user-op' ? '' : 'none';
+      renderRoleKpi(role);
+      renderTenants(role);
+      renderByokConns(role);
+      renderOpSubs();
+      applyAiUsageBilling();
+      /* 加购 credits 池下拉按角色过滤（直客仅自己的池） */
+      var packSel = document.getElementById('packPoolSelect');
+      if (packSel) {
+        var opts = ['MSP 批发池（当前 · 年池 6,000,000）', '周大福 tn_corp 租户池', '达美乐 tn_domino 租户池', '广发证券 tn_gf 租户池', '香港美心MX tn_hkt_other 租户池'];
+        if (role === 'user-saas' || role === 'user-op') opts = ['周大福 tn_corp 租户池（我的租户）'];
+        packSel.innerHTML = opts.map(function (o) { return '<option>' + o + '</option>'; }).join('');
+      }
+    }
+
+    /* 账单 mock 数据（口径与 ai-center T2 成本账单同源 · 12-ai-pricing-model：平台池=credits · BYOK=token） */
+    var BILL_DETAIL = {
+      'tn_corp': {
+        inPool: '128,460 credits', quota: '配额 200,000 · 使用率 64%', over: '0 credits', overSub: '本月无超量',
+        total: '¥12,846', totalSub: '¥0.10 / credit · 平台池模式',
+        rows: [
+          ['M1 告警降噪', '规则引擎 + A1/A2', '52,180', '¥0.10', '¥5,218'],
+          ['M3 转工单派工', 'A1 + A3 + A7', '31,240', '¥0.10', '¥3,124'],
+          ['M2 RCA 证据链', 'A2 工作流 ×10', '24,600', '¥0.10', '¥2,460'],
+          ['M6 NEO Agent', 'A6 对话', '20,440', '¥0.10', '¥2,044']
+        ]
+      },
+      'tn_domino': {
+        inPool: '309M tokens', quota: 'BYOK · 无配额（token 计量）', over: '—', overSub: '不收模型费 · AI 功能 License 控制',
+        total: '—', totalSub: 'BYOK（云端 Key）· token 消耗量显示 · 模型费客户直付供应商',
+        unit: 'tokens',
+        rows: [
+          ['M4 变更评估', 'A4 · Azure gpt-5.1', '34.2M', 'token 计量', '—'],
+          ['M2 RCA 证据链', 'A2 · Bedrock opus-5', '201.4M', 'token 计量', '—'],
+          ['M6 NEO Agent', 'A6 对话', '73.4M', 'token 计量', '—']
+        ]
+      },
+      'tn_gf': {
+        inPool: '46,800 次（本地）', quota: 'BYOK · 无配额（token 计量）', over: '—', overSub: '本地模型 · 数据不出境',
+        total: '—', totalSub: 'BYOK（本地 Qwen3 235B）· token 消耗量显示 · 不计 credits',
+        unit: 'tokens',
+        rows: [
+          ['M4 变更评估', 'A4 · 云端 Opus 4.7（Key）', '12.8M', 'token 计量', '—'],
+          ['M5 服务请求', 'A1 + A3', '9.1M', 'token 计量', '—'],
+          ['M6 NEO Agent', 'A6 · 本地 Qwen3 235B', '24.9M', 'token 计量', '—']
+        ]
+      },
+      'tn_hkt_other': {
+        inPool: '71,380 credits', quota: '配额 80,000 · 使用率 89%', over: '0 credits', overSub: '接近配额 · 已触发 70% 告警',
+        total: '¥8,566', totalSub: '¥0.12 / credit · 平台池模式',
+        rows: [
+          ['M1 告警降噪', '规则引擎 + A1/A2', '30,450', '¥0.12', '¥3,654'],
+          ['M3 转工单派工', 'A1 + A3 + A7', '22,180', '¥0.12', '¥2,662'],
+          ['M6 NEO Agent', 'A6 对话', '18,750', '¥0.12', '¥2,250']
+        ]
+      }
+    };
+
+    var BILL_FX = { CNY: 1, SGD: 0.185, EUR: 0.128, HKD: 1.08 };
+    var billCurrentTenant = 'tn_corp';
+    var billCurrentFx = 'CNY';
+
+    function toggleActionDropdown(ev, id) {
+      ev.stopPropagation();
+      document.querySelectorAll('.action-dropdown.open').forEach(function (d) { if (d.id !== 'drop-' + id) d.classList.remove('open'); });
+      var el = document.getElementById('drop-' + id);
+      if (el) el.classList.toggle('open');
+    }
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+    });
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    var _cfgTid = '';
+    function openBillingConfig(tid, name, mode) {
+      _cfgTid = tid;
+      document.getElementById('cfgTenant').value = name + ' · ' + tid;
+      document.getElementById('cfgMode').value = mode;
+      document.getElementById('cfgOverlay').classList.add('open');
+    }
+
+    var MODE_TEXT = { pool: '平台池', byok: 'BYOK' };
+    function submitCfg() {
+      var mode = document.getElementById('cfgMode').value;
+      var quota = document.getElementById('cfgQuota').value;
+      var price = document.getElementById('cfgPrice').value;
+      var over = document.getElementById('cfgOver').value;
+      /* 真实改数据：租户计费方案落表 → 刷新租户计费表对应行 */
+      var row = document.getElementById('bill-row-' + _cfgTid);
+      if (row) {
+        var badge = row.querySelector('.mode-badge');
+        if (badge) {
+          badge.textContent = MODE_TEXT[mode] || mode;
+          badge.className = 'mode-badge ' + (mode === 'pool' ? 'managed' : 'byok');
+        }
+        var cells = row.querySelectorAll('td');
+        if (cells.length >= 8) {
+          cells[3].textContent = mode === 'byok' ? '—' : Number(quota).toLocaleString('en-US');
+          cells[6].textContent = mode === 'byok' ? '无模型费 · License' : '¥' + price + ' / credit';
+          cells[7].textContent = mode === 'byok' ? '—' : cells[7].textContent;
+        }
+      }
+      if (BILL_DETAIL[_cfgTid]) {
+        BILL_DETAIL[_cfgTid].quota = mode === 'byok' ? 'BYOK · 无配额（token 计量）' : quota;
+        BILL_DETAIL[_cfgTid].unit = mode === 'byok' ? 'tokens' : 'credits';
+        BILL_DETAIL[_cfgTid].total = mode === 'byok' ? '—' : BILL_DETAIL[_cfgTid].total;
+        BILL_DETAIL[_cfgTid].totalSub = MODE_TEXT[mode] + '模式 · ' + (over === 'rate' ? '超量按超量价' : over === 'l1' ? '超量自动降级 L3' : '池耗尽停用');
+      }
+      closeModal('cfgOverlay');
+      showToast('计费方案已保存 · ' + MODE_TEXT[mode] + ' · 配额 ' + quota + ' · 变更记录 T5 审计', 'success');
+    }
+
+    function openTenantBill(tid, name) {
+      billCurrentTenant = tid;
+      billCurrentFx = 'CNY';
+      document.getElementById('billModalTitle').textContent = name + ' · AI 账单';
+      var d = BILL_DETAIL[tid] || BILL_DETAIL['tn_corp'];
+      document.getElementById('billInPool').textContent = d.inPool;
+      document.getElementById('billOver').textContent = d.over;
+      document.getElementById('billTotal').textContent = d.total;
+      document.getElementById('billTotalSub').textContent = d.totalSub;
+      /* 列头按计量单位切换（平台池=credits · BYOK=tokens） */
+      var ths = document.querySelectorAll('#billOverlay .data-table thead th');
+      if (ths.length >= 3) ths[2].textContent = d.unit === 'tokens' ? 'token 消耗' : 'credits';
+      var tbody = document.getElementById('billDetailTbody');
+      tbody.innerHTML = d.rows.map(function (r) {
+        return '<tr><td><strong>' + r[0] + '</strong></td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td><td>' + r[4] + '</td></tr>';
+      }).join('');
+      document.querySelectorAll('#billCurrencyChips .currency-chip').forEach(function (c) { c.classList.remove('on'); });
+      document.querySelector('#billCurrencyChips .currency-chip').classList.add('on');
+      document.getElementById('billOverlay').classList.add('open');
+    }
+
+    function switchBillCurrency(fx, btn) {
+      billCurrentFx = fx;
+      document.querySelectorAll('#billCurrencyChips .currency-chip').forEach(function (c) { c.classList.remove('on'); });
+      btn.classList.add('on');
+      var d = BILL_DETAIL[billCurrentTenant];
+      var base = parseFloat(d.total.replace(/[^\d.]/g, ''));
+      var cur = fx === 'CNY' ? '¥' : (fx === 'SGD' ? 'S$' : (fx === 'EUR' ? '€' : 'HK$'));
+      document.getElementById('billTotal').textContent = cur + (base * BILL_FX[fx]).toFixed(2);
+      document.getElementById('billTotalSub').textContent = d.totalSub + ' · ' + fx + ' 汇率折算';
+    }
+
+    function openByokModal() {
+      var tenantSelect = document.getElementById('byokTenant');
+      var tenantOptions = [
+        '达美乐（Domino）· tn_domino',
+        '周大福（CTF）· tn_corp',
+        '广发证券 · tn_gf',
+        '香港美心MX · tn_hkt_other'
+      ];
+      var directTenant = _billingRole === 'user-saas' || _billingRole === 'user-op';
+      tenantSelect.innerHTML = (directTenant ? ['周大福（CTF）· tn_corp'] : tenantOptions)
+        .map(function (name) { return '<option>' + name + '</option>'; }).join('');
+      tenantSelect.disabled = directTenant;
+      document.getElementById('byokOverlay').classList.add('open');
+      toggleByokType();
+    }
+
+    function toggleByokType() {
+      var local = document.getElementById('byokType').value === 'local';
+      document.getElementById('byokKeyField').style.display = local ? 'none' : '';
+      document.getElementById('byokEndpoint').placeholder = local ? 'http://10.0.0.8:8080/v1' : 'https://api.example.com/v1';
+    }
+
+    function syncByokModel(conn) {
+      localStorage.setItem('ems-ai-byok-last-synced', JSON.stringify({ id: conn.id, syncedAt: new Date().toISOString() }));
+    }
+
+    function submitByok() {
+      var tenant = document.getElementById('byokTenant').value;
+      var vendor = document.getElementById('byokVendor').value;
+      var type = document.getElementById('byokType').value;
+      var key = document.getElementById('byokKey').value.trim();
+      var endpoint = document.getElementById('byokEndpoint').value.trim();
+      var modelCode = document.getElementById('byokModel').value.trim();
+      var route = document.getElementById('byokRoute').value;
+      if (!endpoint || !modelCode) { showToast('请填写服务地址和模型标识', 'warn'); return; }
+      if (type === 'cloud' && !key) { showToast('请填写 API Key 凭证', 'warn'); return; }
+      /* 真实新增：连接落表 → 按当前角色渲染（私有化角色落 OP 池 · SaaS 角色落 SaaS 池） */
+      var tMap = { '达美乐（Domino）· tn_domino': 'tn_domino', '周大福（CTF）· tn_corp': 'tn_corp', '广发证券 · tn_gf': 'tn_gf', '香港美心MX · tn_hkt_other': 'tn_hkt_other' };
+      var tid = tMap[tenant] || 'tn_corp';
+      var deploy = _billingRole === 'msp-op' || _billingRole === 'user-op' ? 'op' : 'saas';
+      if (BYOK_CONNS.some(function (c) { return c.tid === tid && c.deploy === deploy; })) { showToast('该租户已有生效 BYOK；请先停用原连接后再新建', 'warn'); return; }
+      var conn = {
+        id: 'byok-new-' + Date.now(),
+        tenant: tenant.split('（')[0],
+        tid: tid,
+        deploy: deploy,
+        vendor: vendor,
+        model: modelCode,
+        alias: tenant.split('（')[0] + '默认模型',
+        endpoint: endpoint,
+        status: ['success', '运行中'],
+        verify: '已通过 · 刚刚',
+        calls: '0',
+        local: type === 'local'
+      };
+      BYOK_CONNS.unshift(conn);
+      saveByokConns();
+      syncByokModel(conn);
+      renderByokConns(_billingRole);
+      document.getElementById('byokKey').value = '';
+      document.getElementById('byokEndpoint').value = '';
+      document.getElementById('byokModel').value = '';
+      closeModal('byokOverlay');
+      showToast('BYOK 已验证并加入连接管理', 'success');
+    }
+
+    function openPackModal() {
+      document.getElementById('packOverlay').classList.add('open');
+    }
+
+    function selectPack(el) {
+      document.querySelectorAll('.ab-pack').forEach(function (p) { p.classList.remove('selected'); });
+      el.classList.add('selected');
+    }
+
+    var PACK_META = { 'AI-CRED-50K': { size: '50,000 credits', price: '¥5,000' }, 'AI-CRED-200K': { size: '200,000 credits', price: '¥18,000' }, 'AI-CRED-1M': { size: '1,000,000 credits', price: '¥80,000' } };
+    function submitPack() {
+      var sel = document.querySelector('.ab-pack.selected');
+      var pack = sel ? sel.dataset.pack : 'AI-CRED-50K';
+      var m = PACK_META[pack];
+      /* 真实落单：订单进入待审批（T1）队列 → 订单条可见 · 审批放行前不增加池余额 */
+      var bar = document.getElementById('packOrderBar');
+      var list = document.getElementById('packOrderList');
+      var item = document.createElement('div');
+      item.className = 'order-item';
+      item.innerHTML = '<span style="font-family:monospace;font-size:11px;color:var(--c-text-3)">ORD-20260826-' + (String(list.children.length + 1).padStart(2, '0')) + '</span>'
+        + '<strong>' + pack + '（' + m.size + ' · ' + m.price + '）</strong>'
+        + '<span class="status-badge warning">待 T1 审批</span>'
+        + '<span style="font-size:11px;color:var(--c-text-3)">审批通过后计入月池并更新池余额 · 审计留痕</span>';
+      list.insertBefore(item, list.firstChild);
+      bar.style.display = 'flex';
+      closeModal('packOverlay');
+      showToast(pack + ' 加购订单已提交 · 走 T1 审批（IT 主管）· 通过后入池', 'success');
+    }
+
+    function openPoolConfig() {
+      document.getElementById('poolOverlay').classList.add('open');
+    }
+
+    /* MSP 自营订阅数据（12-ai-pricing-model：私有化 MSP 自营 token 订阅 · MSP 定价） */
+    var OP_SUBS = [
+      { tid: 'tn_corp', name: '周大福（私有化）', sub: 'tn_corp · 私有化', supply: '本地 Qwen3 235B', tokens: '89.2M', rate: 0.008, fee: 713, profit: 248, lic: '2 Agent 生效' },
+      { tid: 'tn_domino', name: '达美乐（私有化）', sub: 'tn_domino · 私有化', supply: '云端 DeepSeek Key', tokens: '62.4M', rate: 0.01, fee: 624, profit: 214, lic: '3 Agent 生效' },
+      { tid: 'tn_gf', name: '广发证券（私有化）', sub: 'tn_gf · 私有化', supply: '本地 Qwen3 235B', tokens: '46.8M', rate: 0.008, fee: 374, profit: 130, lic: '1 Agent 生效' }
+    ];
+
+    function findSubscription(tid) { return OP_SUBS.find(function (s) { return s.tid === tid; }); }
+
+    function openSubscriptionDetail(tid) {
+      var s = findSubscription(tid);
+      if (!s) return;
+      openOperationDetail(s.name + ' · 订阅详情', detailTable(['项目', '内容'], [
+        ['模型供给', s.supply], ['订阅周期', '2026-08-27 ~ 2027-08-26'],
+        ['Token 单价', '¥' + s.rate.toFixed(3) + ' / 1K'], ['本月订阅费', '¥' + s.fee.toLocaleString('en-US')],
+        ['Agent License', s.lic], ['账单状态', '正常']
+      ]));
+    }
+
+    function openSubscriptionUsage(tid) {
+      var s = findSubscription(tid);
+      if (!s) return;
+      openOperationDetail(s.name + ' · Token 明细', detailTable(['日期', '输入 Token', '输出 Token', '调用次数', '费用'], [
+        ['09-24', '5.8M', '1.4M', '8,420', '¥' + Math.round(s.fee * .12)],
+        ['09-23', '6.2M', '1.6M', '9,180', '¥' + Math.round(s.fee * .14)],
+        ['09-22', '5.1M', '1.2M', '7,640', '¥' + Math.round(s.fee * .11)]
+      ]));
+    }
+
+    function renderOpSubs() {
+      var tbody = document.getElementById('opSubsTbody');
+      if (!tbody) return;
+      tbody.innerHTML = OP_SUBS.map(function (s) {
+        return '<tr>'
+          + '<td><strong>' + s.name + '</strong><br><small style="color:var(--c-text-3)">' + s.sub + '</small></td>'
+          + '<td>' + s.supply + '</td>'
+          + '<td>' + s.tokens + ' tokens</td>'
+          + '<td>¥' + s.rate.toFixed(3) + ' / 1K</td>'
+          + '<td>¥' + s.fee.toLocaleString('en-US') + '</td>'
+          + '<td style="color:#059669">¥' + s.profit.toLocaleString('en-US') + '</td>'
+          + '<td><span class="status-badge success">' + s.lic + '</span></td>'
+          + '<td class="row-actions" onclick="event.stopPropagation()">'
+          + '<a onclick="openSubscriptionDetail(\'' + s.tid + '\')">详情</a><span class="sep">·</span>'
+          + '<a onclick="openSubscriptionUsage(\'' + s.tid + '\')">Token 明细</a>'
+          + '</td></tr>';
+      }).join('');
+      var totalFee = OP_SUBS.reduce(function (a, b) { return a + b.fee; }, 0);
+      var totalProfit = OP_SUBS.reduce(function (a, b) { return a + b.profit; }, 0);
+      var inc = document.getElementById('opSubsIncome');
+      var pf = document.getElementById('opSubsProfit');
+      if (inc) inc.textContent = '¥' + totalFee.toLocaleString('en-US');
+      if (pf) pf.textContent = '¥' + totalProfit.toLocaleString('en-US');
+    }
+
+    function openPricingModal() {
+      if (!_aiUsageBillingEnabled) {
+        showToast('全平台 AI 用量计费已关闭 · 当前仅可查看 Token 用量与调用量', 'warn');
+        return;
+      }
+      document.getElementById('pricingOverlay').classList.add('open');
+    }
+
+    function submitPricing() {
+      var tid = document.getElementById('priceTenant').value;
+      var rate = parseFloat(document.getElementById('priceRate').value);
+      if (!rate || rate <= 0) { showToast('请输入有效的 token 单价', 'warn'); return; }
+      var s = null;
+      OP_SUBS.forEach(function (x) { if (x.tid === tid) s = x; });
+      if (s) {
+        var tokensNum = parseFloat(s.tokens.replace('M', '')); /* M tokens */
+        s.rate = rate;
+        s.fee = Math.round(tokensNum * 1000 * rate); /* 89.2M tokens × ¥0.008/1K = 89.2×1000×0.008 */
+        s.profit = Math.round(s.fee * 0.35); /* 示例利润率 35% */
+        renderOpSubs();
+      }
+      closeModal('pricingOverlay');
+      showToast('订阅定价已保存 · ' + (s ? s.name : tid) + ' ¥' + rate.toFixed(3) + '/1K tokens · 记录 T5 审计', 'success');
+    }
+
+    function exportOpBill() {
+      var tid = document.getElementById('priceTenant').value;
+      var s = null;
+      OP_SUBS.forEach(function (x) { if (x.tid === tid) s = x; });
+      showToast((s ? s.name : '租户') + ' 订阅账单已导出 PDF（MSP 品牌化 · token 用量明细 · 记录 T5 审计）', 'success');
+    }
+
+    function openSelfUseModal() {
+      document.getElementById('selfUseOverlay').classList.add('open');
+    }
+
+    var _selfUseQuota = 70000;
+    function submitSelfUse() {
+      /* 真实改数据：自用份额落表 → KPI3 / Allocation Summary / 池信息联动更新 */
+      var v = parseInt(document.getElementById('selfUseQuota').value, 10);
+      if (!v || v < 0 || v > 500000) { showToast('自用份额需在 0 ~ 500,000 之间', 'warn'); return; }
+      _selfUseQuota = v;
+      var resale = 500000 - v;
+      var k3s = document.getElementById('kpi3Sub');
+      if (k3s) k3s.textContent = '转售 ' + resale.toLocaleString('en-US') + ' + 自用 ' + v.toLocaleString('en-US') + ' / 500,000 · Near capacity';
+      var alloc = document.querySelectorAll('.ab-section[data-brole="sys msp-saas"] > div[style*="padding:var(--sp-12)"]');
+      var summary = null;
+      var footers = document.querySelectorAll('.ab-section > div[style*="font-size:11px"]');
+      footers.forEach(function (el) {
+        if (el.textContent.indexOf('Allocation Summary') >= 0) summary = el;
+      });
+      if (summary) {
+        summary.innerHTML = 'Allocation Summary：4 租户已分配 <strong style="color:var(--c-text-2)">' + resale.toLocaleString('en-US') + ' / 500,000 credits</strong>（' + Math.round(resale / 5000) + '%）· 其中 <strong style="color:var(--c-text-2)">转售 ' + resale.toLocaleString('en-US') + ' + 自用 ' + v.toLocaleString('en-US') + '</strong>（MSP 自用份额 · 自用消耗同样扣 credits）· 剩余可分配 ' + (resale - 430000 > 0 ? (resale - 430000).toLocaleString('en-US') : 0) + ' · 防超分配· 租户视角仅可见自身配额与账单';
+      }
+      closeModal('selfUseOverlay');
+      showToast('自用份额已调整为 ' + v.toLocaleString('en-US') + ' credits/月 · 转售配额 ' + resale.toLocaleString('en-US') + ' · 记录 T5 审计', 'success');
+    }
+
+    function submitPool() {
+      /* 真实改策略：阈值/耗尽策略落数据 → 池状态机展示联动更新 */
+      var pct = document.getElementById('poolAlertPct').value;
+      var exhaust = document.getElementById('poolExhaust').value;
+      var sub = document.getElementById('poolNearSub');
+      if (sub) sub.textContent = '已分配 86% · 告警阈值 ' + pct + '% · 已告警 MSP + IT 主管';
+      closeModal('poolOverlay');
+      showToast('池额策略已保存 · 告警阈值 ' + pct + '% · 耗尽策略已更新 · 记录 T5 审计', 'success');
+    }
+
+    /* 初始化：按 localStorage 记忆的角色渲染（默认 MSP Admin SaaS） */
+    switchBillingRole(localStorage.getItem('ems-billing-role') || 'msp-saas');
+  </script>
+</body>
+
+</html>

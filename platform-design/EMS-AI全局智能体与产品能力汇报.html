@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMS NEO 产品能力与全局智能体架构</title>
+  <style>
+    :root {
+      --ink: #122033;
+      --muted: #617083;
+      --line: #dbe3ec;
+      --surface: #f5f7fa;
+      --navy: #16324f;
+      --blue: #2563eb;
+      --cyan: #0891b2;
+      --violet: #7c3aed;
+      --green: #059669;
+      --amber: #d97706;
+      --red: #dc2626;
+      --white: #fff;
+      --shadow: 0 24px 70px rgba(18, 32, 51, .16);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      color: var(--ink);
+      background: #e9eef4;
+    }
+    button { font: inherit; }
+
+    .deck { width: 100%; height: 100%; position: relative; }
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: var(--white);
+      padding: clamp(34px, 5vh, 64px) clamp(46px, 5vw, 84px);
+      overflow: hidden;
+    }
+    .slide.active { display: flex; flex-direction: column; }
+    .slide::after {
+      content: attr(data-index);
+      position: absolute;
+      right: clamp(46px, 5vw, 84px);
+      bottom: 24px;
+      color: #8290a0;
+      font-size: 12px;
+    }
+    .cover { background: var(--navy); color: var(--white); justify-content: center; }
+    .cover::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 18px;
+      background: var(--cyan);
+    }
+    .cover::after { color: #9eb3c8; }
+
+    .brand { color: var(--blue); font-weight: 800; font-size: 15px; margin-bottom: 16px; }
+    .cover .brand { color: #75d6ee; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(42px, 5.3vw, 72px); line-height: 1.12; letter-spacing: 0; max-width: 1040px; }
+    h2 { font-size: clamp(28px, 3.2vw, 45px); line-height: 1.2; letter-spacing: 0; }
+    h3 { font-size: clamp(18px, 1.55vw, 24px); line-height: 1.35; }
+    .subtitle { margin-top: 24px; font-size: clamp(19px, 2vw, 28px); color: #d8e5f2; }
+    .meta { position: absolute; bottom: 54px; left: clamp(46px, 5vw, 84px); color: #a9bfd3; font-size: 14px; }
+    .slide-head { border-bottom: 1px solid var(--line); padding-bottom: 18px; margin-bottom: clamp(26px, 4vh, 44px); flex: 0 0 auto; }
+    .slide-head .brand { margin-bottom: 8px; }
+    .lead { margin-top: 14px; color: var(--muted); font-size: clamp(16px, 1.55vw, 22px); line-height: 1.65; max-width: 1050px; }
+    .content { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+
+    .grid { display: grid; gap: clamp(18px, 2vw, 30px); }
+    .cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--accent, var(--blue));
+      padding: clamp(20px, 2vw, 30px);
+      background: var(--white);
+      min-height: 150px;
+      box-shadow: 0 7px 24px rgba(18, 32, 51, .04);
+    }
+    .card h3 { margin-bottom: 14px; }
+    .card p { color: var(--muted); font-size: clamp(14px, 1.25vw, 18px); line-height: 1.62; }
+    .callout {
+      margin-top: clamp(24px, 4vh, 44px);
+      padding: 18px 24px;
+      color: var(--navy);
+      background: #f2f6fb;
+      border: 1px solid #d9e5f2;
+      font-weight: 700;
+      text-align: center;
+      font-size: clamp(17px, 1.7vw, 24px);
+    }
+
+    .domain-grid { grid-template-columns: repeat(3, 1fr); }
+    .domain {
+      border: 1px solid var(--line);
+      border-top: 7px solid var(--accent);
+      padding: 24px;
+      min-height: 150px;
+    }
+    .domain strong { display: block; font-size: clamp(23px, 2vw, 31px); color: var(--accent); margin-bottom: 12px; }
+    .domain span { color: var(--muted); line-height: 1.55; font-size: clamp(14px, 1.2vw, 18px); }
+
+    .cmdb-map { display: grid; grid-template-columns: 1fr 1.14fr 1fr; gap: 24px; align-items: center; }
+    .cmdb-side { display: grid; gap: 24px; }
+    .cmdb-core {
+      min-height: 250px;
+      border: 3px solid var(--violet);
+      background: #f7f2ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 30px;
+    }
+    .cmdb-core strong { color: var(--violet); font-size: clamp(34px, 4vw, 58px); }
+    .cmdb-core p { margin-top: 20px; color: var(--ink); font-size: clamp(15px, 1.4vw, 20px); line-height: 1.65; }
+
+    .mindmap {
+      display: grid;
+      grid-template-columns: .92fr 1.05fr 2.35fr;
+      gap: clamp(34px, 4vw, 66px);
+      align-items: center;
+      min-height: 455px;
+      padding: 4px 10px;
+    }
+    .mind-left, .mind-right { display: grid; gap: 20px; position: relative; }
+    .mind-root {
+      min-height: 250px;
+      padding: 30px 24px;
+      background: var(--violet);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 0 20px 42px rgba(124, 58, 237, .24);
+      position: relative;
+      z-index: 2;
+    }
+    .mind-root::before, .mind-root::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: clamp(34px, 4vw, 66px);
+      height: 3px;
+      background: #b7c4d3;
+    }
+    .mind-root::before { right: 100%; }
+    .mind-root::after { left: 100%; background: #aa8af0; }
+    .mind-root b { font-size: clamp(27px, 2.7vw, 40px); line-height: 1.2; }
+    .mind-root span { margin-top: 22px; font-size: clamp(14px, 1.25vw, 18px); line-height: 1.65; color: #eee8ff; }
+    .mind-topic {
+      --branch: var(--blue);
+      position: relative;
+      padding: 16px 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--branch);
+      box-shadow: 0 8px 22px rgba(18, 32, 51, .05);
+    }
+    .mind-topic::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 100%;
+      width: clamp(34px, 4vw, 66px);
+      height: 2px;
+      background: color-mix(in srgb, var(--branch) 52%, white);
+    }
+    .mind-left .mind-topic { border-left: 1px solid var(--line); border-right: 6px solid var(--branch); }
+    .mind-left .mind-topic::before { left: 100%; right: auto; background: #b7c4d3; }
+    .mind-topic h3 { font-size: clamp(18px, 1.55vw, 23px); color: var(--branch); }
+    .mind-leaves { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .mind-leaf {
+      padding: 7px 11px;
+      background: color-mix(in srgb, var(--branch) 7%, white);
+      border: 1px solid color-mix(in srgb, var(--branch) 22%, white);
+      color: var(--ink);
+      font-size: clamp(12px, 1vw, 15px);
+      white-space: nowrap;
+    }
+    .mind-detail { margin-top: 8px; color: var(--muted); font-size: clamp(12px, 1vw, 15px); line-height: 1.45; }
+
+    .steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
+    .step { position: relative; min-height: 230px; border: 1px solid var(--line); padding: 24px 18px; }
+    .step:not(:last-child)::after { content: ">"; position: absolute; right: -15px; top: 46%; color: #c5cfda; font-size: 24px; font-weight: 800; z-index: 2; }
+    .step .num { color: var(--blue); font-size: 13px; font-weight: 800; }
+    .step h3 { margin-top: 28px; font-size: clamp(20px, 1.7vw, 26px); }
+    .step p { margin-top: 24px; color: var(--muted); line-height: 1.55; font-size: clamp(13px, 1.1vw, 16px); }
+
+    .boundary { display: grid; gap: 0; }
+    .boundary-row { display: grid; grid-template-columns: 180px 280px 1fr; align-items: center; border-bottom: 1px solid var(--line); min-height: 96px; }
+    .badge { width: 130px; padding: 10px 12px; text-align: center; color: var(--white); background: var(--accent); font-weight: 800; }
+    .boundary-row strong { font-size: clamp(18px, 1.55vw, 23px); }
+    .boundary-row p { color: var(--muted); font-size: clamp(14px, 1.2vw, 18px); line-height: 1.5; }
+
+    .scenario { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
+    .scenario .step { min-height: 250px; border-top: 5px solid var(--accent); }
+    .scenario .step p { white-space: pre-line; }
+    .context-strip { margin-top: 28px; padding: 18px; text-align: center; color: var(--violet); background: #f7f2ff; border: 1px solid #ddcff7; font-weight: 800; }
+
+    .levels { grid-template-columns: repeat(3, 1fr); }
+    .controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 32px; }
+    .control { border: 1px solid var(--line); background: var(--surface); text-align: center; padding: 16px; font-weight: 700; }
+
+    .close { background: var(--navy); color: var(--white); }
+    .close .slide-head { border-color: #45627f; }
+    .close .brand { color: #75d6ee; }
+    .close h2 { color: var(--white); }
+    .close .lead { color: #cbd9e7; }
+    .close .card { color: var(--ink); }
+    .close::after { color: #9eb3c8; }
+
+    .deck-controls { position: fixed; right: 24px; bottom: 20px; z-index: 20; display: flex; gap: 8px; }
+    .deck-controls button {
+      width: 42px; height: 42px; border: 1px solid rgba(18,32,51,.18); background: rgba(255,255,255,.92);
+      color: var(--ink); cursor: pointer; font-size: 20px; box-shadow: 0 8px 24px rgba(18,32,51,.1);
+    }
+    .progress { position: fixed; left: 0; bottom: 0; height: 4px; width: 0; background: var(--blue); z-index: 30; transition: width .22s ease; }
+
+    @media (max-width: 900px) {
+      .slide { overflow-y: auto; padding: 28px 26px 70px; }
+      .slide.active { display: block; }
+      .cols-3, .cols-2, .domain-grid, .cmdb-map, .mindmap, .steps, .scenario, .levels { grid-template-columns: 1fr; }
+      .mindmap { min-height: auto; }
+      .mind-root::before, .mind-root::after, .mind-topic::before { display: none; }
+      .boundary-row { grid-template-columns: 1fr; gap: 12px; padding: 18px 0; }
+      .controls { grid-template-columns: 1fr 1fr; }
+      .step:not(:last-child)::after { display: none; }
+      .slide::after { bottom: 18px; right: 88px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck">
+    <section class="slide cover active" data-index="01">
+      <div class="brand">EMS NEO</div>
+      <h1>产品能力与全局智能体架构</h1>
+      <p class="subtitle">六大运维产品域 · 全局调度 Agent · 可治理的处置闭环</p>
+      <div class="meta">客户交流版 · 2026.09</div>
+    </section>
+
+    <section class="slide" data-index="02">
+      <header class="slide-head">
+        <div class="brand">EMS NEO</div>
+        <h2>从功能点走向全局智能协同</h2>
+      </header>
+      <div class="content">
+        <div class="grid cols-3">
+          <article class="card" style="--accent:var(--blue)"><h3>专业能力进入业务场景</h3><p>根因分析、告警降噪、变更评估、智能派工和资产分析已经进入日常工作台。</p></article>
+          <article class="card" style="--accent:var(--violet)"><h3>全局调度连接专业能力</h3><p>统一理解事件，拆解任务，选择 Agent 与工具，并持续维护上下文和执行状态。</p></article>
+          <article class="card" style="--accent:var(--green)"><h3>治理机制保障生产使用</h3><p>权限、审批、证据链、审计、熔断和人工接管贯穿每一次 AI 调用与动作。</p></article>
+        </div>
+        <div class="callout">EMS 将分散的 AI 能力组织成面向运维事件的完整工作系统</div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="03">
+      <header class="slide-head">
+        <div class="brand">EMS NEO</div>
+        <h2>一个平台连接六大运维产品域</h2>
+        <p class="lead">统一平台负责身份、租户、权限、门户、License、审计和 AI 治理，各产品域保持清晰的专业边界。</p>
+      </header>
+      <div class="content">
+        <div class="grid domain-grid">
+          <article class="domain" style="--accent:var(--blue)"><strong>ITOM</strong><span>监测、告警、事件关联、容量预测</span></article>
+          <article class="domain" style="--accent:var(--cyan)"><strong>NPM</strong><span>网络性能、流量、链路与会话分析</span></article>
+          <article class="domain" style="--accent:var(--violet)"><strong>CMDB</strong><span>配置关系、拓扑、业务服务与影响面</span></article>
+          <article class="domain" style="--accent:var(--green)"><strong>ITSM</strong><span>事件、问题、变更、请求与知识管理</span></article>
+          <article class="domain" style="--accent:#6366f1"><strong>ITAM</strong><span>资产、合同、库存与生命周期管理</span></article>
+          <article class="domain" style="--accent:var(--amber)"><strong>FSM</strong><span>派工、工程师、备件与现场服务</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="04">
+      <header class="slide-head">
+        <div class="brand">EMS NEO</div>
+        <h2>CMDB 提供跨域协同所需的业务语义</h2>
+      </header>
+      <div class="content">
+        <div class="cmdb-map">
+          <div class="cmdb-side">
+            <article class="card" style="--accent:var(--blue)"><h3>ITOM / NPM</h3><p>异常发生在哪里，技术指标发生了什么变化。</p></article>
+            <article class="card" style="--accent:#6366f1"><h3>ITAM</h3><p>涉及哪些资产、合同、维保状态和备件。</p></article>
+          </div>
+          <div class="cmdb-core"><strong>CMDB</strong><p>CI · 拓扑 · 业务服务<br>依赖关系 · 责任人 · 变更历史</p></div>
+          <div class="cmdb-side">
+            <article class="card" style="--accent:var(--green)"><h3>ITSM</h3><p>应该启动什么流程，由谁负责并如何留痕。</p></article>
+            <article class="card" style="--accent:var(--amber)"><h3>FSM</h3><p>是否需要现场处理，如何匹配人员和资源。</p></article>
+          </div>
+        </div>
+        <div class="callout">CMDB 让调度 Agent 从“技术异常”推导到“业务影响与处置责任”</div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="05">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>专业 Agent 覆盖主要运维任务</h2></header>
+      <div class="content">
+        <div class="grid cols-3">
+          <article class="card" style="--accent:var(--blue)"><h3>监控与告警分析</h3><p>告警聚类、噪声过滤、趋势识别和异常摘要。</p></article>
+          <article class="card" style="--accent:var(--violet)"><h3>根因与影响分析</h3><p>检索证据、构建假设、关联拓扑并识别业务影响。</p></article>
+          <article class="card" style="--accent:var(--cyan)"><h3>网络诊断</h3><p>分析链路、流量、会话和网络设备状态。</p></article>
+          <article class="card" style="--accent:var(--green)"><h3>工单与变更评估</h3><p>生成事件上下文，评估变更影响和风险。</p></article>
+          <article class="card" style="--accent:#6366f1"><h3>资产分析</h3><p>检查台账质量、资产状态、合同和库存。</p></article>
+          <article class="card" style="--accent:var(--amber)"><h3>派工与现场协同</h3><p>结合技能、位置、排期、备件和 SLA 推荐处置资源。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="06">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>EMS 全局智能体架构</h2></header>
+      <div class="content">
+        <div class="mindmap">
+          <div class="mind-left">
+            <article class="mind-topic" style="--branch:var(--blue)">
+              <h3>事件与任务入口</h3>
+              <div class="mind-leaves"><span class="mind-leaf">告警</span><span class="mind-leaf">工单</span><span class="mind-leaf">对话</span><span class="mind-leaf">巡检</span><span class="mind-leaf">定时任务</span></div>
+              <p class="mind-detail">系统事件和用户目标进入同一个任务上下文</p>
+            </article>
+          </div>
+          <div class="mind-root">
+            <b>总调度 Agent</b>
+            <span>理解目标 · 拆解任务<br>选择能力 · 维护状态<br>处理冲突 · 汇总答案</span>
+          </div>
+          <div class="mind-right">
+            <article class="mind-topic" style="--branch:var(--cyan)">
+              <h3>感知与诊断</h3>
+              <div class="mind-leaves"><span class="mind-leaf">监控分析 Agent</span><span class="mind-leaf">网络分析 Agent</span><span class="mind-leaf">根因分析 Agent</span><span class="mind-leaf">影响分析 Agent</span></div>
+              <p class="mind-detail">连接 ITOM、NPM 与 CMDB，形成根因假设和业务影响证据</p>
+            </article>
+            <article class="mind-topic" style="--branch:var(--green)">
+              <h3>流程与执行</h3>
+              <div class="mind-leaves"><span class="mind-leaf">工单 Agent</span><span class="mind-leaf">变更评估 Agent</span><span class="mind-leaf">资产分析 Agent</span><span class="mind-leaf">派工推荐 Agent</span></div>
+              <p class="mind-detail">连接 ITSM、ITAM 与 FSM，把分析结果转化为可追踪的处置动作</p>
+            </article>
+            <article class="mind-topic" style="--branch:var(--amber)">
+              <h3>平台支撑与治理</h3>
+              <div class="mind-leaves"><span class="mind-leaf">Skill</span><span class="mind-leaf">EMS CLI</span><span class="mind-leaf">权限与审批</span><span class="mind-leaf">证据与审计</span><span class="mind-leaf">成本与熔断</span><span class="mind-leaf">人工接管</span></div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="07">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>总调度 Agent 管理任务的完整生命周期</h2></header>
+      <div class="content">
+        <div class="steps">
+          <article class="step"><span class="num">01</span><h3>理解</h3><p>识别目标、事件类型和约束条件。</p></article>
+          <article class="step"><span class="num">02</span><h3>规划</h3><p>拆解子任务并确定依赖关系。</p></article>
+          <article class="step"><span class="num">03</span><h3>路由</h3><p>选择 Agent、Skill、工具和模型。</p></article>
+          <article class="step"><span class="num">04</span><h3>执行</h3><p>并行或串行调用并维护任务状态。</p></article>
+          <article class="step"><span class="num">05</span><h3>校验</h3><p>检查证据、冲突和治理规则。</p></article>
+          <article class="step"><span class="num">06</span><h3>闭环</h3><p>生成结论、处置动作并持续验证。</p></article>
+        </div>
+        <div class="callout">确定性流程保证稳定执行，调度 Agent 负责动态判断</div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="08">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>Agent、Skill、CLI 与工作流的职责边界</h2></header>
+      <div class="content boundary">
+        <div class="boundary-row"><span class="badge" style="--accent:var(--violet)">Agent</span><strong>负责判断与协作</strong><p>理解目标、规划任务、选择能力并汇总证据。</p></div>
+        <div class="boundary-row"><span class="badge" style="--accent:var(--blue)">Skill</span><strong>封装可复用方法</strong><p>诊断步骤、分析模板、SOP、提示和校验规则。</p></div>
+        <div class="boundary-row"><span class="badge" style="--accent:var(--cyan)">EMS CLI</span><strong>提供标准命令入口</strong><p>查询数据或执行动作，统一命令语义、权限控制和结构化结果。</p></div>
+        <div class="boundary-row"><span class="badge" style="--accent:var(--green)">Workflow</span><strong>保证确定性流程</strong><p>负责审批、状态机、超时、补偿、通知和结果回写。</p></div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="09">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>重大告警的跨域智能处置</h2></header>
+      <div class="content">
+        <div class="scenario">
+          <article class="step" style="--accent:var(--blue)"><span class="num">01</span><h3>发现</h3><p>ITOM / NPM<br>检测业务异常</p></article>
+          <article class="step" style="--accent:var(--violet)"><span class="num">02</span><h3>理解</h3><p>CMDB<br>识别服务与影响面</p></article>
+          <article class="step" style="--accent:#8b5cf6"><span class="num">03</span><h3>诊断</h3><p>多 Agent 并行<br>形成证据与根因</p></article>
+          <article class="step" style="--accent:var(--green)"><span class="num">04</span><h3>处置</h3><p>ITSM<br>建单与审批</p></article>
+          <article class="step" style="--accent:var(--amber)"><span class="num">05</span><h3>执行</h3><p>FSM + ITAM<br>人员、备件与现场</p></article>
+          <article class="step" style="--accent:var(--blue)"><span class="num">06</span><h3>验证</h3><p>持续监测<br>恢复确认与复盘</p></article>
+        </div>
+        <div class="context-strip">调度 Agent 持续维护同一个事件上下文：假设、证据、动作、审批、结果和恢复状态</div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="10">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>生产环境需要可控的智能化</h2></header>
+      <div class="content">
+        <div class="grid levels">
+          <article class="card" style="--accent:var(--blue)"><h3>L1 · 辅助</h3><p>AI 提供建议、摘要和排序，由人工判断是否采用。</p></article>
+          <article class="card" style="--accent:var(--green)"><h3>L2 · 推荐与审批</h3><p>AI 起草动作，人工确认后进入业务流程执行。</p></article>
+          <article class="card" style="--accent:var(--amber)"><h3>L3 · 窄场景自动化</h3><p>仅对白名单动作链开放，完整命中规则、权限和审计。</p></article>
+        </div>
+        <div class="controls">
+          <div class="control">身份与权限</div><div class="control">场景白名单</div><div class="control">审批卡点</div><div class="control">证据链</div>
+          <div class="control">完整审计</div><div class="control">成本熔断</div><div class="control">人工接管</div><div class="control">执行前复核</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="11">
+      <header class="slide-head"><div class="brand">EMS NEO</div><h2>客户获得闭环效率与生产可信度</h2></header>
+      <div class="content">
+        <div class="grid cols-3">
+          <article class="card" style="--accent:var(--blue)"><h3>更快定位</h3><p>告警、网络、拓扑和历史事件在同一上下文中分析，工程师直接验证关键假设。</p></article>
+          <article class="card" style="--accent:var(--green)"><h3>更快处置</h3><p>诊断结果直接进入工单、审批和现场派工，减少人工接力与重复录入。</p></article>
+          <article class="card" style="--accent:var(--violet)"><h3>更敢使用</h3><p>AI 判断有来源，业务动作有权限、审批和审计，异常成本可以及时熔断。</p></article>
+        </div>
+        <div class="callout">POC 建议验证：告警首响、定位耗时、闭环耗时、人工投入、建议采纳与人工接管</div>
+      </div>
+    </section>
+
+    <section class="slide close" data-index="12">
+      <header class="slide-head">
+        <div class="brand">EMS NEO</div>
+        <h2>从一个真实事件验证全局智能调度</h2>
+        <p class="lead">建议选择高频、跨域、可量化的重大告警场景，使用客户现有流程与真实数据开展 POC。</p>
+      </header>
+      <div class="content">
+        <div class="grid cols-2">
+          <article class="card" style="--accent:var(--blue)"><h3>场景与系统范围</h3><p>确定真实告警类型，以及 ITOM、NPM、CMDB、ITSM、ITAM、FSM 的数据与动作边界。</p></article>
+          <article class="card" style="--accent:var(--green)"><h3>治理与验收范围</h3><p>确定审批点、白名单、权限、审计要求和对比指标，用结果检验架构价值。</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="deck-controls" aria-label="幻灯片导航">
+    <button type="button" id="prev" aria-label="上一页">‹</button>
+    <button type="button" id="next" aria-label="下一页">›</button>
+  </nav>
+  <div class="progress" id="progress"></div>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const progress = document.getElementById('progress');
+      let current = 0;
+
+      function show(index) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        history.replaceState(null, '', `#${current + 1}`);
+      }
+
+      document.getElementById('prev').addEventListener('click', () => show(current - 1));
+      document.getElementById('next').addEventListener('click', () => show(current + 1));
+      document.addEventListener('keydown', event => {
+        if (['ArrowRight', 'PageDown', ' '].includes(event.key)) show(current + 1);
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) show(current - 1);
+        if (event.key === 'Home') show(0);
+        if (event.key === 'End') show(slides.length - 1);
+      });
+      let touchStart = 0;
+      document.addEventListener('touchstart', event => { touchStart = event.changedTouches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', event => {
+        const delta = event.changedTouches[0].clientX - touchStart;
+        if (Math.abs(delta) > 60) show(current + (delta < 0 ? 1 : -1));
+      }, { passive: true });
+
+      const hashPage = Number(location.hash.slice(1));
+      show(Number.isInteger(hashPage) && hashPage > 0 ? hashPage - 1 : 0);
+    })();
+  </script>
+</body>
+</html>

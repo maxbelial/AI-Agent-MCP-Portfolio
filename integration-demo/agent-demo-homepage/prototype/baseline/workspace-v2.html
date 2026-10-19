@@ -1,0 +1,3257 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMS - 工作台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/ems-v2-common.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <style>
+    /* EMS 工作台 — 千人千面大屏
+       UI: EMS 2.0 Business Clean
+       基于 ems-product/requirements/千人千面大屏 设计规格 */
+
+    :root {
+      /* Brand — EMS 2.0 Design System */
+      --c-primary: #2563EB;
+      --c-primary-hover: #3B82F6;
+      --c-primary-active: #1D4ED8;
+      --c-primary-bg: #EFF6FF;
+      --c-primary-border: #93C5FD;
+      /* Semantic */
+      --c-success: #10B981;
+      --c-success-bg: #ECFDF5;
+      --c-success-border: #6EE7B7;
+      --c-warning: #F59E0B;
+      --c-warning-bg: #FFFBEB;
+      --c-warning-border: #FCD34D;
+      --c-danger: #EF4444;
+      --c-danger-bg: #FEF2F2;
+      --c-danger-border: #FCA5A5;
+      /* Neutral */
+      --c-text-1: #111827;
+      --c-text-2: #6B7280;
+      --c-text-3: #9CA3AF;
+      --c-text-4: #D1D5DB;
+      --c-border: #E5E7EB;
+      --c-border-light: #F3F4F6;
+      --c-fill-1: #F9FAFB;
+      --c-fill-2: #F3F4F6;
+      --c-bg: #F5F7FA;
+      --c-white: #FFFFFF;
+      /* Layout */
+      --sidebar-w: 200px;
+      --sidebar-collapsed-w: 56px;
+      --header-h: 48px;
+      /* Shadow */
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+      /* Radius */
+      --r-sm: 4px;
+      --r-md: 6px;
+      --r-lg: 8px;
+      --r-xl: 12px;
+      /* Transition */
+      --ease: cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* === Dark Theme === */
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --c-primary: #60A5FA;
+      --c-primary-hover: #93C5FD;
+      --c-primary-active: #3B82F6;
+      --c-primary-bg: #1E293B;
+      --c-primary-border: #1E40AF;
+      --c-success: #34D399;
+      --c-success-bg: #064E3B;
+      --c-success-border: #065F46;
+      --c-warning: #FBBF24;
+      --c-warning-bg: #78350F;
+      --c-warning-border: #92400E;
+      --c-danger: #F87171;
+      --c-danger-bg: #7F1D1D;
+      --c-danger-border: #991B1B;
+      --c-text-1: #F1F5F9;
+      --c-text-2: #94A3B8;
+      --c-text-3: #64748B;
+      --c-text-4: #475569;
+      --c-border: #334155;
+      --c-border-light: #1E293B;
+      --c-fill-1: #1E293B;
+      --c-fill-2: #334155;
+      --c-bg: #0F172A;
+      --c-white: #1E293B;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--c-bg);
+      color: var(--c-text-2);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--c-text-4);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--c-text-3);
+    }
+
+    a {
+      color: var(--c-primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--c-primary-hover);
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      height: var(--header-h);
+      background: var(--c-white);
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px 0 0;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .logo-area {
+      width: var(--sidebar-collapsed-w);
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: width .25s var(--ease);
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      transition: width .25s var(--ease), height .25s var(--ease);
+    }
+
+    .logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    body.sidebar-open .logo-area {
+      width: var(--sidebar-w);
+      padding-left: 16px;
+      justify-content: flex-start;
+    }
+
+    body.sidebar-open .logo-mark {
+      width: 120px;
+      height: 36px;
+      border-radius: var(--r-sm);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .bc-item {
+      color: var(--c-text-3);
+      text-decoration: none;
+      font-weight: 400;
+    }
+
+    .bc-item:hover {
+      color: var(--c-primary);
+    }
+
+    .sep {
+      color: var(--c-text-4);
+      font-size: 11px;
+    }
+
+    .current {
+      color: var(--c-text-1);
+      font-weight: 500;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .cmd-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 6px 14px;
+      color: var(--c-text-3);
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 380px;
+      width: 100%;
+      transition: all .2s;
+    }
+
+    .cmd-trigger:hover {
+      border-color: var(--c-primary);
+      color: var(--c-text-2);
+    }
+
+    .cmd-trigger .shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--c-text-3);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-md);
+      border: none;
+      background: transparent;
+      color: var(--c-text-3);
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+    }
+
+    .header-icon-btn:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .header-icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--c-border);
+      margin: 0 6px;
+    }
+
+    .user-wrapper {
+      position: relative;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--r-md);
+      color: var(--c-text-2);
+      font-size: 13px;
+      transition: all .15s;
+    }
+
+    .user-area:hover {
+      background: var(--c-fill-1);
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--c-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .user-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-lg);
+      min-width: 180px;
+      padding: 6px;
+      z-index: 200;
+    }
+
+    .user-dropdown.open {
+      display: block;
+    }
+
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      color: var(--c-text-2);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .user-dropdown-item:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .user-dropdown-item.danger {
+      color: var(--c-danger);
+    }
+
+    .user-dropdown-item.danger:hover {
+      background: var(--c-danger-bg);
+    }
+
+    .user-dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-dropdown-sep {
+      height: 1px;
+      background: var(--c-border-light);
+      margin: 4px 8px;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      width: var(--sidebar-collapsed-w);
+      height: calc(100vh - var(--header-h));
+      background: var(--c-white);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 90;
+      overflow: hidden;
+      padding: 6px 0;
+      transition: width .25s var(--ease);
+    }
+
+    .sidebar.expanded {
+      width: var(--sidebar-w);
+      overflow-y: auto;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--c-text-3);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform .25s var(--ease);
+    }
+
+    .sidebar.expanded .sidebar-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .sidebar-group {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-group {
+      opacity: 1;
+    }
+
+    .sidebar-toggle+.sidebar-item+.sidebar-group {
+      margin-top: 0;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 18px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sidebar-item:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-item.active {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+      font-weight: 500;
+    }
+
+    .sidebar-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--c-primary);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-item .s-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-item .s-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-item .s-label {
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-item .s-label {
+      opacity: 1;
+    }
+
+    /* Tooltip on collapsed */
+    .sidebar:not(.expanded) .sidebar-item[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(var(--sidebar-collapsed-w) + 4px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--c-text-1);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .org-switcher {
+      height: 48px;
+      border-top: 1px solid var(--c-border-light);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      cursor: pointer;
+      gap: 10px;
+      margin-top: auto;
+      flex-shrink: 0;
+      transition: background .15s;
+      overflow: hidden;
+    }
+
+    .org-switcher:hover {
+      background: var(--c-fill-1);
+    }
+
+    .org-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-md);
+      background: var(--c-fill-2);
+      border: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-2);
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .org-info {
+      flex: 1;
+      min-width: 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .org-info {
+      opacity: 1;
+    }
+
+    .org-name {
+      font-size: 13px;
+      color: var(--c-text-1);
+      font-weight: 600;
+    }
+
+    /* ===== MAIN AREA ===== */
+    .main {
+      position: fixed;
+      top: var(--header-h);
+      left: var(--sidebar-collapsed-w);
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      background: var(--c-bg);
+      transition: left .25s var(--ease);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    body.sidebar-open .main {
+      left: var(--sidebar-w);
+    }
+
+    .main-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--c-bg);
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ===== DASHBOARD TAB BAR ===== */
+    .dash-tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--c-border);
+      background: var(--c-white);
+      min-height: 40px;
+      flex-shrink: 0;
+    }
+
+    .dash-tab {
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--c-text-3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      white-space: nowrap;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .dash-tab:hover {
+      color: var(--c-text-1);
+    }
+
+    .dash-tab.active {
+      color: var(--c-primary);
+      border-bottom-color: var(--c-primary);
+    }
+
+    .dash-tab-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dash-settings-btn {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      border-radius: var(--r-md);
+      color: var(--c-text-3);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .dash-settings-btn:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .dash-settings-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Edit mode toggle button */
+    .dash-edit-btn {
+      height: 28px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--c-border-light);
+      background: var(--c-white);
+      border-radius: var(--r-md);
+      color: var(--c-text-2);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .dash-edit-btn:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .dash-edit-btn.active {
+      background: var(--c-primary);
+      border-color: var(--c-primary);
+      color: #fff;
+    }
+
+    .dash-edit-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* Edit mode card styling */
+    .editing .dash-card {
+      outline: 1px dashed var(--c-border-light);
+      outline-offset: -1px;
+    }
+
+    .editing .dash-card:hover {
+      outline-color: var(--c-primary);
+    }
+
+    /* Edit mode banner */
+    .edit-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      margin: 0 12px 8px;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: var(--r-md);
+      font-size: 12px;
+      color: #2563EB;
+    }
+
+    .editing .edit-banner {
+      display: flex;
+    }
+
+    /* ===== DASHBOARD CONTENT ===== */
+    .dash-content {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      background: var(--c-bg);
+    }
+
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    /* ===== DASHBOARD CARD ===== */
+    .dash-card {
+      background: var(--c-white);
+      border: none;
+      border-radius: var(--r-lg);
+      padding: 14px 16px;
+      transition: box-shadow .25s var(--ease), transform .15s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 1px 4px rgba(0, 0, 0, .06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dash-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .08), 0 1px 4px rgba(0, 0, 0, .06);
+    }
+
+    /* Drag & Resize */
+    .dash-card.dragging {
+      opacity: .4;
+      outline: 2px dashed var(--c-primary);
+    }
+
+    .dash-card.drag-over {
+      outline: 2px solid var(--c-primary);
+      outline-offset: -2px;
+    }
+
+    .drag-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      cursor: grab;
+      color: var(--c-text-4);
+      border-radius: var(--r-sm);
+      transition: all .15s;
+      flex-shrink: 0;
+      margin-right: 4px;
+      opacity: 0;
+    }
+
+    .editing .drag-handle {
+      display: flex;
+    }
+
+    .editing .dash-card:hover .drag-handle {
+      opacity: 1;
+    }
+
+    .drag-handle:hover {
+      color: var(--c-text-2);
+      background: var(--c-fill-1);
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .drag-handle svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .resize-handle {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 18px;
+      height: 18px;
+      cursor: nwse-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-4);
+      transition: all .15s;
+      z-index: 2;
+      opacity: 0;
+      display: none;
+    }
+
+    .editing .resize-handle {
+      display: flex;
+    }
+
+    .editing .dash-card:hover .resize-handle {
+      opacity: 1;
+    }
+
+    .resize-handle svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .resize-ghost {
+      position: fixed;
+      border: 2px dashed var(--c-primary);
+      border-radius: var(--r-lg);
+      background: rgba(37, 99, 235, .06);
+      pointer-events: none;
+      z-index: 9000;
+      transition: none;
+    }
+
+    .dash-card.span-2 {
+      grid-column: span 2;
+    }
+
+    .dash-card.span-3 {
+      grid-column: span 3;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+    }
+
+    .card-desc {
+      font-size: 11px;
+      color: var(--c-text-4);
+      margin-top: 1px;
+    }
+
+    .card-menu-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      color: var(--c-text-4);
+      font-size: 16px;
+      transition: all .15s;
+      opacity: 0;
+    }
+
+    .dash-card:hover .card-menu-btn {
+      opacity: 1;
+    }
+
+    .card-menu-btn:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    /* ===== KPI GRID ===== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--c-white);
+      border-radius: var(--r-lg);
+      padding: 14px 16px 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      border-left: 3px solid var(--c-primary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+      font-weight: 500;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--c-text-1);
+      margin-top: 4px;
+      line-height: 1.1;
+    }
+
+    .kpi-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      width: fit-content;
+    }
+
+    .kpi-trend.up {
+      color: var(--c-danger);
+      background: var(--c-danger-bg);
+    }
+
+    .kpi-trend.down {
+      color: var(--c-success);
+      background: var(--c-success-bg);
+    }
+
+    .kpi-trend.neutral {
+      color: var(--c-text-3);
+      background: var(--c-fill-1);
+    }
+
+    .kpi-card {
+      border-left: 3px solid var(--c-primary);
+    }
+
+    .kpi-sparkline {
+      height: 32px;
+      margin-top: 6px;
+    }
+
+    /* Device status stat rows below donut */
+    .ds-stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+
+    .ds-stat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .ds-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ds-name {
+      flex: 1;
+      color: var(--c-text-2);
+    }
+
+    .ds-val {
+      font-weight: 600;
+      color: var(--c-text-1);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .ds-pct {
+      color: var(--c-text-3);
+      min-width: 42px;
+      text-align: right;
+    }
+
+    /* Gauge 2x2 grid */
+    .gauge-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0;
+      width: 100%;
+      height: 260px;
+    }
+
+    .gauge-2x2>div {
+      width: 100%;
+      min-height: 120px;
+    }
+
+    /* ===== ECHARTS CONTAINERS ===== */
+    .echart-box {
+      width: 100%;
+      min-height: 260px;
+    }
+
+    .echart-box-sm {
+      width: 100%;
+      min-height: 220px;
+    }
+
+    .echart-box-lg {
+      width: 100%;
+      min-height: 300px;
+    }
+
+    /* ===== STAT GRID (资源统计) ===== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 8px 4px;
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+    }
+
+    .stat-item .stat-num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--c-text-1);
+      line-height: 1.2;
+    }
+
+    .stat-item .stat-label {
+      font-size: 10px;
+      color: var(--c-text-4);
+      margin-top: 2px;
+    }
+
+    .stat-item.danger .stat-num {
+      color: var(--c-danger);
+    }
+
+    .stat-item.warning .stat-num {
+      color: var(--c-warning);
+    }
+
+    .stat-item.success .stat-num {
+      color: var(--c-success);
+    }
+
+    /* ===== PROGRESS BAR LIST ===== */
+    .progress-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress-row .prog-label {
+      width: 56px;
+      font-size: 12px;
+      color: var(--c-text-2);
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .progress-row .prog-track {
+      flex: 1;
+      height: 8px;
+      background: var(--c-fill-2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-row .prog-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .progress-row .prog-val {
+      width: 44px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ===== STACKED BAR CHART ===== */
+    .stacked-chart {
+      height: 140px;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      padding: 0 4px 4px;
+    }
+
+    .stacked-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 1px;
+      border-radius: 2px 2px 0 0;
+      overflow: hidden;
+      min-width: 6px;
+    }
+
+    .stacked-seg {
+      transition: height .6s ease;
+    }
+
+    .stacked-label {
+      text-align: center;
+      font-size: 10px;
+      color: var(--c-text-4);
+      margin-top: 6px;
+    }
+
+    .stacked-chart-wrap .chart-legend {
+      margin-top: 8px;
+    }
+
+    /* ===== TOPN TABLE ===== */
+    .topn-table {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
+    }
+
+    .topn-table th {
+      text-align: left;
+      padding: 6px 10px;
+      color: var(--c-text-4);
+      font-weight: 500;
+      border-bottom: 1px solid var(--c-border-light);
+      background: transparent;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .topn-table td {
+      padding: 6px 10px;
+      color: var(--c-text-2);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .topn-table tbody tr:hover td {
+      background: var(--c-primary-bg);
+      color: var(--c-text-1);
+    }
+
+    .topn-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .topn-rank.top1 {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .topn-rank.top2 {
+      background: #E5E7EB;
+      color: #6B7280;
+    }
+
+    .topn-rank.top3 {
+      background: #FED7AA;
+      color: #C2410C;
+    }
+
+    .topn-rank.other {
+      background: var(--c-fill-1);
+      color: var(--c-text-3);
+    }
+
+    .topn-ip {
+      color: var(--c-primary);
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 12px;
+    }
+
+    .usage-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--c-border-light);
+      position: relative;
+      overflow: hidden;
+      width: 80px;
+    }
+
+    .usage-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--c-primary);
+      transition: width 1s ease;
+    }
+
+    .usage-bar-fill.warn {
+      background: var(--c-warning);
+    }
+
+    .usage-bar-fill.danger {
+      background: var(--c-danger);
+    }
+
+    /* ===== CHART PLACEHOLDER (趋势图) ===== */
+    .chart-area {
+      height: 140px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding: 0 4px 4px;
+      background: transparent;
+      border-radius: var(--r-md);
+      border: none;
+    }
+
+    .chart-bar {
+      flex: 1;
+      border-radius: 2px 2px 0 0;
+      transition: height .6s ease;
+      min-width: 4px;
+    }
+
+    .chart-bar.primary {
+      background: var(--c-primary);
+      opacity: .7;
+    }
+
+    .chart-bar.danger {
+      background: var(--c-danger);
+      opacity: .7;
+    }
+
+    .chart-bar.warning {
+      background: var(--c-warning);
+      opacity: .7;
+    }
+
+    .chart-bar.success {
+      background: var(--c-success);
+      opacity: .7;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ===== ALERT STAT CARDS ===== */
+    .alert-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .alert-stat-item {
+      text-align: center;
+      padding: 12px 8px;
+      border-radius: var(--r-md);
+      border: 1px solid var(--c-border-light);
+    }
+
+    .alert-stat-item .alert-num {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .alert-stat-item .alert-label {
+      font-size: 11px;
+      color: var(--c-text-3);
+      margin-top: 2px;
+    }
+
+    /* ===== DEVICE LIST TABLE ===== */
+    .device-table {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
+    }
+
+    .device-table th {
+      text-align: left;
+      padding: 6px 10px;
+      color: var(--c-text-4);
+      font-weight: 500;
+      border-bottom: 1px solid var(--c-border-light);
+      background: transparent;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .device-table td {
+      padding: 6px 10px;
+      color: var(--c-text-2);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .device-table tbody tr:hover td {
+      background: var(--c-primary-bg);
+      color: var(--c-text-1);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--r-sm);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-badge.up {
+      background: var(--c-success-bg);
+      color: var(--c-success);
+    }
+
+    .status-badge.down {
+      background: var(--c-danger-bg);
+      color: var(--c-danger);
+    }
+
+    .status-badge.warning {
+      background: var(--c-warning-bg);
+      color: var(--c-warning);
+    }
+
+    /* ===== MTTR CARD ===== */
+    .mttr-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .mttr-item {
+      padding: 12px;
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      text-align: center;
+    }
+
+    .mttr-item .mttr-val {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--c-text-1);
+      line-height: 1.2;
+    }
+
+    .mttr-item .mttr-unit {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--c-text-4);
+    }
+
+    .mttr-item .mttr-label {
+      font-size: 10px;
+      color: var(--c-text-4);
+      margin-top: 3px;
+    }
+
+    .mttr-item .mttr-trend {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .mttr-item .mttr-trend.good {
+      color: var(--c-success);
+    }
+
+    .mttr-item .mttr-trend.bad {
+      color: var(--c-danger);
+    }
+
+    /* ===== SETTINGS MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--c-white);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-lg);
+      width: 520px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp .25s var(--ease);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .modal-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--c-text-1);
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      color: var(--c-text-3);
+      font-size: 18px;
+      transition: all .15s;
+    }
+
+    .modal-close:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 20px;
+      border-top: 1px solid var(--c-border-light);
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--r-md);
+      border: 1px solid var(--c-border-light);
+      margin-bottom: 8px;
+      cursor: grab;
+      transition: all .15s;
+    }
+
+    .setting-item:hover {
+      border-color: var(--c-border);
+      background: var(--c-fill-1);
+    }
+
+    .setting-drag {
+      color: var(--c-text-4);
+      cursor: grab;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .setting-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .setting-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--c-text-1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .setting-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      font-weight: 500;
+    }
+
+    .setting-desc {
+      font-size: 11px;
+      color: var(--c-text-3);
+      margin-top: 2px;
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--c-text-4);
+      position: relative;
+      cursor: pointer;
+      transition: background .2s;
+      flex-shrink: 0;
+      border: none;
+    }
+
+    .toggle.on {
+      background: var(--c-primary);
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: all .2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+    }
+
+    .toggle.on::after {
+      left: 18px;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: 34px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn:hover {
+      border-color: var(--c-text-4);
+      color: var(--c-text-1);
+    }
+
+    .btn-primary {
+      background: var(--c-primary);
+      border-color: var(--c-primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--c-primary-hover);
+      border-color: var(--c-primary-hover);
+    }
+
+    .btn-sm {
+      height: 28px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    /* ===== LANG MENU ===== */
+    .lang-switcher {
+      position: relative;
+    }
+
+    .lang-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-lg);
+      min-width: 140px;
+      padding: 4px;
+      z-index: 200;
+    }
+
+    .lang-menu.open {
+      display: block;
+    }
+
+    .lang-option {
+      padding: 6px 12px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      color: var(--c-text-2);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .lang-option:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .lang-option.active {
+      color: var(--c-primary);
+      font-weight: 500;
+    }
+
+    /* ===== CMD PALETTE ===== */
+    .cmd-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .35);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      justify-content: center;
+      padding-top: 15vh;
+    }
+
+    .cmd-overlay.open {
+      display: flex;
+    }
+
+    .cmd-box {
+      width: 520px;
+      max-height: 440px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      animation: slideUp .15s var(--ease);
+    }
+
+    .cmd-input-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .cmd-input-area svg {
+      width: 18px;
+      height: 18px;
+      color: var(--c-text-3);
+      flex-shrink: 0;
+    }
+
+    .cmd-input-area input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: var(--c-text-1);
+      background: transparent;
+    }
+
+    .cmd-input-area input::placeholder {
+      color: var(--c-text-3);
+    }
+
+    .cmd-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .cmd-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--c-text-3);
+      padding: 8px 12px 4px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .cmd-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: all .1s;
+    }
+
+    .cmd-result-item:hover,
+    .cmd-result-item.focused {
+      background: var(--c-fill-1);
+    }
+
+    .cmd-result-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-md);
+      background: var(--c-fill-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--c-text-2);
+    }
+
+    .cmd-result-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .cmd-result-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cmd-result-text .title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--c-text-1);
+    }
+
+    .cmd-result-text .desc {
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .cmd-result-shortcut {
+      display: flex;
+      gap: 3px;
+    }
+
+    .cmd-result-shortcut kbd {
+      font-size: 11px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+      color: var(--c-text-3);
+    }
+
+    .cmd-footer {
+      display: flex;
+      gap: 16px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--c-border);
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .cmd-footer kbd {
+      font-size: 10px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+    }
+
+    .cmd-empty {
+      text-align: center;
+      padding: 32px;
+      color: var(--c-text-3);
+      font-size: 13px;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--c-text-1);
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: var(--r-lg);
+      font-size: 13px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+      .dash-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dash-card.span-3 {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dash-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dash-card.span-2,
+      .dash-card.span-3 {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-area">
+        <div class="logo-mark"><img src="../assets/itom-logo.png" alt="EMS"></div>
+      </div>
+      <nav class="header-breadcrumb">
+        <span class="current">工作台</span>
+      </nav>
+    </div>
+    <div class="header-center">
+      <div class="cmd-trigger" onclick="openCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;flex-shrink:0">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>搜索租户、授权、页面…</span>
+        <span class="shortcut">⌘K</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="lang-switcher" id="langSwitcher">
+        <button class="header-icon-btn" title="语言切换" onclick="toggleLangMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+          </svg>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-option active" onclick="switchLang('zh-CN','简体中文',this)">简体中文</div>
+          <div class="lang-option" onclick="switchLang('zh-TW','繁體中文',this)">繁體中文</div>
+          <div class="lang-option" onclick="switchLang('en','English',this)">English</div>
+        </div>
+      </div>
+      <button class="header-icon-btn" title="暗色模式 (⌘D)" onclick="toggleTheme()">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      </button>
+      <button class="header-icon-btn" title="全屏" onclick="toggleFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+        </svg>
+      </button>
+      <div class="header-sep"></div>
+      <div class="user-wrapper" id="userWrapper">
+        <button class="user-area" onclick="toggleUserMenu()">
+          <div class="user-avatar">A</div>
+          <span>Admin</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-item" onclick="showToast('个人信息')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            个人信息
+          </div>
+          <div class="user-dropdown-item" onclick="showToast('修改密码')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+            修改密码
+          </div>
+          <div class="user-dropdown-item" onclick="showToast('系统设置')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51H21a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+            </svg>
+            系统设置
+          </div>
+          <div class="user-dropdown-sep"></div>
+          <div class="user-dropdown-item danger" onclick="showToast('已退出登录')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            退出登录
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Command Palette -->
+  <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this)closeCmd()">
+    <div class="cmd-box">
+      <div class="cmd-input-area">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" id="cmdInput" placeholder="搜索租户、授权、页面、操作…" autocomplete="off"
+          oninput="filterCmdResults(this.value)">
+      </div>
+      <div class="cmd-results" id="cmdResults"></div>
+      <div class="cmd-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> 导航</span>
+        <span><kbd>Enter</kbd> 打开</span>
+        <span><kbd>Esc</kbd> 关闭</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="展开/收起菜单">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+      </svg>
+    </button>
+    <div class="sidebar-item active" title="工作台">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg></span>
+      <span class="s-label">工作台</span>
+    </div>
+    <div class="sidebar-group">组织管理</div>
+    <a class="sidebar-item" href="tenant-management-v2.html" title="租户管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg></span>
+      <span class="s-label">租户管理</span>
+    </a>
+    <a class="sidebar-item" href="product-management-v2.html" title="产品管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+          <path d="M3.27 6.96L12 12.01l8.73-5.05" />
+          <path d="M12 22.08V12" />
+        </svg></span>
+      <span class="s-label">产品管理</span>
+    </a>
+    <a class="sidebar-item" href="license-management-v2.html" title="授权管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg></span>
+      <span class="s-label">授权管理</span>
+    </a>
+    <div class="sidebar-group">权限管理</div>
+    <a class="sidebar-item" href="role-management-v2.html" title="角色管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg></span>
+      <span class="s-label">角色管理</span>
+    </a>
+    <a class="sidebar-item" href="org-structure-v2.html" title="组织架构">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="5" r="3" />
+          <path d="M12 8v4" />
+          <path d="M6 16h12" />
+          <path d="M6 16v4" />
+          <path d="M18 16v4" />
+          <path d="M12 12v4" />
+          <path d="M12 16v4" />
+        </svg></span>
+      <span class="s-label">组织架构</span>
+    </a>
+    <div class="sidebar-group">系统设置</div>
+    <a class="sidebar-item" href="personal-info-v2.html" title="个人信息">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg></span>
+      <span class="s-label">个人信息</span>
+    </a>
+    <a class="sidebar-item" href="third-party-v2.html" title="三方对接">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+        </svg></span>
+      <span class="s-label">三方对接</span>
+    </a>
+    <a class="sidebar-item" href="sync-management-v2.html" title="同步管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M23 4v2h-6" />
+          <path d="M1 20v-6h6" />
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10" />
+          <path d="M20.49 15a9 9 0 01-14.85 3.36L1 14" />
+        </svg></span>
+      <span class="s-label">同步管理</span>
+    </a>
+    <a class="sidebar-item" href="general-settings-v2.html" title="通用设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+        </svg></span>
+      <span class="s-label">通用设置</span>
+    </a>
+    <a class="sidebar-item" href="ai-settings-v2.html" title="AI访问设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">AI访问设置</span>
+    </a>
+    <div class="sidebar-group">ITOM 模块</div>
+    <a class="sidebar-item" href="../itom/alert-center-v2.html" title="告警中心">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+      <span class="s-label">告警中心</span>
+    </a>
+    <div class="sidebar-group">AI 管理</div>
+    <a class="sidebar-item" href="../ai/ai-management-v2.html" title="Agent Hub">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M9 14h6"/></svg></span>
+      <span class="s-label">Agent Hub</span>
+    </a>
+    <div class="org-switcher">
+      <div class="org-avatar">J</div>
+      <div class="org-info">
+        <div class="org-name">JGDemo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="main-inner">
+
+      <!-- Dashboard Tab Bar -->
+      <div class="dash-tab-bar">
+        <div class="dash-tab active" data-idx="0" onclick="switchDashTab(0)">运维总览</div>
+        <div class="dash-tab" data-idx="1" onclick="switchDashTab(1)">设备健康看板</div>
+        <div class="dash-tab" data-idx="2" onclick="switchDashTab(2)">告警中心</div>
+        <div class="dash-tab-actions">
+          <button class="dash-edit-btn" id="editModeBtn" title="编辑布局" onclick="toggleEditMode()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            <span>编辑</span>
+          </button>
+          <button class="dash-settings-btn" title="工作台设置" onclick="openDashSettings()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Edit mode banner -->
+      <div class="edit-banner">📐 编辑模式 — 拖拽移动组件，拖拽右下角调整大小，完成后点击「完成」退出</div>
+
+      <!-- Dashboard Content -->
+      <div class="dash-content" id="dashContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== Settings Modal ===== -->
+  <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeDashSettings()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>工作台设置</h3>
+        <button class="modal-close" onclick="closeDashSettings()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <span class="setting-drag">⠿</span>
+          <div class="setting-info">
+            <div class="setting-name">运维总览 <span class="setting-badge">系统内置</span></div>
+            <div class="setting-desc">IT Manager / NOC 值班一屏总览</div>
+          </div>
+          <button class="toggle on" onclick="toggleDashboard(this)"></button>
+        </div>
+        <div class="setting-item">
+          <span class="setting-drag">⠿</span>
+          <div class="setting-info">
+            <div class="setting-name">设备健康看板 <span class="setting-badge">系统内置</span></div>
+            <div class="setting-desc">设备专项看板 — 健康率、性能排行、实时列表</div>
+          </div>
+          <button class="toggle on" onclick="toggleDashboard(this)"></button>
+        </div>
+        <div class="setting-item">
+          <span class="setting-drag">⠿</span>
+          <div class="setting-info">
+            <div class="setting-name">告警中心 <span class="setting-badge">系统内置</span></div>
+            <div class="setting-desc">告警专项看板 — 实时告警、趋势分析、TOPN 排行</div>
+          </div>
+          <button class="toggle on" onclick="toggleDashboard(this)"></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="showToast('新建大屏');closeDashSettings()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          新建大屏
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Page Scripts ===== -->
+  <script>
+
+    /* ===== Dashboard Data ===== */
+    var DASH_DATA = {
+      overview: {
+        kpi: {
+          deviceTotal: 1286, onlineRate: 87.6, activeAlerts: 47, mttr: 2.4, healthScore: 96.2,
+          deviceTrend: '+12', onlineTrend: '+0.3%', alertTrend: '+5', mttrTrend: '-12%', healthTrend: '+1.2%',
+          sparkDevice: [1220, 1235, 1248, 1256, 1260, 1272, 1286],
+          sparkOnline: [86.1, 86.8, 87.0, 86.5, 87.2, 87.4, 87.6],
+          sparkAlert: [38, 42, 35, 51, 44, 40, 47],
+          sparkMttr: [3.1, 2.8, 3.0, 2.6, 2.5, 2.7, 2.4],
+          sparkHealth: [94.5, 95.0, 95.3, 95.1, 95.8, 96.0, 96.2]
+        },
+        resourceGauge: { cpuAvg: 68, memAvg: 72, diskAvg: 45, bandwidthAvg: 54 },
+        alertByLevel: {
+          days: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+          critical: [3, 5, 2, 4, 6, 3, 4],
+          major: [8, 6, 12, 7, 9, 11, 8],
+          minor: [15, 12, 18, 14, 20, 16, 17],
+          info: [40, 35, 52, 38, 45, 42, 48]
+        },
+        deviceStatus: [
+          { value: 1124, name: '正常' },
+          { value: 64, name: '告警' },
+          { value: 98, name: '离线' }
+        ],
+        topnCpu: [
+          { name: 'CTF-SZIDC-SDWAN-PA2', val: 94.2 },
+          { name: 'JX1-4F-HW5735S-210', val: 88.7 },
+          { name: 'ctfszcn20-core-sw', val: 81.3 },
+          { name: 'BJ-DC1-FW-01', val: 76.5 },
+          { name: 'SH-Office-SW-02', val: 67.4 },
+          { name: 'GZ-WAN-Router-01', val: 62.1 },
+          { name: 'SZ-DC2-SW-03', val: 55.8 },
+          { name: 'HZ-Branch-FW', val: 48.2 },
+          { name: 'CD-Office-AP-01', val: 39.6 },
+          { name: 'NJ-Lab-SW-05', val: 23.1 }
+        ],
+        topnMem: [
+          { name: 'ctfszcn20-core-sw', val: 91.8 },
+          { name: 'CTF-SZIDC-SDWAN-PA2', val: 86.3 },
+          { name: 'BJ-DC1-FW-01', val: 78.9 },
+          { name: 'JX1-4F-HW5735S-210', val: 72.1 },
+          { name: 'GZ-WAN-Router-01', val: 65.4 },
+          { name: 'SH-Office-SW-02', val: 58.7 },
+          { name: 'HZ-Branch-FW', val: 51.2 },
+          { name: 'SZ-DC2-SW-03', val: 44.5 },
+          { name: 'CD-Office-AP-01', val: 36.8 },
+          { name: 'NJ-Lab-SW-05', val: 28.3 }
+        ],
+        heatmap: (function () {
+          var data = [];
+          for (var d = 0; d < 7; d++) {
+            for (var h = 0; h < 24; h++) {
+              var v = ((d * 7 + h * 13 + 5) % 20);
+              if (d < 5 && h >= 9 && h <= 18) v = Math.min(50, v + 25);
+              if (d >= 5) v = Math.max(0, v - 5);
+              data.push([h, d, v]);
+            }
+          }
+          return data;
+        })()
+      },
+      deviceHealth: {
+        deviceCount: { total: 1286, online: 1124, offline: 98, warning: 64 },
+        deviceType: [
+          { value: 342, name: '交换机' },
+          { value: 218, name: '路由器' },
+          { value: 186, name: '防火墙' },
+          { value: 312, name: '服务器' },
+          { value: 156, name: 'AP' },
+          { value: 72, name: '其他' }
+        ],
+        availTrend: [99.92, 99.88, 99.95, 99.91, 99.85, 99.93, 99.89, 99.94, 99.96, 99.87, 99.90, 99.93, 99.88, 99.92, 99.95, 99.84, 99.91, 99.93, 99.90, 99.88, 99.92, 99.95, 99.93, 99.91, 99.87, 99.94, 99.92, 99.96, 99.93, 99.90],
+        scatter: [
+          { name: 'CTF-SZIDC-SDWAN-PA2', cpu: 94.2, mem: 86.3, alerts: 18, type: '防火墙' },
+          { name: 'JX1-4F-HW5735S-210', cpu: 88.7, mem: 72.1, alerts: 15, type: '交换机' },
+          { name: 'ctfszcn20-core-sw', cpu: 81.3, mem: 91.8, alerts: 28, type: '核心交换' },
+          { name: 'BJ-DC1-FW-01', cpu: 76.5, mem: 78.9, alerts: 12, type: '防火墙' },
+          { name: 'SH-Office-SW-02', cpu: 67.4, mem: 58.7, alerts: 9, type: '交换机' },
+          { name: 'GZ-WAN-Router-01', cpu: 32.0, mem: 45.2, alerts: 23, type: '路由器' },
+          { name: 'SZ-DC2-SW-03', cpu: 55.8, mem: 44.5, alerts: 7, type: '交换机' },
+          { name: 'HZ-Branch-FW', cpu: 48.2, mem: 51.2, alerts: 5, type: '防火墙' },
+          { name: 'CD-Office-AP-01', cpu: 39.6, mem: 36.8, alerts: 3, type: 'AP' },
+          { name: 'NJ-Lab-SW-05', cpu: 23.1, mem: 28.3, alerts: 2, type: '交换机' },
+          { name: 'BJ-DC1-SRV-01', cpu: 72.4, mem: 85.6, alerts: 8, type: '服务器' },
+          { name: 'SH-DC2-SRV-02', cpu: 45.2, mem: 62.1, alerts: 4, type: '服务器' },
+          { name: 'GZ-Core-Router', cpu: 58.3, mem: 42.7, alerts: 6, type: '路由器' },
+          { name: 'SZ-Branch-AP', cpu: 22.5, mem: 31.4, alerts: 1, type: 'AP' },
+          { name: 'CD-DC1-FW-02', cpu: 68.9, mem: 72.3, alerts: 11, type: '防火墙' }
+        ],
+        devices: [
+          { ip: '10.162.9.67', name: 'CTF-SZIDC-SDWAN-PA2', type: '防火墙', status: 'up', cpu: '94.2%', mem: '86.3%', uptime: '142天' },
+          { ip: '10.199.144.210', name: 'JX1-4F-HW5735S-210', type: '交换机', status: 'up', cpu: '88.7%', mem: '72.1%', uptime: '89天' },
+          { ip: '10.200.251.188', name: 'ctfszcn20-core-sw', type: '核心交换', status: 'warning', cpu: '81.3%', mem: '91.8%', uptime: '365天' },
+          { ip: '10.10.10.140', name: 'BJ-DC1-FW-01', type: '防火墙', status: 'up', cpu: '76.5%', mem: '78.9%', uptime: '56天' },
+          { ip: '10.10.10.114', name: 'SH-Office-SW-02', type: '交换机', status: 'up', cpu: '67.4%', mem: '58.7%', uptime: '234天' },
+          { ip: '60.204.72.2', name: 'GZ-WAN-Router-01', type: '路由器', status: 'down', cpu: '-', mem: '-', uptime: '-' },
+          { ip: '10.10.10.142', name: 'SZ-DC2-SW-03', type: '交换机', status: 'up', cpu: '55.8%', mem: '44.5%', uptime: '178天' },
+          { ip: '10.10.10.108', name: 'HZ-Branch-FW', type: '防火墙', status: 'up', cpu: '48.2%', mem: '51.2%', uptime: '67天' }
+        ]
+      },
+      alertCenter: {
+        realtime: { critical: 12, major: 23, minor: 47, info: 156 },
+        weekTrend: {
+          days: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+          critical: [3, 5, 2, 4, 6, 3, 4],
+          major: [8, 6, 12, 7, 9, 11, 8],
+          minor: [15, 12, 18, 14, 20, 16, 17],
+          info: [40, 35, 52, 38, 45, 42, 48]
+        },
+        mttrTrend: [3.1, 2.8, 3.0, 2.6, 2.5, 2.7, 2.4, 2.3, 2.6, 2.2, 2.8, 2.5, 2.3, 2.1, 2.4, 2.6, 2.2, 2.0, 2.3, 2.5, 2.1, 2.4, 2.2, 2.0, 1.9, 2.3, 2.1, 2.4, 2.2, 2.0],
+        alertTypeDistribution: [
+          { name: '连通性', value: 68 },
+          { name: '性能', value: 54 },
+          { name: '配置变更', value: 32 },
+          { name: '安全', value: 21 },
+          { name: '硬件', value: 18 },
+          { name: '其他', value: 45 }
+        ],
+        topnAlertDevice: [
+          { rank: 1, ip: '10.200.251.188', name: 'ctfszcn20-core-sw', count: 28, level: 'critical' },
+          { rank: 2, ip: '60.204.72.2', name: 'GZ-WAN-Router-01', count: 23, level: 'critical' },
+          { rank: 3, ip: '10.162.9.67', name: 'CTF-SZIDC-SDWAN-PA2', count: 18, level: 'major' },
+          { rank: 4, ip: '10.199.144.210', name: 'JX1-4F-HW5735S-210', count: 15, level: 'major' },
+          { rank: 5, ip: '10.10.10.140', name: 'BJ-DC1-FW-01', count: 12, level: 'minor' },
+          { rank: 6, ip: '10.10.10.114', name: 'SH-Office-SW-02', count: 9, level: 'minor' },
+          { rank: 7, ip: '10.10.10.142', name: 'SZ-DC2-SW-03', count: 7, level: 'info' },
+          { rank: 8, ip: '10.10.10.108', name: 'HZ-Branch-FW', count: 5, level: 'info' },
+          { rank: 9, ip: '10.10.10.126', name: 'CD-Office-AP-01', count: 4, level: 'info' },
+          { rank: 10, ip: '192.168.10.105', name: 'NJ-Lab-SW-05', count: 3, level: 'info' }
+        ],
+        recentAlerts: [
+          { time: '14:32:18', level: 'critical', device: 'ctfszcn20-core-sw', content: 'CPU 利用率超过 90% 阈值' },
+          { time: '14:28:05', level: 'critical', device: 'GZ-WAN-Router-01', content: '设备离线超过 5 分钟' },
+          { time: '14:15:42', level: 'major', device: 'CTF-SZIDC-SDWAN-PA2', content: '内存利用率达到 86.3%' },
+          { time: '13:56:30', level: 'major', device: 'BJ-DC1-FW-01', content: '接口 GE0/0/1 流量超阈值' },
+          { time: '13:42:18', level: 'minor', device: 'SH-Office-SW-02', content: 'SNMP 响应超时 3 次' },
+          { time: '13:28:55', level: 'minor', device: 'SZ-DC2-SW-03', content: '端口 Gi1/0/24 状态 Down' },
+          { time: '13:15:08', level: 'info', device: 'HZ-Branch-FW', content: '配置变更检测: running-config' },
+          { time: '12:58:42', level: 'info', device: 'CD-Office-AP-01', content: '设备重启完成, uptime 重置' }
+        ]
+      }
+    };
+
+    /* ===== Tab Switching ===== */
+    var currentTab = 0;
+    function switchDashTab(idx) {
+      currentTab = idx;
+      document.querySelectorAll('.dash-tab').forEach(function (t) { t.classList.remove('active'); });
+      document.querySelector('.dash-tab[data-idx="' + idx + '"]').classList.add('active');
+      renderDashboard(idx);
+    }
+
+    /* ===== Render Dashboards ===== */
+    function renderDashboard(idx) {
+      // Dispose all existing ECharts instances before re-rendering
+      if (typeof EC_INSTANCES !== 'undefined') {
+        EC_INSTANCES.forEach(function (c) { if (!c.isDisposed()) c.dispose(); });
+        EC_INSTANCES.length = 0;
+      }
+      var el = document.getElementById('dashContent');
+      if (idx === 0) renderOverview(el);
+      else if (idx === 1) renderDeviceHealth(el);
+      else if (idx === 2) renderAlertCenter(el);
+      // re-bind drag & resize after DOM rebuild
+      if (typeof initDragResize === 'function') initDragResize();
+    }
+
+    /* ===== ECharts instance registry (for resize & theme) ===== */
+    var EC_INSTANCES = [];
+    function ecInit(dom) {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var chart = echarts.init(dom, isDark ? 'dark' : null);
+      EC_INSTANCES.push(chart);
+      return chart;
+    }
+    window.addEventListener('resize', function () {
+      EC_INSTANCES.forEach(function (c) { if (!c.isDisposed()) c.resize(); });
+    });
+
+    /* ===== Shared Handle HTML ===== */
+    var DRAG_ICON = '<div class="drag-handle" title="拖拽移动"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg></div>';
+    var RESIZE_ICON = '<div class="resize-handle" title="拖拽调整大小"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 22L12 22L22 12M22 22L17 22L22 17"/></svg></div>';
+
+    /* ===== Card Wrapper ===== */
+    function cardWrap(title, desc, body, cls) {
+      return '<div class="dash-card ' + (cls || '') + '" draggable="false">' +
+        '<div class="card-header">' + DRAG_ICON + '<div style="flex:1;min-width:0"><div class="card-title">' + title + '</div>' +
+        (desc ? '<div class="card-desc">' + desc + '</div>' : '') +
+        '</div><button class="card-menu-btn" onclick="showToast(\'组件操作\')">⋮</button></div>' +
+        body + RESIZE_ICON + '</div>';
+    }
+    function cardWrapSpan(title, desc, body, span) {
+      return '<div class="dash-card span-' + span + '" draggable="false">' +
+        '<div class="card-header">' + DRAG_ICON + '<div style="flex:1;min-width:0"><div class="card-title">' + title + '</div>' +
+        (desc ? '<div class="card-desc">' + desc + '</div>' : '') +
+        '</div><button class="card-menu-btn" onclick="showToast(\'组件操作\')">⋮</button></div>' +
+        body + RESIZE_ICON + '</div>';
+    }
+
+    /* ================================================================
+       Dashboard 1: 运维总览
+       ================================================================ */
+    function renderOverview(el) {
+      var d = DASH_DATA.overview;
+      var k = d.kpi;
+
+      // ── KPI Cards (clean design: accent border + mini sparkline) ──
+      var kpiItems = [
+        { label: '管理设备', val: k.deviceTotal.toLocaleString(), trend: k.deviceTrend, dir: 'down', color: '#2563EB', sid: 'ecSpkDev' },
+        { label: '设备在线率', val: k.onlineRate + '%', trend: k.onlineTrend, dir: 'down', color: '#10B981', sid: 'ecSpkOnl' },
+        { label: '活跃告警', val: k.activeAlerts, trend: k.alertTrend, dir: 'up', color: '#EF4444', sid: 'ecSpkAlt' },
+        { label: '平均 MTTR', val: k.mttr + 'h', trend: k.mttrTrend, dir: 'down', color: '#8B5CF6', sid: 'ecSpkMttr' },
+        { label: '健康分', val: k.healthScore, trend: k.healthTrend, dir: 'down', color: '#10B981', sid: 'ecSpkHlth' }
+      ];
+      var kpiHtml = '<div class="kpi-grid">';
+      kpiItems.forEach(function (it) {
+        kpiHtml += '<div class="kpi-card" style="border-left-color:' + it.color + '">' +
+          '<div class="kpi-label">' + it.label + '</div>' +
+          '<div class="kpi-value" style="color:' + it.color + '">' + it.val + '</div>' +
+          '<div class="kpi-trend ' + it.dir + '">' + (it.dir === 'up' ? '↑' : '↓') + ' ' + it.trend + '</div>' +
+          '<div id="' + it.sid + '" class="kpi-sparkline"></div></div>';
+      });
+      kpiHtml += '</div>';
+
+      // ── Device status: donut + stat rows ──
+      var ds = d.deviceStatus;
+      var dsTotal = ds.reduce(function (s, i) { return s + i.value; }, 0);
+      var dsColors = ['#10B981', '#F59E0B', '#EF4444'];
+      var dsStatHtml = '<div class="ds-stat-list">';
+      ds.forEach(function (item, idx) {
+        var pct = (item.value / dsTotal * 100).toFixed(1);
+        dsStatHtml += '<div class="ds-stat-row">' +
+          '<span class="ds-dot" style="background:' + dsColors[idx] + '"></span>' +
+          '<span class="ds-name">' + item.name + '</span>' +
+          '<span class="ds-val">' + item.value + '</span>' +
+          '<span class="ds-pct">' + pct + '%</span></div>';
+      });
+      dsStatHtml += '</div>';
+      var deviceStatusBody = '<div id="ecOverviewDeviceStatus" style="width:100%;height:200px"></div>' + dsStatHtml;
+
+      // ── Resource gauges: 2×2 grid ──
+      var gaugeBody = '<div class="gauge-2x2">' +
+        '<div id="ecGaugeCpu"></div><div id="ecGaugeMem"></div>' +
+        '<div id="ecGaugeDisk"></div><div id="ecGaugeBw"></div></div>';
+
+      // ── Recent alerts mini table ──
+      var alerts = DASH_DATA.alertCenter.recentAlerts.slice(0, 5);
+      var lvlCM = { critical: 'down', major: 'warning', minor: 'up', info: 'up' };
+      var lvlTM = { critical: '紧急', major: '重要', minor: '次要', info: '提示' };
+      var alertTbl = '<table class="device-table"><thead><tr><th>时间</th><th>等级</th><th>设备</th><th>内容</th></tr></thead><tbody>';
+      alerts.forEach(function (a) {
+        alertTbl += '<tr><td style="white-space:nowrap;font-family:monospace;font-size:11px">' + a.time + '</td>' +
+          '<td><span class="status-badge ' + (lvlCM[a.level] || 'up') + '">' + (lvlTM[a.level] || a.level) + '</span></td>' +
+          '<td>' + a.device + '</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + a.content + '</td></tr>';
+      });
+      alertTbl += '</tbody></table>';
+
+      // ── Grid Layout (4 rows × 3 cols, fully filled) ──
+      el.innerHTML = '<div class="dash-grid">' +
+        /* Row 1 */ cardWrapSpan('运维关键指标', '关键运维 KPI 实时概览', kpiHtml, 3) +
+        /* Row 2 */ cardWrapSpan('告警趋势', '近一周各等级告警堆叠面积', '<div id="ecOverviewAlertTrend" class="echart-box"></div>', 2) +
+        cardWrap('设备状态分布', '按运行状态分类 · 共 ' + dsTotal.toLocaleString() + ' 台', deviceStatusBody) +
+        /* Row 3 */ cardWrapSpan('告警热力图', '7×24 告警密度分布', '<div id="ecOverviewHeatmap" class="echart-box"></div>', 2) +
+        cardWrap('资源利用率', '关键资源实时水位', gaugeBody) +
+        /* Row 4 */ cardWrap('CPU 利用率 TOP10', '资源瓶颈设备定位', '<div id="ecOverviewCpuTop" class="echart-box"></div>') +
+        cardWrap('内存利用率 TOP10', '内存瓶颈设备定位', '<div id="ecOverviewMemTop" class="echart-box"></div>') +
+        cardWrap('最新告警', '最近 5 条告警记录', alertTbl) +
+        '</div>';
+
+      // ═══ Mini Sparklines (5 × ECharts tiny line) ═══
+      var sparkCfg = [
+        { id: 'ecSpkDev', data: k.sparkDevice, color: '#2563EB' },
+        { id: 'ecSpkOnl', data: k.sparkOnline, color: '#10B981' },
+        { id: 'ecSpkAlt', data: k.sparkAlert, color: '#EF4444' },
+        { id: 'ecSpkMttr', data: k.sparkMttr, color: '#8B5CF6' },
+        { id: 'ecSpkHlth', data: k.sparkHealth, color: '#10B981' }
+      ];
+      sparkCfg.forEach(function (s) {
+        var dom = document.getElementById(s.id);
+        if (!dom) return;
+        var c = ecInit(dom);
+        c.setOption({
+          grid: { top: 2, right: 0, bottom: 2, left: 0 },
+          xAxis: { type: 'category', show: false, data: s.data.map(function (_, i) { return i; }) },
+          yAxis: { type: 'value', show: false },
+          series: [{
+            type: 'line', data: s.data, smooth: true, symbol: 'none', showSymbol: false,
+            lineStyle: { width: 1.5, color: s.color },
+            areaStyle: { opacity: 0.12, color: s.color }
+          }]
+        });
+      });
+
+      // ═══ 告警趋势 堆叠面积图 ═══
+      var abl = d.alertByLevel;
+      var cTrend = ecInit(document.getElementById('ecOverviewAlertTrend'));
+      cTrend.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+        legend: { data: ['紧急', '重要', '次要', '提示'], bottom: 0, textStyle: { fontSize: 11 } },
+        grid: { top: 20, right: 20, bottom: 45, left: 50 },
+        xAxis: { type: 'category', data: abl.days, boundaryGap: false },
+        yAxis: { type: 'value', axisLabel: { fontSize: 11 } },
+        series: [
+          { name: '紧急', type: 'line', stack: 'total', areaStyle: { opacity: 0.35 }, smooth: true, itemStyle: { color: '#EF4444' }, data: abl.critical },
+          { name: '重要', type: 'line', stack: 'total', areaStyle: { opacity: 0.3 }, smooth: true, itemStyle: { color: '#F59E0B' }, data: abl.major },
+          { name: '次要', type: 'line', stack: 'total', areaStyle: { opacity: 0.25 }, smooth: true, itemStyle: { color: '#2563EB' }, data: abl.minor },
+          { name: '提示', type: 'line', stack: 'total', areaStyle: { opacity: 0.15 }, smooth: true, itemStyle: { color: '#9CA3AF' }, data: abl.info }
+        ]
+      });
+
+      // ═══ 设备状态 环形饼图 (带标签显示数量) ═══
+      var cStatus = ecInit(document.getElementById('ecOverviewDeviceStatus'));
+      cStatus.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}<br/>数量: {c} ({d}%)' },
+        series: [{
+          type: 'pie', radius: ['42%', '72%'], center: ['50%', '48%'],
+          avoidLabelOverlap: true,
+          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          label: {
+            show: true, fontSize: 11,
+            formatter: function (p) { return p.name + '\n' + p.value; },
+            lineHeight: 16
+          },
+          labelLine: { length: 8, length2: 12 },
+          emphasis: { label: { fontSize: 14, fontWeight: 'bold' }, scaleSize: 6 },
+          color: dsColors,
+          data: d.deviceStatus
+        }],
+        graphic: [{
+          type: 'text', left: 'center', top: '38%',
+          style: { text: dsTotal.toLocaleString(), fontSize: 24, fontWeight: 700, fill: '#111827', textAlign: 'center' }
+        }, {
+          type: 'text', left: 'center', top: '52%',
+          style: { text: '总设备', fontSize: 11, fill: '#9CA3AF', textAlign: 'center' }
+        }]
+      });
+
+      // ═══ 告警热力图 ═══
+      var cHeat = ecInit(document.getElementById('ecOverviewHeatmap'));
+      var heatDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      var heatHours = [];
+      for (var hh = 0; hh < 24; hh++) heatHours.push(hh + ':00');
+      cHeat.setOption({
+        tooltip: { position: 'top', formatter: function (p) { return heatDays[p.data[1]] + ' ' + heatHours[p.data[0]] + '<br/>告警: ' + p.data[2] + ' 条'; } },
+        grid: { top: 10, right: 80, bottom: 40, left: 60 },
+        xAxis: { type: 'category', data: heatHours, splitArea: { show: true }, axisLabel: { fontSize: 10 } },
+        yAxis: { type: 'category', data: heatDays, splitArea: { show: true }, axisLabel: { fontSize: 11 } },
+        visualMap: {
+          min: 0, max: 50, calculable: true, orient: 'vertical', right: 5, top: 'center',
+          inRange: { color: ['#ECFDF5', '#6EE7B7', '#10B981', '#F59E0B', '#EF4444'] },
+          textStyle: { fontSize: 10 }
+        },
+        series: [{
+          type: 'heatmap', data: d.heatmap, label: { show: false },
+          emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } }
+        }]
+      });
+
+      // ═══ 资源利用率 4 × Gauge ═══
+      var rg = d.resourceGauge;
+      var gaugeItems = [
+        { id: 'ecGaugeCpu', name: 'CPU', val: rg.cpuAvg },
+        { id: 'ecGaugeMem', name: '内存', val: rg.memAvg },
+        { id: 'ecGaugeDisk', name: '磁盘', val: rg.diskAvg },
+        { id: 'ecGaugeBw', name: '带宽', val: rg.bandwidthAvg }
+      ];
+      // Delay gauge init slightly so grid layout settles
+      setTimeout(function () {
+        gaugeItems.forEach(function (g) {
+          var dom = document.getElementById(g.id);
+          if (!dom || !dom.offsetHeight) return;
+          var gColor = g.val > 80 ? '#EF4444' : (g.val > 60 ? '#F59E0B' : '#10B981');
+          var cg = ecInit(dom);
+          cg.setOption({
+            series: [{
+              type: 'gauge', radius: '85%', center: ['50%', '55%'],
+              startAngle: 200, endAngle: -20,
+              min: 0, max: 100,
+              splitNumber: 5,
+              axisLine: {
+                lineStyle: { width: 10, color: [[g.val / 100, gColor], [1, '#E5E7EB']] }
+              },
+              pointer: { show: false },
+              axisTick: { show: false },
+              splitLine: { show: false },
+              axisLabel: { show: false },
+              title: { offsetCenter: [0, '75%'], fontSize: 11, color: '#6B7280' },
+              detail: {
+                offsetCenter: [0, '10%'], fontSize: 20, fontWeight: 700,
+                formatter: '{value}%', color: gColor
+              },
+              data: [{ value: g.val, name: g.name }]
+            }]
+          });
+        });
+      }, 50);
+
+      // ═══ CPU / 内存 TOP10 ═══
+      initBarTopn('ecOverviewCpuTop', d.topnCpu, 'CPU');
+      initBarTopn('ecOverviewMemTop', d.topnMem, '内存');
+    }
+
+    /* ===== 共用: 水平条形图 TOP10 ===== */
+    function initBarTopn(domId, data, metric) {
+      var chart = ecInit(document.getElementById(domId));
+      var names = data.map(function (d) { return d.name; }).reverse();
+      var vals = data.map(function (d) { return d.val; }).reverse();
+      chart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (p) { return p[0].name + '<br/>' + metric + ': ' + p[0].value + '%'; } },
+        grid: { top: 10, right: 40, bottom: 10, left: 130 },
+        xAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%', fontSize: 10 } },
+        yAxis: { type: 'category', data: names, axisLabel: { fontSize: 10, width: 120, overflow: 'truncate' } },
+        series: [{
+          type: 'bar', data: vals, barWidth: '55%',
+          itemStyle: {
+            color: function (p) {
+              var v = p.value;
+              return v > 80 ? '#EF4444' : (v > 60 ? '#F59E0B' : '#2563EB');
+            },
+            borderRadius: [0, 3, 3, 0]
+          },
+          label: { show: true, position: 'right', formatter: '{c}%', fontSize: 10 }
+        }]
+      });
+    }
+
+    /* ================================================================
+       Dashboard 2: 设备健康看板
+       ================================================================ */
+    function renderDeviceHealth(el) {
+      var d = DASH_DATA.deviceHealth;
+      var dc = d.deviceCount;
+
+      // Row 1: 4-stat cards (pure HTML)
+      var statItems = [
+        { label: '设备总数', val: dc.total, color: 'var(--c-text-1)', bg: 'var(--c-fill-1)' },
+        { label: '在线', val: dc.online, color: 'var(--c-success)', bg: 'var(--c-success-bg)' },
+        { label: '离线', val: dc.offline, color: 'var(--c-danger)', bg: 'var(--c-danger-bg)' },
+        { label: '告警中', val: dc.warning, color: 'var(--c-warning)', bg: 'var(--c-warning-bg)' }
+      ];
+      var statHtml = '<div class="alert-stats">';
+      statItems.forEach(function (s) {
+        statHtml += '<div class="alert-stat-item" style="border-color:' + s.bg + ';background:' + s.bg + '">' +
+          '<div class="alert-num" style="color:' + s.color + '">' + s.val.toLocaleString() + '</div>' +
+          '<div class="alert-label">' + s.label + '</div></div>';
+      });
+      statHtml += '</div>';
+
+      // Device table
+      var tableHtml = '<table class="device-table"><thead><tr>' +
+        '<th>IP 地址</th><th>设备名称</th><th>类型</th><th>状态</th><th>CPU</th><th>内存</th><th>运行时间</th></tr></thead><tbody>';
+      d.devices.forEach(function (dv) {
+        var sCls = dv.status === 'up' ? 'up' : (dv.status === 'down' ? 'down' : 'warning');
+        var sText = dv.status === 'up' ? 'UP' : (dv.status === 'down' ? 'DOWN' : 'WARN');
+        tableHtml += '<tr><td class="topn-ip">' + dv.ip + '</td><td>' + dv.name + '</td><td>' + dv.type + '</td>' +
+          '<td><span class="status-badge ' + sCls + '">' + sText + '</span></td>' +
+          '<td>' + dv.cpu + '</td><td>' + dv.mem + '</td><td>' + dv.uptime + '</td></tr>';
+      });
+      tableHtml += '</tbody></table>';
+
+      el.innerHTML = '<div class="dash-grid">' +
+        /* Row 1 */ cardWrapSpan('设备概览', '全网设备在线状态统计', statHtml, 3) +
+        /* Row 2 */ cardWrap('设备类型分布', '按设备类型分类统计', '<div id="ecDeviceType" class="echart-box"></div>') +
+        cardWrapSpan('设备可用率趋势', '近 30 天全网平均可用率', '<div id="ecAvailTrend" class="echart-box"></div>', 2) +
+        /* Row 3 */ cardWrapSpan('CPU vs 内存分布', '设备资源利用率散点分析', '<div id="ecScatter" class="echart-box-lg"></div>', 2) +
+        cardWrap('CPU 利用率 TOP10', '资源瓶颈设备', '<div id="ecDevCpuTop" class="echart-box"></div>') +
+        /* Row 4 */ cardWrap('内存利用率 TOP10', '内存瓶颈设备', '<div id="ecDevMemTop" class="echart-box"></div>') +
+        cardWrapSpan('关键设备列表', '实时设备状态一览', tableHtml, 2) +
+        '</div>';
+
+      // --- ECharts: 设备类型分布 环形饼图 ---
+      var cType = ecInit(document.getElementById('ecDeviceType'));
+      var typeColors = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#9CA3AF'];
+      var typeTotal = d.deviceType.reduce(function (s, i) { return s + i.value; }, 0);
+      cType.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}<br/>数量: {c} ({d}%)' },
+        legend: { orient: 'vertical', right: 5, top: 'middle', textStyle: { fontSize: 10 } },
+        series: [{
+          type: 'pie', radius: ['35%', '65%'], center: ['35%', '50%'],
+          itemStyle: { borderRadius: 3, borderColor: '#fff', borderWidth: 1 },
+          label: { show: false },
+          emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
+          color: typeColors, data: d.deviceType
+        }],
+        graphic: [{
+          type: 'text', left: '26%', top: '44%',
+          style: { text: typeTotal.toString(), fontSize: 20, fontWeight: 700, fill: '#111827', textAlign: 'center' }
+        }, {
+          type: 'text', left: '28%', top: '55%',
+          style: { text: '总设备', fontSize: 10, fill: '#9CA3AF', textAlign: 'center' }
+        }]
+      });
+
+      // --- ECharts: 可用率趋势 面积折线图 ---
+      var cAvail = ecInit(document.getElementById('ecAvailTrend'));
+      var availDays = d.availTrend.map(function (_, i) { return (i + 1) + '日'; });
+      cAvail.setOption({
+        tooltip: { trigger: 'axis', formatter: function (p) { return p[0].name + '<br/>可用率: ' + p[0].value + '%'; } },
+        grid: { top: 25, right: 20, bottom: 35, left: 65 },
+        xAxis: { type: 'category', data: availDays, boundaryGap: false, axisLabel: { fontSize: 10 } },
+        yAxis: { type: 'value', min: 99.80, max: 100, axisLabel: { formatter: '{value}%', fontSize: 10 } },
+        series: [{
+          type: 'line', data: d.availTrend, smooth: true,
+          areaStyle: { opacity: 0.2, color: '#2563EB' },
+          itemStyle: { color: '#2563EB' },
+          markLine: {
+            silent: true, symbol: 'none',
+            data: [{ yAxis: 99.9, label: { formatter: 'SLA 99.9%', fontSize: 10, color: '#EF4444' }, lineStyle: { color: '#EF4444', type: 'dashed' } }]
+          }
+        }]
+      });
+
+      // --- ECharts: CPU vs 内存 散点图 ---
+      var cScatter = ecInit(document.getElementById('ecScatter'));
+      var typeMap = {};
+      d.scatter.forEach(function (s) {
+        if (!typeMap[s.type]) typeMap[s.type] = [];
+        typeMap[s.type].push([s.cpu, s.mem, s.alerts, s.name]);
+      });
+      var scatterSeries = [];
+      var scTypeColors = { '防火墙': '#EF4444', '交换机': '#2563EB', '核心交换': '#8B5CF6', '路由器': '#10B981', '服务器': '#F59E0B', 'AP': '#9CA3AF' };
+      Object.keys(typeMap).forEach(function (t) {
+        scatterSeries.push({
+          name: t, type: 'scatter',
+          data: typeMap[t],
+          symbolSize: function (data) { return Math.max(8, data[2] * 1.5); },
+          itemStyle: { color: scTypeColors[t] || '#999' },
+          emphasis: { focus: 'series', itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,.3)' } }
+        });
+      });
+      cScatter.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: function (p) { return p.data[3] + ' (' + p.seriesName + ')<br/>CPU: ' + p.data[0] + '%<br/>内存: ' + p.data[1] + '%<br/>告警: ' + p.data[2] + '条'; }
+        },
+        legend: { bottom: 0, textStyle: { fontSize: 10 } },
+        grid: { top: 20, right: 20, bottom: 45, left: 55 },
+        xAxis: {
+          type: 'value', name: 'CPU %', max: 100, nameTextStyle: { fontSize: 10 }, axisLabel: { fontSize: 10 },
+          splitLine: { lineStyle: { type: 'dashed' } }
+        },
+        yAxis: {
+          type: 'value', name: '内存 %', max: 100, nameTextStyle: { fontSize: 10 }, axisLabel: { fontSize: 10 },
+          splitLine: { lineStyle: { type: 'dashed' } }
+        },
+        series: scatterSeries
+      });
+
+      // --- Bar TOPNs ---
+      initBarTopn('ecDevCpuTop', DASH_DATA.overview.topnCpu, 'CPU');
+      initBarTopn('ecDevMemTop', DASH_DATA.overview.topnMem, '内存');
+    }
+
+    /* ================================================================
+       Dashboard 3: 告警中心
+       ================================================================ */
+    function renderAlertCenter(el) {
+      var d = DASH_DATA.alertCenter;
+      var rt = d.realtime;
+      var total = rt.critical + rt.major + rt.minor + rt.info;
+
+      // Alert stat cards (HTML)
+      var alertStatHtml = '<div class="alert-stats">' +
+        '<div class="alert-stat-item" style="border-left:3px solid var(--c-danger)"><div class="alert-num" style="color:var(--c-danger)">' + rt.critical + '</div><div class="alert-label">紧急</div></div>' +
+        '<div class="alert-stat-item" style="border-left:3px solid var(--c-warning)"><div class="alert-num" style="color:var(--c-warning)">' + rt.major + '</div><div class="alert-label">重要</div></div>' +
+        '<div class="alert-stat-item" style="border-left:3px solid var(--c-primary)"><div class="alert-num" style="color:var(--c-primary)">' + rt.minor + '</div><div class="alert-label">次要</div></div>' +
+        '<div class="alert-stat-item" style="border-left:3px solid var(--c-text-4)"><div class="alert-num" style="color:var(--c-text-3)">' + rt.info + '</div><div class="alert-label">提示</div></div>' +
+        '</div>';
+
+      // Recent alerts table
+      var alertTableHtml = '<table class="device-table"><thead><tr><th>时间</th><th>等级</th><th>设备</th><th>告警内容</th></tr></thead><tbody>';
+      var lvlColorMap = { critical: 'down', major: 'warning', minor: 'up', info: 'up' };
+      var lvlTextMap = { critical: '紧急', major: '重要', minor: '次要', info: '提示' };
+      d.recentAlerts.forEach(function (a) {
+        alertTableHtml += '<tr><td style="white-space:nowrap;font-family:monospace;font-size:11px">' + a.time + '</td>' +
+          '<td><span class="status-badge ' + (lvlColorMap[a.level] || 'up') + '">' + (lvlTextMap[a.level] || a.level) + '</span></td>' +
+          '<td>' + a.device + '</td><td>' + a.content + '</td></tr>';
+      });
+      alertTableHtml += '</tbody></table>';
+
+      el.innerHTML = '<div class="dash-grid">' +
+        /* Row 1 */ cardWrapSpan('告警统计', '当前活跃告警 — 总计 ' + total + ' 条', alertStatHtml, 3) +
+        /* Row 2 */ cardWrapSpan('告警趋势', '近一周各等级告警堆叠', '<div id="ecAlertTrend" class="echart-box"></div>', 2) +
+        cardWrap('告警级别占比', '按等级分布', '<div id="ecAlertPie" class="echart-box"></div>') +
+        /* Row 3 */ cardWrap('MTTR 趋势', '近 30 天平均修复时间', '<div id="ecMttrTrend" class="echart-box"></div>') +
+        cardWrapSpan('告警设备 TOP10', '告警数量最多的设备', '<div id="ecAlertDevTop" class="echart-box"></div>', 2) +
+        /* Row 4 */ cardWrap('告警类型分布', '按告警分类统计', '<div id="ecAlertTypeBar" class="echart-box"></div>') +
+        cardWrapSpan('最新告警', '最近 8 条告警记录', alertTableHtml, 2) +
+        '</div>';
+
+      // --- ECharts: 告警趋势 堆叠面积图 ---
+      var wt = d.weekTrend;
+      var cAlTrend = ecInit(document.getElementById('ecAlertTrend'));
+      cAlTrend.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+        legend: { data: ['紧急', '重要', '次要', '提示'], bottom: 0, textStyle: { fontSize: 11 } },
+        grid: { top: 20, right: 20, bottom: 45, left: 50 },
+        xAxis: { type: 'category', data: wt.days, boundaryGap: false },
+        yAxis: { type: 'value', axisLabel: { fontSize: 11 } },
+        series: [
+          { name: '紧急', type: 'line', stack: 'total', areaStyle: { opacity: 0.35 }, smooth: true, itemStyle: { color: '#EF4444' }, data: wt.critical },
+          { name: '重要', type: 'line', stack: 'total', areaStyle: { opacity: 0.3 }, smooth: true, itemStyle: { color: '#F59E0B' }, data: wt.major },
+          { name: '次要', type: 'line', stack: 'total', areaStyle: { opacity: 0.25 }, smooth: true, itemStyle: { color: '#2563EB' }, data: wt.minor },
+          { name: '提示', type: 'line', stack: 'total', areaStyle: { opacity: 0.15 }, smooth: true, itemStyle: { color: '#9CA3AF' }, data: wt.info }
+        ]
+      });
+
+      // --- ECharts: 告警级别占比 环形图 ---
+      var cAlPie = ecInit(document.getElementById('ecAlertPie'));
+      cAlPie.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+        legend: { orient: 'vertical', right: 10, top: 'middle', textStyle: { fontSize: 11 } },
+        series: [{
+          type: 'pie', radius: ['40%', '70%'], center: ['35%', '50%'],
+          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          label: { show: false },
+          emphasis: { label: { show: true, fontSize: 13, fontWeight: 'bold' } },
+          color: ['#EF4444', '#F59E0B', '#2563EB', '#9CA3AF'],
+          data: [
+            { name: '紧急', value: rt.critical },
+            { name: '重要', value: rt.major },
+            { name: '次要', value: rt.minor },
+            { name: '提示', value: rt.info }
+          ]
+        }],
+        graphic: [{
+          type: 'text', left: '26%', top: '44%',
+          style: { text: total.toString(), fontSize: 22, fontWeight: 700, fill: '#111827', textAlign: 'center' }
+        }, {
+          type: 'text', left: '28%', top: '55%',
+          style: { text: '总告警', fontSize: 11, fill: '#9CA3AF', textAlign: 'center' }
+        }]
+      });
+
+      // --- ECharts: MTTR 趋势折线图 ---
+      var cMttr = ecInit(document.getElementById('ecMttrTrend'));
+      var mttrDays = d.mttrTrend.map(function (_, i) { return (i + 1) + '日'; });
+      cMttr.setOption({
+        tooltip: { trigger: 'axis', formatter: function (p) { return p[0].name + '<br/>MTTR: ' + p[0].value + ' h'; } },
+        grid: { top: 25, right: 20, bottom: 35, left: 50 },
+        xAxis: { type: 'category', data: mttrDays, boundaryGap: false, axisLabel: { fontSize: 10 } },
+        yAxis: { type: 'value', name: '小时', axisLabel: { fontSize: 10 }, nameTextStyle: { fontSize: 10 } },
+        series: [{
+          type: 'line', data: d.mttrTrend, smooth: true,
+          itemStyle: { color: '#2563EB' },
+          areaStyle: { opacity: 0.15, color: '#2563EB' },
+          markLine: {
+            silent: true, symbol: 'none',
+            data: [{ yAxis: 2.0, label: { formatter: '目标 2h', fontSize: 10, color: '#10B981' }, lineStyle: { color: '#10B981', type: 'dashed' } }]
+          },
+          markPoint: {
+            data: [
+              { type: 'max', name: '最高', symbolSize: 40, itemStyle: { color: '#EF4444' } },
+              { type: 'min', name: '最低', symbolSize: 40, itemStyle: { color: '#10B981' } }
+            ],
+            label: { fontSize: 10 }
+          }
+        }]
+      });
+
+      // --- ECharts: 告警设备 TOP10 水平柱状图 ---
+      var topDev = d.topnAlertDevice;
+      var cAlDev = ecInit(document.getElementById('ecAlertDevTop'));
+      var topNames = topDev.map(function (d) { return d.name; }).reverse();
+      var topVals = topDev.map(function (d) { return d.count; }).reverse();
+      var topLevels = topDev.map(function (d) { return d.level; }).reverse();
+      var levelColors = { critical: '#EF4444', major: '#F59E0B', minor: '#2563EB', info: '#9CA3AF' };
+      cAlDev.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (p) { return p[0].name + '<br/>告警: ' + p[0].value + ' 条'; } },
+        grid: { top: 10, right: 40, bottom: 10, left: 130 },
+        xAxis: { type: 'value', axisLabel: { fontSize: 10 } },
+        yAxis: { type: 'category', data: topNames, axisLabel: { fontSize: 10, width: 120, overflow: 'truncate' } },
+        series: [{
+          type: 'bar', data: topVals, barWidth: '55%',
+          itemStyle: {
+            color: function (p) { return levelColors[topLevels[p.dataIndex]] || '#999'; },
+            borderRadius: [0, 3, 3, 0]
+          },
+          label: { show: true, position: 'right', formatter: '{c}', fontSize: 10 }
+        }]
+      });
+
+      // --- ECharts: 告警类型分布 柱状图 ---
+      var cAlType = ecInit(document.getElementById('ecAlertTypeBar'));
+      var typeNames = d.alertTypeDistribution.map(function (t) { return t.name; });
+      var typeVals = d.alertTypeDistribution.map(function (t) { return t.value; });
+      var barColors = ['#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
+      cAlType.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { top: 15, right: 20, bottom: 35, left: 50 },
+        xAxis: { type: 'category', data: typeNames, axisLabel: { fontSize: 10 } },
+        yAxis: { type: 'value', axisLabel: { fontSize: 10 } },
+        series: [{
+          type: 'bar', data: typeVals, barWidth: '50%',
+          itemStyle: {
+            color: function (p) { return barColors[p.dataIndex] || '#999'; },
+            borderRadius: [4, 4, 0, 0]
+          },
+          label: { show: true, position: 'top', formatter: '{c}', fontSize: 10 }
+        }]
+      });
+    }
+
+    /* ===== Settings Modal ===== */
+    function openDashSettings() {
+      document.getElementById('settingsModal').classList.add('visible');
+    }
+    function closeDashSettings() {
+      document.getElementById('settingsModal').classList.remove('visible');
+    }
+    function toggleDashboard(btn) {
+      btn.classList.toggle('on');
+    }
+
+    /* ===== Edit Mode Toggle ===== */
+    var isEditMode = false;
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      var main = document.querySelector('.main-inner');
+      var btn = document.getElementById('editModeBtn');
+      if (isEditMode) {
+        main.classList.add('editing');
+        btn.classList.add('active');
+        btn.querySelector('span').textContent = '完成';
+        showToast('进入编辑模式 — 拖拽移动或缩放组件');
+      } else {
+        main.classList.remove('editing');
+        btn.classList.remove('active');
+        btn.querySelector('span').textContent = '编辑';
+        // reset all draggable
+        document.querySelectorAll('.dash-card[draggable="true"]').forEach(function (c) { c.setAttribute('draggable', 'false'); });
+        showToast('已退出编辑模式');
+      }
+    }
+
+    /* ===== Drag & Drop + Resize Engine ===== */
+    var dragSrcEl = null;
+
+    function initDragResize() {
+      var cards = document.querySelectorAll('.dash-card');
+      cards.forEach(function (card) {
+        // — Drag Handle mousedown → enable draggable (only in edit mode) —
+        var handle = card.querySelector('.drag-handle');
+        if (handle) {
+          handle.addEventListener('mousedown', function () {
+            if (!isEditMode) return;
+            card.setAttribute('draggable', 'true');
+          });
+        }
+        // — dragstart —
+        card.addEventListener('dragstart', function (e) {
+          dragSrcEl = card;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+        });
+        // — dragover —
+        card.addEventListener('dragover', function (e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          card.classList.add('drag-over');
+        });
+        // — dragleave —
+        card.addEventListener('dragleave', function () {
+          card.classList.remove('drag-over');
+        });
+        // — drop —
+        card.addEventListener('drop', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          card.classList.remove('drag-over');
+          if (dragSrcEl && dragSrcEl !== card) {
+            var grid = card.parentNode;
+            var all = Array.prototype.slice.call(grid.children);
+            var srcIdx = all.indexOf(dragSrcEl);
+            var tgtIdx = all.indexOf(card);
+            if (srcIdx < tgtIdx) grid.insertBefore(dragSrcEl, card.nextSibling);
+            else grid.insertBefore(dragSrcEl, card);
+            showToast('组件已移动');
+          }
+        });
+        // — dragend —
+        card.addEventListener('dragend', function () {
+          card.classList.remove('dragging');
+          card.setAttribute('draggable', 'false');
+          document.querySelectorAll('.dash-card.drag-over').forEach(function (c) { c.classList.remove('drag-over'); });
+          dragSrcEl = null;
+        });
+
+        // — Resize Handle (only in edit mode) —
+        var rh = card.querySelector('.resize-handle');
+        if (rh) {
+          rh.addEventListener('mousedown', function (e) {
+            if (!isEditMode) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var startX = e.clientX;
+            var startY = e.clientY;
+            var startW = card.offsetWidth;
+            var startH = card.offsetHeight;
+            var grid = card.parentNode;
+            var cols = 3;
+            var gridGap = 10;
+            var gridW = grid.offsetWidth;
+            var colW = (gridW - gridGap * (cols - 1)) / cols;
+
+            // ghost preview
+            var ghost = document.createElement('div');
+            ghost.className = 'resize-ghost';
+            var rect = card.getBoundingClientRect();
+            ghost.style.left = rect.left + 'px';
+            ghost.style.top = rect.top + 'px';
+            ghost.style.width = startW + 'px';
+            ghost.style.height = startH + 'px';
+            document.body.appendChild(ghost);
+
+            var newSpan = getCurrentSpan(card);
+
+            function onMove(ev) {
+              var dx = ev.clientX - startX;
+              var dy = ev.clientY - startY;
+              var newW = startW + dx;
+              var newH = startH + dy;
+              // snap to column span
+              if (newW < colW * 1.4) newSpan = 1;
+              else if (newW < colW * 2.4 + gridGap) newSpan = 2;
+              else newSpan = 3;
+              var snapW = colW * newSpan + gridGap * (newSpan - 1);
+              ghost.style.width = snapW + 'px';
+              ghost.style.height = Math.max(100, newH) + 'px';
+            }
+
+            function onUp() {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+              ghost.remove();
+              // apply span
+              card.classList.remove('span-2', 'span-3');
+              if (newSpan === 2) card.classList.add('span-2');
+              else if (newSpan >= 3) card.classList.add('span-3');
+              showToast('组件大小已调整 → span ' + newSpan);
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+        }
+      });
+    }
+
+    function getCurrentSpan(card) {
+      if (card.classList.contains('span-3')) return 3;
+      if (card.classList.contains('span-2')) return 2;
+      return 1;
+    }
+
+    /* ===== Init ===== */
+    renderDashboard(0);
+    initDragResize();
+
+  </script>
+
+  <!-- ===== Navbar Feature Scripts ===== -->
+  <script>
+
+    // Toast
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(function () { t.classList.remove('show'); }, 2000);
+    }
+
+    // Theme Toggle
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isDark = html.getAttribute('data-theme') === 'dark';
+      var next = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      try { localStorage.setItem('ems-theme', next); } catch (e) { }
+      showToast(isDark ? '已切换到浅色主题' : '已切换到暗色主题');
+    }
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+      } catch (e) { }
+    })();
+
+    // Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    // Sidebar Toggle
+    function toggleSidebar() {
+      var sb = document.getElementById('sidebar');
+      sb.classList.toggle('expanded');
+      var isOpen = sb.classList.contains('expanded');
+      document.body.classList.toggle('sidebar-open', isOpen);
+      try { localStorage.setItem('ems-sidebar', isOpen ? 'expanded' : 'collapsed'); } catch (e) { }
+    }
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-sidebar');
+        if (saved === 'expanded') {
+          document.getElementById('sidebar').classList.add('expanded');
+          document.body.classList.add('sidebar-open');
+        }
+      } catch (e) { }
+    })();
+
+    // User Menu
+    function toggleUserMenu() {
+      document.getElementById('userDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', function (e) {
+      var w = document.getElementById('userWrapper');
+      if (w && !w.contains(e.target)) document.getElementById('userDropdown').classList.remove('open');
+    });
+
+    // Language Switcher
+    function toggleLangMenu() {
+      document.getElementById('langMenu').classList.toggle('open');
+    }
+    function switchLang(code, label, el) {
+      document.querySelectorAll('.lang-option').forEach(function (o) { o.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('langMenu').classList.remove('open');
+      showToast('已切换语言: ' + label);
+    }
+    document.addEventListener('click', function (e) {
+      var sw = document.getElementById('langSwitcher');
+      if (sw && !sw.contains(e.target)) document.getElementById('langMenu').classList.remove('open');
+    });
+
+    // Command Palette
+    var CMD_DATA = [
+      { cat: '快速导航', title: '工作台', desc: '概览 Dashboard', icon: 'grid' },
+      { cat: '快速导航', title: '租户管理', desc: '组织管理 → 租户管理', icon: 'users' },
+      { cat: '快速导航', title: '产品管理', desc: '组织管理 → 产品管理', icon: 'box' },
+      { cat: '快速导航', title: '授权管理', desc: '组织管理 → License & SKU', icon: 'lock' },
+      { cat: '快速导航', title: '角色管理', desc: '权限管理 → 角色管理', icon: 'shield' },
+      { cat: '快速导航', title: '组织架构', desc: '权限管理 → 组织架构', icon: 'org' },
+      { cat: '快速导航', title: '个人信息', desc: '系统设置 → 个人信息', icon: 'user' },
+      { cat: '快速导航', title: '三方对接', desc: '系统设置 → 三方对接', icon: 'link' },
+      { cat: '快速导航', title: '同步管理', desc: '系统设置 → 同步管理', icon: 'sync' },
+      { cat: '快速导航', title: '通用设置', desc: '系统设置 → 通用设置', icon: 'settings' },
+      { cat: '操作', title: '切换暗色主题', desc: '系统显示偏好', icon: 'theme', keys: ['⌘', 'D'], action: function () { toggleTheme(); closeCmd(); } },
+      { cat: '操作', title: '全屏模式', desc: '切换全屏显示', icon: 'fullscreen', action: function () { toggleFullscreen(); closeCmd(); } },
+    ];
+    var CMD_ICONS = {
+      grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+      users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+      box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+      lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+      shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      org: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="3"/><path d="M12 8v4M6 16h12M6 16v4M18 16v4M12 12v4M12 16v4"/></svg>',
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+      sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 4v2h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/><path d="M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>',
+      settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z"/></svg>',
+      theme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
+      fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>',
+    };
+    var cmdFocusIdx = 0, cmdFiltered = [];
+    function renderCmdResults(items) {
+      cmdFiltered = items; cmdFocusIdx = 0;
+      var c = document.getElementById('cmdResults');
+      if (!items.length) { c.innerHTML = '<div class="cmd-empty">没有匹配结果</div>'; return; }
+      var html = '', lastCat = '';
+      items.forEach(function (item, idx) {
+        if (item.cat !== lastCat) { lastCat = item.cat; html += '<div class="cmd-section-title">' + item.cat + '</div>'; }
+        var f = idx === 0 ? ' focused' : '';
+        var keys = item.keys ? '<div class="cmd-result-shortcut">' + item.keys.map(function (k) { return '<kbd>' + k + '</kbd>'; }).join('') + '</div>' : '';
+        html += '<div class="cmd-result-item' + f + '" data-idx="' + idx + '" onclick="execCmdItem(' + idx + ')" onmouseenter="focusCmdItem(' + idx + ')">';
+        html += '<div class="cmd-result-icon">' + (CMD_ICONS[item.icon] || '') + '</div>';
+        html += '<div class="cmd-result-text"><div class="title">' + item.title + '</div><div class="desc">' + item.desc + '</div></div>';
+        html += keys + '</div>';
+      });
+      c.innerHTML = html;
+    }
+    function filterCmdResults(q) {
+      q = q.trim().toLowerCase();
+      if (!q) { renderCmdResults(CMD_DATA.slice(0, 12)); return; }
+      renderCmdResults(CMD_DATA.filter(function (i) { return i.title.toLowerCase().indexOf(q) !== -1 || i.desc.toLowerCase().indexOf(q) !== -1; }).slice(0, 20));
+    }
+    function focusCmdItem(idx) {
+      document.querySelectorAll('.cmd-result-item').forEach(function (el) { el.classList.remove('focused'); });
+      var el = document.querySelector('.cmd-result-item[data-idx="' + idx + '"]');
+      if (el) { el.classList.add('focused'); cmdFocusIdx = idx; }
+    }
+    function execCmdItem(idx) {
+      var item = cmdFiltered[idx];
+      if (item && item.action) item.action();
+      else { closeCmd(); showToast('导航到: ' + (item ? item.title : '')); }
+    }
+    function openCmd() {
+      document.getElementById('cmdOverlay').classList.add('open');
+      renderCmdResults(CMD_DATA.slice(0, 12));
+      setTimeout(function () { document.getElementById('cmdInput').focus(); }, 50);
+    }
+    function closeCmd() {
+      document.getElementById('cmdOverlay').classList.remove('open');
+      document.getElementById('cmdInput').value = '';
+    }
+    document.addEventListener('keydown', function (e) {
+      var cmdOpen = document.getElementById('cmdOverlay').classList.contains('open');
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D')) { e.preventDefault(); toggleTheme(); return; }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); if (cmdOpen) closeCmd(); else openCmd(); return; }
+      if (e.key === 'Escape' && cmdOpen) { closeCmd(); return; }
+      if (cmdOpen) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); focusCmdItem(Math.min(cmdFocusIdx + 1, cmdFiltered.length - 1)); var el = document.querySelector('.cmd-result-item.focused'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); focusCmdItem(Math.max(cmdFocusIdx - 1, 0)); var el2 = document.querySelector('.cmd-result-item.focused'); if (el2) el2.scrollIntoView({ block: 'nearest' }); }
+        if (e.key === 'Enter') { e.preventDefault(); execCmdItem(cmdFocusIdx); }
+      }
+    });
+
+  </script>
+</body>
+
+</html>

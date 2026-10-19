@@ -1,0 +1,500 @@
+/* ===== ITSM 专用统一样式 ===== */
+/* 覆盖共享CSS的主色为ITSM绿色，统一按钮、筛选栏、卡片标题栏等样式 */
+
+/* --- 按钮统一样式 --- */
+.btn-primary {
+  background: var(--c-itsm, #059669);
+  color: #fff;
+  border-color: var(--c-itsm, #059669);
+}
+
+.btn-primary:hover {
+  background: var(--c-itsm, #059669);
+  opacity: .9;
+  color: #fff;
+}
+
+.btn-outline {
+  background: var(--c-white);
+  color: var(--c-text-2);
+  border: 1px solid var(--c-border);
+}
+
+.btn-outline:hover {
+  border-color: var(--c-itsm, #059669);
+  color: var(--c-itsm, #059669);
+}
+
+.btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* --- 页面级筛选栏统一样式 --- */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-bar .search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.filter-bar .search-wrap svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  stroke: var(--c-text-3, #9CA3AF);
+  fill: none;
+  stroke-width: 2;
+}
+
+.filter-bar .search-wrap input {
+  width: 100%;
+  padding: 7px 12px 7px 32px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  outline: none;
+  background: var(--c-white);
+}
+
+.filter-bar .search-wrap input:focus {
+  border-color: var(--c-itsm, #059669);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+}
+
+.filter-select {
+  padding: 7px 28px 7px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  background: var(--c-white);
+  color: var(--c-text-1);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.filter-select:focus {
+  border-color: var(--c-itsm, #059669);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+}
+
+.filter-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* --- 卡片标题栏统一样式 --- */
+.card-toolbar,
+.panel-toolbar,
+.kb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.card-toolbar h3,
+.panel-toolbar h3,
+.kb-toolbar h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text-1, #111827);
+  margin: 0;
+  flex: 1;
+}
+
+/* --- 关联功能统一样式 --- */
+.related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.related-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--c-fill-1);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background .15s;
+}
+
+.related-item:hover {
+  background: var(--c-fill-2);
+}
+
+.related-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.related-id {
+  font-weight: 600;
+  color: var(--c-itsm, #059669);
+  font-size: 13px;
+}
+
+.related-add {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--c-itsm, #059669);
+  background: var(--c-itsm, #059669);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.related-add:hover {
+  opacity: .9;
+}
+
+/* --- 详情页统一样式 --- */
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.detail-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--c-text-1);
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--c-text-3);
+  flex-wrap: wrap;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-card {
+  background: var(--c-white);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.detail-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-1);
+}
+
+.detail-card-header svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--c-itsm, #059669);
+  fill: none;
+  stroke-width: 2;
+}
+
+.detail-card-body {
+  padding: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.info-value {
+  font-size: 13px;
+  color: var(--c-text-1);
+  font-weight: 500;
+}
+
+/* --- Tab统一样式 --- */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--c-border);
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all .15s;
+}
+
+.tab:hover {
+  color: var(--c-text-1);
+}
+
+.tab.active {
+  color: var(--c-itsm, #059669);
+  border-bottom-color: var(--c-itsm, #059669);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* --- 时间线统一样式 --- */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-itsm, #059669);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.timeline-dot.warning {
+  background: var(--c-warning, #F59E0B);
+}
+
+.timeline-dot.danger {
+  background: var(--c-danger, #EF4444);
+}
+
+.timeline-time {
+  font-size: 11px;
+  color: var(--c-text-3);
+  flex-shrink: 0;
+  width: 120px;
+}
+
+.timeline-text {
+  font-size: 13px;
+  color: var(--c-text-2);
+  flex: 1;
+}
+
+/* --- 表格统一样式 --- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--c-fill-1);
+  font-weight: 600;
+  color: var(--c-text-2);
+  border-bottom: 1px solid var(--c-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--c-border-light);
+  color: var(--c-text-1);
+}
+
+.data-table tbody tr:hover {
+  background: var(--c-fill-1);
+}
+
+/* --- 状态标签统一样式 --- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.success {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.status-badge.warning {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-badge.danger {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-badge.info {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.status-badge.default {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* --- 返回链接统一样式 --- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--c-text-3);
+  text-decoration: none;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  color: var(--c-itsm, #059669);
+}
+
+.back-link svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* ===== 底部 sticky 操作条（与FSM工单详情/受理提单页同一套布局） ===== */
+.detail-bottom-bar,
+.form-bottom-bar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  /* 右侧留出 AI 悬浮球（fixed / right:20px / 48px）的宽度 */
+  padding: 10px 76px 10px 14px;
+  border-radius: var(--r-lg, 12px);
+  background: var(--c-white);
+  border-top: 1px solid var(--c-border-light, #E5E7EB);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+}
+
+/* 旁注独占首行 */
+.detail-bottom-bar .act-hint {
+  flex: 0 0 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+/* 右组：吃掉剩余空间靠右排列 */
+.detail-bottom-bar .acts-right,
+.form-bottom-bar .bar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 详情页顶部原操作区隐藏（已移到底部） */
+.detail-header .detail-actions {
+  display: none;
+}
+
+/* 表单页顶部原操作区隐藏（已移到底部） */
+.form-actions-top {
+  display: none;
+}

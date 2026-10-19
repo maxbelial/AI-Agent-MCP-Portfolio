@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMS - 告警中心</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/ems-v2-common.css">
+  <style>
+    /* === Dark Mode Override === */
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --c-primary: #60A5FA;
+      --c-primary-hover: #93C5FD;
+      --c-primary-active: #3B82F6;
+      --c-primary-bg: #1E293B;
+      --c-primary-border: #1E40AF;
+      --c-success: #34D399;
+      --c-success-bg: #064E3B;
+      --c-success-border: #065F46;
+      --c-warning: #FBBF24;
+      --c-warning-bg: #78350F;
+      --c-warning-border: #92400E;
+      --c-danger: #F87171;
+      --c-danger-bg: #7F1D1D;
+      --c-danger-border: #991B1B;
+      --c-text-1: #F1F5F9;
+      --c-text-2: #94A3B8;
+      --c-text-3: #64748B;
+      --c-text-4: #475569;
+      --c-border: #334155;
+      --c-border-light: #1E293B;
+      --c-fill-1: #1E293B;
+      --c-fill-2: #334155;
+      --c-bg: #0F172A;
+      --c-white: #1E293B;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    [data-theme="dark"] .ai-panel {
+      border-color: #831843;
+    }
+
+    [data-theme="dark"] .ai-insight {
+      background: #1C1127;
+    }
+
+    [data-theme="dark"] .ai-panel-title {
+      color: #F472B6;
+    }
+
+    /* === Alert Center Page Styles === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--c-white);
+      border: none;
+      box-shadow: var(--shadow-sm);
+      border-radius: var(--r-lg);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .stat-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: #fff;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .stat-icon.blue {
+      background: var(--c-primary);
+    }
+
+    .stat-icon.red {
+      background: var(--c-danger);
+    }
+
+    .stat-icon.orange {
+      background: var(--c-warning);
+    }
+
+    .stat-icon.green {
+      background: var(--c-success);
+    }
+
+    .stat-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 300px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      stroke: var(--c-text-3);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      font-size: 13px;
+      outline: none;
+      background: var(--c-white);
+      color: var(--c-text-1);
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      font-size: 13px;
+      color: var(--c-text-2);
+      background: var(--c-white);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      border-color: var(--c-primary);
+    }
+
+    .filter-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--r-lg);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      transition: all .15s;
+    }
+
+    .btn:hover {
+      background: var(--c-fill-1);
+      border-color: var(--c-text-3);
+    }
+
+    .btn-primary {
+      background: var(--c-primary);
+      color: #fff;
+      border-color: var(--c-primary);
+    }
+
+    .btn-primary:hover {
+      background: #1D4ED8;
+      border-color: #1D4ED8;
+    }
+
+    /* Table */
+    .table-card {
+      background: var(--c-white);
+      box-shadow: var(--shadow-sm);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--c-text-3);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--c-border);
+      background: var(--c-fill-1);
+    }
+
+    .data-table td {
+      font-size: 13px;
+      color: var(--c-text-2);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tr:hover td {
+      background: var(--c-fill-1);
+    }
+
+    .data-table input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: var(--c-primary);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .status-badge.danger {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .status-badge.warning {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .status-badge.info {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+
+    .status-badge.success {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .status-badge.default {
+      background: var(--c-fill-2);
+      color: var(--c-text-3);
+    }
+
+    .action-link {
+      font-size: 12px;
+      color: var(--c-primary);
+      text-decoration: none;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .action-link:hover {
+      text-decoration: underline;
+    }
+
+    .product-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .product-tag.ai {
+      background: rgba(236, 72, 153, .08);
+      color: #DB2777;
+    }
+
+    .product-tag.itom {
+      background: rgba(37, 99, 235, .08);
+      color: #2563EB;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--c-text-3);
+    }
+
+    .pagination-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .pagination-btns button {
+      padding: 5px 12px;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      border-radius: var(--r-md);
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--c-text-2);
+    }
+
+    .pagination-btns button.active {
+      background: var(--c-primary);
+      color: #fff;
+      border-color: var(--c-primary);
+    }
+
+    /* AI Panel */
+    .ai-panel {
+      background: var(--c-white);
+      border: 1px solid #F9A8D4;
+      border-radius: var(--r-lg);
+      padding: 14px 18px;
+    }
+
+    .ai-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .ai-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #DB2777;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #EC4899;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    .ai-insight {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #FDF2F8;
+      border-radius: var(--r-lg);
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--c-text-2);
+    }
+
+    .ai-insight:last-child {
+      margin-bottom: 0;
+    }
+
+    .ai-insight-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      margin-top: 1px;
+    }
+
+    .ai-insight-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: #EC4899;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .ai-insight a {
+      color: #DB2777;
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* AI Analysis Drawer */
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .3);
+      z-index: 500;
+    }
+
+    .drawer-overlay.open {
+      display: block;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -85%;
+      width: 85%;
+      height: 100vh;
+      background: var(--c-white);
+      box-shadow: -4px 0 24px rgba(0, 0, 0, .12);
+      z-index: 501;
+      transition: right .3s cubic-bezier(.4, 0, .2, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .drawer.open {
+      right: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--c-border);
+      gap: 12px;
+    }
+
+    .drawer-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      flex: 1;
+    }
+
+    .drawer-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text-3);
+    }
+
+    .drawer-close:hover {
+      background: var(--c-fill-2);
+      color: var(--c-text-1);
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .analysis-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: var(--r-lg);
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .analysis-status.pending {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .analysis-status.running {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+
+    .analysis-status.completed {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .analysis-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .result-section {
+      margin-bottom: 20px;
+    }
+
+    .result-section h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .result-report {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--c-text-2);
+      padding: 12px 14px;
+      background: var(--c-fill-1);
+      border-radius: var(--r-lg);
+      border-left: 3px solid var(--c-primary);
+    }
+
+    .cause-card {
+      padding: 12px 14px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      margin-bottom: 8px;
+    }
+
+    .cause-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .cause-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+    }
+
+    .confidence-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .confidence-bar .bar {
+      width: 60px;
+      height: 6px;
+      background: var(--c-fill-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .confidence-bar .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--c-primary);
+    }
+
+    .cause-proof {
+      font-size: 12px;
+      color: var(--c-text-3);
+      margin-top: 4px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .meta-item {
+      padding: 10px 12px;
+      background: var(--c-fill-1);
+      border-radius: var(--r-md);
+    }
+
+    .meta-item .label {
+      font-size: 11px;
+      color: var(--c-text-3);
+    }
+
+    .meta-item .value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      margin-top: 2px;
+    }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--c-fill-1) 25%, var(--c-fill-2) 50%, var(--c-fill-1) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--r-md);
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Content spacing */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filter-actions {
+        margin-left: 0;
+      }
+    }
+
+    /* === V2 Layout Overrides (header/sidebar/logo) === */
+    :root {
+      --sidebar-collapsed-w: 56px;
+    }
+
+    .header {
+      padding: 0 16px 0 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo-area {
+      width: var(--sidebar-collapsed-w);
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: width .25s var(--ease);
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      transition: width .25s var(--ease), height .25s var(--ease);
+    }
+
+    .logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    body.sidebar-open .logo-area {
+      width: var(--sidebar-w);
+      padding-left: 16px;
+      justify-content: flex-start;
+    }
+
+    body.sidebar-open .logo-mark {
+      width: 120px;
+      height: 36px;
+      border-radius: var(--r-sm);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .bc-item {
+      color: var(--c-text-3);
+      text-decoration: none;
+    }
+
+    .bc-item:hover {
+      color: var(--c-primary);
+    }
+
+    .sep {
+      color: var(--c-text-4);
+      font-size: 11px;
+    }
+
+    .current {
+      color: var(--c-text-1);
+      font-weight: 500;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .cmd-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 6px 14px;
+      color: var(--c-text-3);
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 380px;
+      width: 100%;
+      transition: all .2s;
+    }
+
+    .cmd-trigger:hover {
+      border-color: var(--c-primary);
+      color: var(--c-text-2);
+    }
+
+    .cmd-trigger .shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--c-text-3);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-md);
+      border: none;
+      background: transparent;
+      color: var(--c-text-3);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .header-icon-btn:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .header-icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--c-border);
+      margin: 0 6px;
+    }
+
+    .lang-switcher {
+      position: relative;
+    }
+
+    .lang-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 140px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      padding: 4px;
+    }
+
+    .lang-menu.open {
+      display: block;
+    }
+
+    .lang-option {
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+
+    .lang-option:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .lang-option.active {
+      color: var(--c-primary);
+      font-weight: 500;
+      background: var(--c-primary-bg);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--r-md);
+      color: var(--c-text-2);
+      font-size: 13px;
+      transition: all .15s;
+    }
+
+    .user-area:hover {
+      background: var(--c-fill-1);
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--c-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* === SIDEBAR === */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      width: var(--sidebar-collapsed-w);
+      height: calc(100vh - var(--header-h));
+      background: var(--c-white);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 90;
+      overflow: hidden;
+      padding: 6px 0;
+      transition: width .25s var(--ease);
+    }
+
+    .sidebar.expanded {
+      width: var(--sidebar-w);
+      overflow-y: auto;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--c-text-3);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform .25s var(--ease);
+    }
+
+    .sidebar.expanded .sidebar-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .sidebar-group {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-group {
+      opacity: 1;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 18px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sidebar-item:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-item.active {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+      font-weight: 500;
+    }
+
+    .sidebar-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--c-primary);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-item .s-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-item .s-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-item .s-label {
+      opacity: 0;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+
+    .sidebar.expanded .sidebar-item .s-label {
+      opacity: 1;
+    }
+
+    .sidebar:not(.expanded) .sidebar-item[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(var(--sidebar-collapsed-w) + 4px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--c-text-1);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    /* === MAIN CONTENT AREA === */
+    .main {
+      position: absolute;
+      top: var(--header-h);
+      left: var(--sidebar-collapsed-w);
+      right: 0;
+      bottom: 0;
+      overflow: auto;
+      background: var(--c-bg);
+      transition: left .25s var(--ease);
+    }
+
+    .sidebar.expanded~.main {
+      left: var(--sidebar-w);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-area">
+        <div class="logo-mark"><img src="../assets/itom-logo.png" alt="EMS"></div>
+      </div>
+      <nav class="header-breadcrumb">
+        <a class="bc-item" href="../baseline/workspace-v2.html">首页</a>
+        <span class="sep">›</span>
+        <span class="current">告警中心</span>
+      </nav>
+    </div>
+    <div class="header-center">
+      <div class="cmd-trigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;flex-shrink:0">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>搜索告警、设备、事件…</span>
+        <span class="shortcut">⌘K</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="lang-switcher" id="langSwitcher">
+        <button class="header-icon-btn" title="语言切换" onclick="toggleLangMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+          </svg>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-option active" onclick="switchLang('zh-CN','简体中文',this)">简体中文</div>
+          <div class="lang-option" onclick="switchLang('zh-TW','繁體中文',this)">繁體中文</div>
+          <div class="lang-option" onclick="switchLang('en','English',this)">English</div>
+        </div>
+      </div>
+      <button class="header-icon-btn" title="暗色模式" onclick="toggleTheme()">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      </button>
+      <button class="header-icon-btn" title="全屏" onclick="toggleFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+        </svg>
+      </button>
+      <div class="header-sep"></div>
+      <button class="user-area">
+        <div class="user-avatar">A</div>
+        <span>Admin</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="展开/收起菜单">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+      </svg>
+    </button>
+    <a class="sidebar-item" href="../baseline/workspace-v2.html" title="工作台">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg></span>
+      <span class="s-label">工作台</span>
+    </a>
+    <div class="sidebar-group">组织管理</div>
+    <a class="sidebar-item" href="../baseline/tenant-management-v2.html" title="租户管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg></span>
+      <span class="s-label">租户管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/product-management-v2.html" title="产品管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+          <path d="M3.27 6.96L12 12.01l8.73-5.05" />
+          <path d="M12 22.08V12" />
+        </svg></span>
+      <span class="s-label">产品管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/license-management-v2.html" title="授权管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg></span>
+      <span class="s-label">授权管理</span>
+    </a>
+    <div class="sidebar-group">权限管理</div>
+    <a class="sidebar-item" href="../baseline/role-management-v2.html" title="角色管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg></span>
+      <span class="s-label">角色管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/org-structure-v2.html" title="组织架构">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="5" r="3" />
+          <path d="M12 8v4" />
+          <path d="M6 16h12" />
+          <path d="M6 16v4" />
+          <path d="M18 16v4" />
+          <path d="M12 12v4" />
+          <path d="M12 16v4" />
+        </svg></span>
+      <span class="s-label">组织架构</span>
+    </a>
+    <div class="sidebar-group">系统设置</div>
+    <a class="sidebar-item" href="../baseline/personal-info-v2.html" title="个人信息">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg></span>
+      <span class="s-label">个人信息</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/third-party-v2.html" title="三方对接">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+        </svg></span>
+      <span class="s-label">三方对接</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/sync-management-v2.html" title="同步管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M23 4v2h-6" />
+          <path d="M1 20v-6h6" />
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10" />
+          <path d="M20.49 15a9 9 0 01-14.85 3.36L1 14" />
+        </svg></span>
+      <span class="s-label">同步管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/general-settings-v2.html" title="通用设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+        </svg></span>
+      <span class="s-label">通用设置</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/ai-settings-v2.html" title="AI访问设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">AI访问设置</span>
+    </a>
+    <div class="sidebar-group">ITOM 模块</div>
+    <a class="sidebar-item active" href="alert-center-v2.html" title="告警中心">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg></span>
+      <span class="s-label">告警中心</span>
+    </a>
+    <div class="sidebar-group">AI 管理</div>
+    <a class="sidebar-item" href="../ai/ai-management-v2.html" title="Agent Hub">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">Agent Hub</span>
+    </a>
+    <div class="org-switcher">
+      <div class="org-avatar">J</div>
+      <div class="org-info">
+        <div class="org-name">JGDemo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="main-inner">
+      <div class="content">
+        <!-- Page Title -->
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h1 style="font-size:16px;font-weight:600;color:var(--c-text-1);">告警中心 <span
+              style="font-size:12px;font-weight:400;color:var(--c-text-3)">ITOM 实时告警 · AI 根因分析</span></h1>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue"><svg viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 01-3.46 0" />
+              </svg></div>
+            <div class="stat-info"><span class="stat-label">活跃告警</span><span class="stat-value">47</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red"><svg viewBox="0 0 24 24">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg></div>
+            <div class="stat-info"><span class="stat-label">紧急</span><span class="stat-value">2</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg></div>
+            <div class="stat-info"><span class="stat-label">严重</span><span class="stat-value">2</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><svg viewBox="0 0 24 24">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                <path d="M22 4L12 14.01l-3-3" />
+              </svg></div>
+            <div class="stat-info"><span class="stat-label">已恢复</span><span class="stat-value">31</span></div>
+          </div>
+        </div>
+
+        <!-- AI Agent Status -->
+        <div class="ai-panel">
+          <div class="ai-panel-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+              <circle cx="9" cy="10" r="1" fill="#EC4899" stroke="none" />
+              <circle cx="15" cy="10" r="1" fill="#EC4899" stroke="none" />
+              <path d="M9 14h6" />
+            </svg>
+            <span class="ai-panel-title">AI 根因分析 Agent</span>
+            <div class="live-dot"></div>
+            <span style="font-size:11px;color:var(--c-text-3);margin-left:auto;">alert_agent · GLM-5.1 · 运行中</span>
+          </div>
+          <div class="ai-insight">
+            <div class="ai-insight-icon"><svg viewBox="0 0 24 24">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                <path d="M22 4L12 14.01l-3-3" />
+              </svg></div>
+            <span>今日已完成 <strong>12</strong> 次根因分析，平均耗时 <strong>28.6s</strong>，分析成功率 <strong>91.7%</strong></span>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="搜索告警对象、描述...">
+          </div>
+          <select class="filter-select">
+            <option>等级: 全部</option>
+            <option>紧急</option>
+            <option>严重</option>
+            <option>一般</option>
+          </select>
+          <select class="filter-select">
+            <option>状态: 全部</option>
+            <option>告警</option>
+            <option>已恢复</option>
+          </select>
+
+          <select class="filter-select">
+            <option>AI分析: 全部</option>
+            <option>根因已定位</option>
+            <option>分析中</option>
+            <option>待分析</option>
+          </select>
+          <div class="filter-actions">
+            <button class="btn btn-primary">批量确认</button>
+            <button class="btn">导出</button>
+          </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox"></th>
+                <th>等级</th>
+                <th>告警对象</th>
+                <th>告警描述</th>
+                <th>AI 分析</th>
+                <th>触发时间</th>
+                <th>持续时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge danger">紧急</span></td>
+                <td>Core-Switch-A1<br><span style="font-size:11px;color:var(--c-text-3)">192.168.1.1</span></td>
+                <td>GigabitEthernet0/1 端口Down，接口状态变为down</td>
+                <td><span class="product-tag ai">✓ 根因已定位</span></td>
+                <td>2026-05-25 14:32</td>
+                <td style="color:var(--c-danger);font-weight:600;">2h 15m</td>
+                <td><span class="status-badge danger">告警</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-001','completed')">查看分析</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge danger">紧急</span></td>
+                <td>GBA-SZ-Core-SW01<br><span style="font-size:11px;color:var(--c-text-3)">10.0.0.1</span></td>
+                <td>OSPF邻居关系震荡，Neighbor 10.0.0.2 Down</td>
+                <td><span class="product-tag ai">✓ 根因已定位</span></td>
+                <td>2026-05-25 13:30</td>
+                <td style="color:var(--c-danger);font-weight:600;">3h 08m</td>
+                <td><span class="status-badge danger">告警</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-002','completed')">查看分析</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge warning">严重</span></td>
+                <td>Access-Switch-B1<br><span style="font-size:11px;color:var(--c-text-3)">192.168.2.10</span></td>
+                <td>上联链路中断，GigabitEthernet0/0/1 CRC错误率激增</td>
+                <td><span class="product-tag ai">⏳ 分析中</span></td>
+                <td>2026-05-25 13:45</td>
+                <td>2h 53m</td>
+                <td><span class="status-badge warning">告警</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-003','analyzing')">查看进度</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge warning">严重</span></td>
+                <td>DB-Master-02<br><span style="font-size:11px;color:var(--c-text-3)">10.0.2.31</span></td>
+                <td>磁盘空间不足，/data 分区可用率低于 5%</td>
+                <td><span class="product-tag ai">✓ 根因已定位</span></td>
+                <td>2026-05-25 12:18</td>
+                <td>4h 20m</td>
+                <td><span class="status-badge danger">告警</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-004','completed')">查看分析</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge info">一般</span></td>
+                <td>AP-Floor3-07<br><span style="font-size:11px;color:var(--c-text-3)">192.168.10.47</span></td>
+                <td>AP离线，最后心跳时间 12:30:00</td>
+                <td><span class="product-tag itom">待分析</span></td>
+                <td>2026-05-25 12:35</td>
+                <td>4h 03m</td>
+                <td><span class="status-badge warning">告警</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-005','pending')">AI分析</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge info">一般</span></td>
+                <td>Switch-Access-05<br><span style="font-size:11px;color:var(--c-text-3)">10.0.0.15</span></td>
+                <td>端口 Gi0/24 状态变更 Up→Down→Up</td>
+                <td><span class="product-tag itom">待分析</span></td>
+                <td>2026-05-25 11:50</td>
+                <td>4h 48m</td>
+                <td><span class="status-badge success">已恢复</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-006','pending')">AI分析</a></td>
+              </tr>
+              <!-- === 异常状态 Demo 行 === -->
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge danger">紧急</span></td>
+                <td>Router-Edge-01<br><span style="font-size:11px;color:var(--c-text-3)">172.16.0.1</span></td>
+                <td>BGP Peer Down（演示：分析失败状态）</td>
+                <td><span class="product-tag" style="background:#FEE2E2;color:#DC2626;">✕ 分析失败</span></td>
+                <td>2026-05-25 10:15</td>
+                <td>6h 23m</td>
+                <td><span class="status-badge danger">告警</span></td>
+                <td><a class="action-link" style="color:#DC2626;"
+                    onclick="openAnalysis('ALT-20260525-007','failed')">查看失败</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge warning">严重</span></td>
+                <td>Switch-Core-03<br><span style="font-size:11px;color:var(--c-text-3)">10.0.1.3</span></td>
+                <td>CPU 利用率 > 95%（演示：分析超时状态）</td>
+                <td><span class="product-tag" style="background:#FEF3C7;color:#92400E;">⏱ 分析超时</span></td>
+                <td>2026-05-25 09:42</td>
+                <td>6h 56m</td>
+                <td><span class="status-badge danger">告警</span></td>
+                <td><a class="action-link" style="color:#D97706;"
+                    onclick="openAnalysis('ALT-20260525-008','timeout')">查看超时</a></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge info">一般</span></td>
+                <td>AP-Floor3-12<br><span style="font-size:11px;color:var(--c-text-3)">10.0.3.12</span></td>
+                <td>无线信道拥塞（演示：服务离线状态）</td>
+                <td><span class="product-tag" style="background:#F1F5F9;color:#94A3B8;">服务不可用</span></td>
+                <td>2026-05-25 08:30</td>
+                <td>8h 8m</td>
+                <td><span class="status-badge success">已恢复</span></td>
+                <td>
+                  <div style="display:flex;flex-direction:column;gap:4px;">
+                    <span style="font-size:12px;color:#94A3B8;cursor:not-allowed;">AI分析已禁用</span>
+                    <a class="action-link" href="../ai/ai-management-v2.html">前往 Agent Hub</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="status-badge warning">严重</span></td>
+                <td>Edge-Router-04<br><span style="font-size:11px;color:var(--c-text-3)">10.0.4.1</span></td>
+                <td>BGP 邻居抖动（演示：空数据兜底）</td>
+                <td><span class="product-tag ems">✓ 根因已定位</span></td>
+                <td>2026-05-25 07:55</td>
+                <td>8h 43m</td>
+                <td><span class="status-badge danger">告警</span></td>
+                <td><a class="action-link" onclick="openAnalysis('ALT-20260525-010','completed-empty')">查看分析</a></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <span>共 47 条活跃告警</span>
+            <div class="pagination-btns">
+              <button class="active">1</button>
+              <button>2</button>
+              <button>3</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AI ANALYSIS DRAWER (Full-width with left+right layout) ===== -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="analysisDrawer" style="width:85%;right:-85%;">
+    <div class="drawer-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+        <circle cx="9" cy="10" r="1" fill="#EC4899" stroke="none" />
+        <circle cx="15" cy="10" r="1" fill="#EC4899" stroke="none" />
+        <path d="M9 14h6" />
+      </svg>
+      <h3>告警详情 · AI 根因分析</h3>
+      <span id="drawerAlertId" style="font-size:12px;color:var(--c-text-3);margin-left:8px;"></span>
+      <button class="drawer-close" onclick="closeDrawer()" style="margin-left:auto;">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody" style="display:flex;gap:24px;padding:24px;">
+      <!-- Dynamic content injected by JS -->
+    </div>
+  </div>
+
+  <script>
+    // ===== Theme Toggle (with localStorage persist) =====
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isDark = html.getAttribute('data-theme') === 'dark';
+      var next = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      try { localStorage.setItem('ems-theme', next); } catch (e) { }
+    }
+    // Restore theme on load
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+      } catch (e) { }
+    })();
+
+    // ===== Fullscreen Toggle =====
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // ===== Language Switcher =====
+    function toggleLangMenu() {
+      document.getElementById('langMenu').classList.toggle('open');
+    }
+    function switchLang(code, label, el) {
+      document.querySelectorAll('.lang-option').forEach(function (o) { o.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('langMenu').classList.remove('open');
+    }
+    document.addEventListener('click', function (e) {
+      var sw = document.getElementById('langSwitcher');
+      if (sw && !sw.contains(e.target)) {
+        document.getElementById('langMenu').classList.remove('open');
+      }
+    });
+
+    // ===== Sidebar Toggle =====
+    function toggleSidebar() {
+      var sb = document.getElementById('sidebar');
+      sb.classList.toggle('expanded');
+      var isOpen = sb.classList.contains('expanded');
+      document.body.classList.toggle('sidebar-open', isOpen);
+      try { localStorage.setItem('ems-sidebar', isOpen ? 'expanded' : 'collapsed'); } catch (e) { }
+    }
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-sidebar');
+        if (saved === 'expanded') {
+          document.getElementById('sidebar').classList.add('expanded');
+          document.body.classList.add('sidebar-open');
+        }
+      } catch (e) { }
+    })();
+
+    // ===== Drawer =====
+    function openAnalysis(alertId, status) {
+      document.getElementById('drawerOverlay').classList.add('open');
+      var drawer = document.getElementById('analysisDrawer');
+      drawer.classList.add('open');
+      drawer.style.right = '0';
+      document.getElementById('drawerAlertId').textContent = alertId;
+      if (status === 'completed') {
+        showCompleted(alertId);
+      } else if (status === 'completed-empty') {
+        showCompletedEmpty(alertId);
+      } else if (status === 'analyzing') {
+        showAnalyzing(alertId);
+      } else if (status === 'failed') {
+        showFailed(alertId);
+      } else if (status === 'timeout') {
+        showTimeout(alertId);
+      } else if (status === 'offline') {
+        showServiceOffline();
+      } else {
+        startAnalysis(alertId);
+      }
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('open');
+      var drawer = document.getElementById('analysisDrawer');
+      drawer.classList.remove('open');
+      drawer.style.right = '-85%';
+    }
+
+    // ===== Analysis Flow =====
+    function showCompleted(alertId) {
+      var body = document.getElementById('drawerBody');
+      body.innerHTML = renderFullDetail(alertId);
+    }
+
+    function showCompletedEmpty(alertId) {
+      var body = document.getElementById('drawerBody');
+      body.innerHTML = '<div style="flex:3;overflow-y:auto;padding-right:20px;border-right:1px solid var(--c-border);">' +
+        renderAlertInfo(alertId) +
+        renderAnalysisResult() +
+        renderTimelineEmpty() +
+        renderRootCauses() +
+        renderSimilarCasesEmpty() +
+        renderRating() +
+        '</div>' +
+        '<div style="flex:2;overflow-y:auto;padding-left:4px;">' +
+        renderAutomationEmpty() +
+        '</div>';
+    }
+
+    function showAnalyzing(alertId) {
+      var body = document.getElementById('drawerBody');
+      body.innerHTML = '<div style="flex:3;overflow-y:auto;padding-right:20px;border-right:1px solid var(--c-border);">' +
+        renderAlertInfo(alertId) +
+        '<div style="margin-bottom:20px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
+        '<h4 style="font-size:14px;font-weight:600;color:var(--c-text-1);margin:0;">AI 根因分析</h4>' +
+        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2563EB;">' +
+        '<div class="analysis-spinner" style="width:12px;height:12px;border-width:2px;"></div>分析进行中 · 已耗时 48s</div></div>' +
+        '<div class="analysis-status running" style="margin-bottom:14px;">' +
+        '<div class="analysis-spinner"></div>' +
+        '<div><strong>Agent 正在工作</strong> — 已完成数据采集，正在进行异常检测与关联分析…</div></div>' +
+        '<div style="margin-bottom:16px;">' +
+        '<div style="font-size:12px;color:var(--c-text-3);margin-bottom:8px;">分析步骤</div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="width:20px;height:20px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;">✓</span>' +
+        '<span style="font-size:13px;color:var(--c-text-2);">数据采集 <span style="color:var(--c-text-4);font-size:11px;">— Syslog 89条, 配置变更 2条, 性能数据 1200点</span></span></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="width:20px;height:20px;border-radius:50%;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;"><div class="analysis-spinner" style="width:10px;height:10px;border-width:1.5px;border-color:#fff;border-top-color:transparent;"></div></span>' +
+        '<span style="font-size:13px;color:var(--c-text-1);font-weight:500;">异常检测与关联分析</span></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="width:20px;height:20px;border-radius:50%;background:var(--c-fill-2);color:var(--c-text-4);display:flex;align-items:center;justify-content:center;font-size:10px;">3</span>' +
+        '<span style="font-size:13px;color:var(--c-text-4);">根因推断</span></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="width:20px;height:20px;border-radius:50%;background:var(--c-fill-2);color:var(--c-text-4);display:flex;align-items:center;justify-content:center;font-size:10px;">4</span>' +
+        '<span style="font-size:13px;color:var(--c-text-4);">生成报告</span></div>' +
+        '</div></div>' +
+        '<div style="font-size:12px;color:var(--c-text-3);margin-bottom:8px;">预计结果</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' +
+        '<div class="skeleton" style="height:16px;width:80%;"></div>' +
+        '<div class="skeleton" style="height:16px;width:65%;"></div>' +
+        '<div class="skeleton" style="height:16px;width:72%;"></div>' +
+        '</div></div>' +
+        '</div>' +
+        '<div style="flex:2;overflow-y:auto;padding-left:4px;">' +
+        '<h4 style="font-size:14px;font-weight:600;color:var(--c-text-1);margin-bottom:14px;">⚡ 自动化处置</h4>' +
+        '<div style="padding:20px;background:var(--c-fill-1);border-radius:var(--r-lg);text-align:center;color:var(--c-text-3);font-size:13px;">' +
+        '<div style="font-size:24px;margin-bottom:8px;">⏳</div>' +
+        '<div>等待分析完成后自动匹配处置方案</div>' +
+        '<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">' +
+        '<div class="skeleton" style="height:14px;width:70%;margin:0 auto;"></div>' +
+        '<div class="skeleton" style="height:14px;width:55%;margin:0 auto;"></div>' +
+        '</div></div></div>';
+    }
+
+    function startAnalysis(alertId) {
+      var body = document.getElementById('drawerBody');
+      body.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">' +
+        '<div class="analysis-spinner" style="width:28px;height:28px;border-width:3px;"></div>' +
+        '<span style="font-size:13px;color:var(--c-text-3);">正在调用 alert_agent 分析 ' + alertId + '</span>' +
+        '<span style="font-size:11px;color:var(--c-text-4);">POST /v1/agents/alert_agent/analyze</span></div>';
+
+      setTimeout(function () {
+        body.innerHTML = renderFullDetail(alertId);
+      }, 2000);
+    }
+
+    // ===== Error / Timeout / Empty States =====
+    function showFailed(alertId, reason) {
+      var body = document.getElementById('drawerBody');
+      var msg = reason || '分析任务超时或服务异常，请稍后重试';
+      body.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:60px 20px;">' +
+        '<div style="width:56px;height:56px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:24px;">⚠️</div>' +
+        '<div style="text-align:center;">' +
+        '<div style="font-size:15px;font-weight:600;color:var(--c-text-1);margin-bottom:6px;">分析失败</div>' +
+        '<div style="font-size:13px;color:var(--c-text-3);max-width:360px;">' + msg + '</div></div>' +
+        '<div style="display:flex;gap:12px;">' +
+        '<button onclick="startAnalysis(\'' + alertId + '\')" style="padding:8px 20px;background:var(--c-primary);color:#fff;border:none;border-radius:var(--r-md);font-size:13px;cursor:pointer;">🔄 重新分析</button>' +
+        '<button onclick="closeDrawer()" style="padding:8px 20px;background:var(--c-fill-2);color:var(--c-text-2);border:none;border-radius:var(--r-md);font-size:13px;cursor:pointer;">关闭</button></div>' +
+        '<div style="font-size:11px;color:var(--c-text-4);margin-top:8px;">如问题持续，请联系管理员检查 Agent 服务状态</div>' +
+        '</div>';
+    }
+
+    function buildTaskId(alertId) {
+      return 'task-' + alertId.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+    }
+
+    function showTimeout(alertId) {
+      var body = document.getElementById('drawerBody');
+      body.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:60px 20px;">' +
+        '<div style="width:56px;height:56px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:24px;">⏱️</div>' +
+        '<div style="text-align:center;">' +
+        '<div style="font-size:15px;font-weight:600;color:var(--c-text-1);margin-bottom:6px;">分析超时</div>' +
+        '<div style="font-size:13px;color:var(--c-text-3);max-width:360px;">已等待超过 60 秒，Agent 未返回结果。可能是模型负载较高，建议稍后重试。</div></div>' +
+        '<div style="display:flex;gap:12px;">' +
+        '<button onclick="startAnalysis(\'' + alertId + '\')" style="padding:8px 20px;background:var(--c-primary);color:#fff;border:none;border-radius:var(--r-md);font-size:13px;cursor:pointer;">🔄 重新分析</button>' +
+        '<button onclick="closeDrawer()" style="padding:8px 20px;background:var(--c-fill-2);color:var(--c-text-2);border:none;border-radius:var(--r-md);font-size:13px;cursor:pointer;">关闭</button></div>' +
+        '<div style="padding:10px 14px;background:var(--c-fill-1);border-radius:var(--r-md);font-size:11px;color:var(--c-text-4);margin-top:12px;text-align:center;">' +
+        'Task ID: <span style="font-family:monospace;">' + buildTaskId(alertId) + '</span> · 超时阈值: 60s · Agent: alert_agent</div>' +
+        '</div>';
+    }
+
+    function showServiceOffline() {
+      var body = document.getElementById('drawerBody');
+      body.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:60px 20px;">' +
+        '<div style="width:56px;height:56px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:24px;">🔌</div>' +
+        '<div style="text-align:center;">' +
+        '<div style="font-size:15px;font-weight:600;color:var(--c-text-1);margin-bottom:6px;">AI 服务离线</div>' +
+        '<div style="font-size:13px;color:var(--c-text-3);max-width:360px;">无法连接到 Agent 服务，AI 分析功能暂时不可用。</div></div>' +
+        '<div style="display:flex;gap:12px;">' +
+        '<a href="../ai/ai-management-v2.html" style="padding:8px 20px;background:var(--c-primary);color:#fff;border-radius:var(--r-md);font-size:13px;text-decoration:none;">前往 Agent Hub</a>' +
+        '<button onclick="closeDrawer()" style="padding:8px 20px;background:var(--c-fill-2);color:var(--c-text-2);border:none;border-radius:var(--r-md);font-size:13px;cursor:pointer;">关闭</button></div>' +
+        '<div style="font-size:11px;color:var(--c-text-4);margin-top:8px;">告警列表的 AI 分析入口已禁用，请在 Agent Hub 恢复服务状态</div>' +
+        '</div>';
+    }
+
+    function renderFullDetail(alertId) {
+      return '<div style="flex:3;overflow-y:auto;padding-right:20px;border-right:1px solid var(--c-border);">' +
+        renderAlertInfo(alertId) +
+        renderAnalysisResult() +
+        renderTimeline() +
+        renderRootCauses() +
+        renderSimilarCases() +
+        renderRating() +
+        '</div>' +
+        '<div style="flex:2;overflow-y:auto;padding-left:4px;">' +
+        renderAutomation() +
+        '</div>';
+    }
+
+    function renderAlertInfo(alertId) {
+      return '<div style="margin-bottom:20px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">' +
+        '<span class="status-badge danger">紧急</span>' +
+        '<h3 style="font-size:15px;font-weight:600;color:var(--c-text-1);margin:0;">Core-Switch-A1 端口Down</h3>' +
+        '<span style="font-size:11px;color:var(--c-text-4);margin-left:auto;">' + alertId + '</span></div>' +
+        '<div class="meta-grid" style="grid-template-columns:1fr 1fr 1fr;">' +
+        '<div class="meta-item"><div class="label">告警对象</div><div class="value">Core-Switch-A1 [192.168.1.1]</div></div>' +
+        '<div class="meta-item"><div class="label">告警状态</div><div class="value"><span class="status-badge danger" style="font-size:11px;">告警</span></div></div>' +
+        '<div class="meta-item"><div class="label">告警时间</div><div class="value">2026-05-25 14:32:15</div></div>' +
+        '<div class="meta-item"><div class="label">初次告警时间</div><div class="value">2026-05-25 14:32:15</div></div>' +
+        '<div class="meta-item"><div class="label">持续时间</div><div class="value" style="color:var(--c-danger);font-weight:700;">2小时15分</div></div>' +
+        '<div class="meta-item"><div class="label">告警来源</div><div class="value">SNMP Trap</div></div>' +
+        '</div>' +
+        '<div style="margin-top:8px;padding:8px 12px;background:var(--c-fill-1);border-radius:var(--r-md);font-size:12px;color:var(--c-text-2);">' +
+        '<strong>告警描述：</strong>GigabitEthernet0/1 端口Down，接口状态变为down</div></div>';
+    }
+
+    function renderAnalysisResult() {
+      return '<div style="margin-bottom:20px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
+        '<h4 style="font-size:14px;font-weight:600;color:var(--c-text-1);margin:0;">AI 根因分析</h4>' +
+        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#059669;">' +
+        '<span style="width:6px;height:6px;background:#059669;border-radius:50%;"></span>分析完成 · 耗时 3.2s</div></div>' +
+        '<div style="padding:10px 14px;background:var(--c-fill-1);border-radius:var(--r-lg);margin-bottom:12px;font-size:12px;color:var(--c-text-3);display:flex;gap:20px;">' +
+        '<span>模板: <strong style="color:var(--c-text-2);">端口Down专用模板</strong></span>' +
+        '<span>模型: <strong style="color:var(--c-text-2);">GLM-5.1</strong></span>' +
+        '<span>数据源: <strong style="color:var(--c-text-2);">Syslog + 配置变更 + 性能</strong></span></div>' +
+        '<div style="padding:14px 16px;background:#D1FAE5;border-radius:var(--r-lg);margin-bottom:12px;font-size:13px;color:#065F46;display:flex;align-items:flex-start;gap:8px;">' +
+        '<span style="font-size:16px;">💡</span><div><strong>分析结论：</strong>该端口Down告警由<span style="background:#A7F3D0;padding:1px 4px;border-radius:3px;font-weight:600;">配置变更</span>导致。检测到告警发生前5分钟有端口shutdown操作记录（admin@192.168.1.100）。</div></div>' +
+        '<details style="margin-bottom:12px;border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden;">' +
+        '<summary style="padding:10px 14px;font-size:13px;font-weight:500;cursor:pointer;background:var(--c-fill-1);">🧠 AI 思考过程（4步）</summary>' +
+        '<div style="padding:12px 14px;font-size:12px;color:var(--c-text-2);line-height:1.8;">' +
+        '<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="background:var(--c-primary);color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">1</span><span><strong>数据收集</strong> — 采集告警前后30分钟 Syslog 127条，配置变更记录3条，性能数据点1800个</span></div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="background:var(--c-primary);color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">2</span><span><strong>异常检测</strong> — Syslog 中检测到 "interface shutdown"，时间戳 14:27:03，早于告警 5 分钟</span></div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:8px;"><span style="background:var(--c-primary);color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">3</span><span><strong>关联验证</strong> — 邻居设备无异常，光功率正常(-3.2dBm)，排除硬件故障</span></div>' +
+        '<div style="display:flex;gap:8px;"><span style="background:var(--c-primary);color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">4</span><span><strong>根因推断</strong> — 配置变更与告警强时序关联(5min)，操作内容(shutdown)与现象(端口Down)直接因果</span></div>' +
+        '</div></details></div>';
+    }
+
+    function renderTimeline() {
+      return '<div style="margin-bottom:20px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:10px;">事件时间线</h4>' +
+        '<div style="border-left:2px solid var(--c-border);padding-left:16px;margin-left:6px;">' +
+        tl('14:25:18', '用户登录', 'admin@192.168.1.100 通过SSH登录设备', '#9CA3AF') +
+        tl('14:27:03', '⚠️ 配置变更', 'interface GigabitEthernet0/1 shutdown', '#D97706') +
+        tl('14:32:15', '🔴 告警产生', '端口 GigabitEthernet0/1 状态变为 Down', '#DC2626') +
+        tl('14:32:18', '关联告警', '下联设备 Access-Switch-B1 链路中断', '#2563EB') +
+        '</div></div>';
+    }
+
+    function tl(time, title, desc, color) {
+      return '<div style="position:relative;margin-bottom:14px;">' +
+        '<div style="position:absolute;left:-22px;top:3px;width:10px;height:10px;border-radius:50%;background:' + color + ';border:2px solid #fff;"></div>' +
+        '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">' +
+        '<span style="font-size:11px;color:var(--c-text-3);font-family:monospace;">' + time + '</span>' +
+        '<span style="font-size:13px;font-weight:500;color:var(--c-text-1);">' + title + '</span></div>' +
+        '<div style="font-size:12px;color:var(--c-text-2);">' + desc + '</div></div>';
+    }
+
+    function renderRootCauses() {
+      return '<div style="margin-bottom:20px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:10px;">根因排名</h4>' +
+        '<div class="cause-card" style="border-left:3px solid #059669;">' +
+        '<div class="cause-card-header"><span class="cause-title">配置变更导致</span><span style="font-size:11px;background:#D1FAE5;color:#059669;padding:2px 6px;border-radius:4px;margin-left:6px;">最可能</span>' +
+        '<div class="confidence-bar" style="margin-left:auto;"><div class="bar"><div class="bar-fill" style="width:92%;background:#059669;"></div></div>92%</div></div>' +
+        '<div class="cause-proof">14:27:03 有用户执行端口 shutdown 命令，与告警时间高度相关（5分钟内）</div></div>' +
+        '<div class="cause-card"><div class="cause-card-header"><span class="cause-title">物理链路故障</span>' +
+        '<div class="confidence-bar" style="margin-left:auto;"><div class="bar"><div class="bar-fill" style="width:5%"></div></div>5%</div></div>' +
+        '<div class="cause-proof">光功率正常(-3.2dBm)，无CRC错误，已排除</div></div>' +
+        '<div class="cause-card"><div class="cause-card-header"><span class="cause-title">对端设备异常</span>' +
+        '<div class="confidence-bar" style="margin-left:auto;"><div class="bar"><div class="bar-fill" style="width:3%"></div></div>3%</div></div>' +
+        '<div class="cause-proof">对端设备 Access-Switch-B1 状态正常，已排除</div></div></div>';
+    }
+
+    function renderSimilarCases() {
+      return '<div style="margin-bottom:20px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:4px;">相似历史案例</h4>' +
+        '<p style="font-size:11px;color:var(--c-text-4);margin:0 0 10px;">近1个月 · 相似度 ≥ 50% · 最多3条</p>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' +
+        caseItem('89%', 'Core-Switch-A2 端口Down', '2026-04-15 | 根因: 配置变更 | 执行 no shutdown 恢复') +
+        caseItem('76%', 'Core-Switch-B1 端口Down', '2026-04-08 | 根因: 配置变更 | 配置回滚恢复') +
+        caseItem('62%', 'Access-Switch-A1 端口Down', '2026-03-20 | 根因: 链路故障 | 更换光模块') +
+        '</div></div>';
+    }
+
+    function renderTimelineEmpty() {
+      return '<div style="margin-bottom:20px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:10px;">事件时间线</h4>' +
+        '<div style="padding:24px 16px;text-align:center;color:var(--c-text-3);font-size:13px;border:1px dashed var(--c-border);border-radius:var(--r-lg);">' +
+        '<div style="font-size:20px;margin-bottom:6px;">📭</div>暂无关联事件</div></div>';
+    }
+
+    function renderSimilarCasesEmpty() {
+      return '<div style="margin-bottom:20px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:4px;">相似历史案例</h4>' +
+        '<p style="font-size:11px;color:var(--c-text-4);margin:0 0 10px;">近1个月 · 相似度 ≥ 50% · 最多3条</p>' +
+        '<div style="padding:24px 16px;text-align:center;color:var(--c-text-3);font-size:13px;border:1px dashed var(--c-border);border-radius:var(--r-lg);">' +
+        '<div style="font-size:20px;margin-bottom:6px;">📂</div>暂无相似案例</div></div>';
+    }
+
+    function renderAutomationEmpty() {
+      return '<div style="position:sticky;top:0;">' +
+        '<h4 style="font-size:14px;font-weight:600;color:var(--c-text-1);margin-bottom:14px;">⚡ 自动化处置</h4>' +
+        '<div style="display:flex;gap:0;border-bottom:1px solid var(--c-border);margin-bottom:14px;">' +
+        '<span style="padding:8px 14px;font-size:13px;font-weight:500;color:var(--c-primary);border-bottom:2px solid var(--c-primary);cursor:pointer;">AI 推荐</span>' +
+        '<span style="padding:8px 14px;font-size:13px;color:var(--c-text-3);cursor:pointer;">运维脚本</span></div>' +
+        '<div style="padding:32px 16px;text-align:center;color:var(--c-text-3);font-size:13px;border:1px dashed var(--c-border);border-radius:var(--r-lg);">' +
+        '<div style="font-size:24px;margin-bottom:8px;">🔍</div>' +
+        '<div style="margin-bottom:4px;">暂无匹配处置方案</div>' +
+        '<div style="font-size:11px;color:var(--c-text-4);">未找到与当前告警匹配的自动化处置脚本</div></div>' +
+        '<div style="margin-top:12px;padding:12px;border:1px solid var(--c-border);border-radius:var(--r-lg);background:var(--c-fill-1);">' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-text-2);margin-bottom:8px;">脚本详情（只读）</div>' +
+        '<div style="font-size:12px;color:var(--c-text-3);line-height:1.7;">执行能力继承自 ITOM 自动化审批流程；当前无可直接执行的推荐方案，保留脚本详情供排障查看。</div></div></div>';
+    }
+
+    function renderRemedyOption(tool, title, riskLevel, matchText, meta, target, checked) {
+      var riskBg = '#FEF3C7';
+      var riskColor = '#92400E';
+      if (riskLevel === 'L1') {
+        riskBg = '#D1FAE5';
+        riskColor = '#059669';
+      } else if (riskLevel === 'L3') {
+        riskBg = '#FEE2E2';
+        riskColor = '#DC2626';
+      }
+      return '<label style="display:block;background:#fff;border:1px solid var(--c-border);border-radius:var(--r-md);padding:12px;cursor:pointer;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<input type="radio" name="script" data-tool="' + tool + '" data-title="' + title + '" data-risk="' + riskLevel + '" data-target="' + target + '" ' + (checked ? 'checked' : '') + ' onchange="resetExecState()" style="accent-color:var(--c-primary);">' +
+        '<span style="font-size:11px;background:#DBEAFE;color:#2563EB;padding:1px 6px;border-radius:3px;">' + tool + '</span>' +
+        '<span style="font-size:13px;font-weight:500;">' + title + '</span>' +
+        '<span style="margin-left:auto;font-size:11px;background:' + riskBg + ';color:' + riskColor + ';padding:1px 6px;border-radius:3px;">' + riskLevel + ' ' + (riskLevel === 'L1' ? '低风险' : riskLevel === 'L2' ? '中风险' : '高风险') + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--c-text-3);margin-bottom:8px;">' +
+        '<span>' + matchText + '</span><span>' + target + '</span></div>' +
+        '<div style="font-size:12px;color:var(--c-text-3);margin-bottom:8px;">' + meta + '</div>' +
+        '<div style="font-size:12px;color:var(--c-text-2);padding:8px 10px;background:var(--c-fill-1);border-radius:var(--r-sm);line-height:1.8;">' +
+        (riskLevel === 'L1'
+          ? '1. 检查端口当前状态<br>2. 执行 no shutdown<br>3. 验证端口恢复'
+          : riskLevel === 'L2'
+            ? '1. 备份邻居状态<br>2. 重建 OSPF 邻居会话<br>3. 校验路由收敛<br>4. 记录结果'
+            : '1. 生成配置回滚单<br>2. 提交 ITOM 审批流程<br>3. 审批通过后自动下发<br>4. 回读校验核心配置') +
+        '</div></label>';
+    }
+
+    function renderExecFeedback(type, title, detail) {
+      var bg = '#EFF6FF';
+      var color = '#2563EB';
+      if (type === 'success') {
+        bg = '#ECFDF5';
+        color = '#059669';
+      } else if (type === 'warn') {
+        bg = '#FFF7ED';
+        color = '#D97706';
+      }
+      return '<div style="margin:12px 0 14px;padding:12px 14px;background:' + bg + ';border-radius:var(--r-lg);">' +
+        '<div style="font-size:12px;font-weight:600;color:' + color + ';margin-bottom:4px;">' + title + '</div>' +
+        '<div style="font-size:12px;color:var(--c-text-2);line-height:1.7;">' + detail + '</div></div>';
+    }
+
+    function resetExecState() {
+      var btn = document.getElementById('execRemedyBtn');
+      var feedback = document.getElementById('execFeedback');
+      if (!btn) return;
+      btn.disabled = false;
+      btn.dataset.state = '';
+      btn.textContent = '▶️ 执行选中方案';
+      btn.style.background = 'var(--c-primary)';
+      if (feedback) feedback.innerHTML = '';
+    }
+
+    function caseItem(sim, title, meta) {
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--r-lg);cursor:pointer;" onmouseover="this.style.borderColor=\'var(--c-primary)\'" onmouseout="this.style.borderColor=\'var(--c-border)\'">' +
+        '<span style="background:#DBEAFE;color:#2563EB;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;">' + sim + '</span>' +
+        '<div style="flex:1;"><div style="font-size:13px;font-weight:500;color:var(--c-text-1);">' + title + '</div>' +
+        '<div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">' + meta + '</div></div>' +
+        '<span style="font-size:11px;background:#D1FAE5;color:#059669;padding:2px 8px;border-radius:4px;">已解决</span></div>';
+    }
+
+    function renderRating() {
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--c-fill-1);border-radius:var(--r-lg);">' +
+        '<span style="font-size:12px;color:var(--c-text-3);">分析结果是否有帮助？</span>' +
+        '<span style="cursor:pointer;font-size:18px;color:#D1D5DB;" onclick="this.style.color=\'#F59E0B\'">★</span>' +
+        '<span style="cursor:pointer;font-size:18px;color:#D1D5DB;" onclick="this.style.color=\'#F59E0B\'">★</span>' +
+        '<span style="cursor:pointer;font-size:18px;color:#D1D5DB;" onclick="this.style.color=\'#F59E0B\'">★</span>' +
+        '<span style="cursor:pointer;font-size:18px;color:#D1D5DB;" onclick="this.style.color=\'#F59E0B\'">★</span>' +
+        '<span style="cursor:pointer;font-size:18px;color:#D1D5DB;" onclick="this.style.color=\'#F59E0B\'">★</span></div>';
+    }
+
+    function renderAutomation() {
+      return '<div style="position:sticky;top:0;">' +
+        '<h4 style="font-size:14px;font-weight:600;color:var(--c-text-1);margin-bottom:14px;">⚡ 自动化处置</h4>' +
+        '<div style="display:flex;gap:0;border-bottom:1px solid var(--c-border);margin-bottom:14px;">' +
+        '<span style="padding:8px 14px;font-size:13px;font-weight:500;color:var(--c-primary);border-bottom:2px solid var(--c-primary);cursor:pointer;">AI 推荐</span>' +
+        '<span style="padding:8px 14px;font-size:13px;color:var(--c-text-3);cursor:pointer;">运维脚本</span></div>' +
+        '<div style="border:1px solid #BFDBFE;background:#F0F7FF;border-radius:var(--r-lg);padding:14px;margin-bottom:14px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
+        '<span style="font-size:16px;">🎯</span>' +
+        '<div><div style="font-size:13px;font-weight:600;color:var(--c-text-1);">推荐处置方案</div>' +
+        '<div style="font-size:11px;color:var(--c-text-3);">基于根因分析自动匹配</div></div>' +
+        '<span style="margin-left:auto;font-size:11px;background:#D1FAE5;color:#059669;padding:2px 8px;border-radius:4px;">可单选执行</span></div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' +
+        renderRemedyOption('Netmiko', '端口状态恢复', 'L1', '匹配度 95%', '3个步骤 · 成功率 98% · 平均耗时 12s', 'Core-Switch-A1 Gi0/1', true) +
+        renderRemedyOption('Ansible', 'OSPF 邻居重建', 'L2', '匹配度 87%', '4个步骤 · 成功率 93% · 平均耗时 26s', 'GBA-SZ-Core-SW01 / Neighbor 10.0.0.2', false) +
+        renderRemedyOption('Netmiko', '核心配置回滚', 'L3', '匹配度 81%', '4个步骤 · 成功率 91% · 平均耗时 45s', 'Core Router Config', false) +
+        '</div></div>' +
+        '<button id="execRemedyBtn" onclick="executeRemedy(this)" style="width:100%;padding:12px;background:var(--c-primary);color:#fff;border:none;border-radius:var(--r-lg);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">▶️ 执行选中方案</button>' +
+        '<p style="font-size:11px;color:var(--c-text-4);text-align:center;margin:0 0 16px;">执行能力集成自 ITOM 自动化审批流程（L1 直接执行 · L2 确认后执行 · L3 提交审批）</p>' +
+        '<div id="execFeedback"></div>' +
+        '<div style="padding:10px 12px;background:var(--c-fill-1);border-radius:var(--r-md);font-size:11px;color:var(--c-text-3);line-height:1.8;">' +
+        '<div style="margin-bottom:4px;font-weight:500;">API 信息</div>' +
+        '<div>Agent: alert_agent</div>' +
+        '<div>Model: GLM-5.1</div>' +
+        '<div>Endpoint: http://10.10.10.61:28000</div>' +
+        '<div>POST /v1/agents/alert_agent/analyze</div>' +
+        '<div>GET /v1/agents/alert_agent/result/{task_id}</div></div></div>';
+    }
+
+    // ===== L1/L2/L3 Execution Simulation (S2-5) =====
+    function executeRemedy(btn) {
+      var selected = document.querySelector('input[name="script"]:checked');
+      var feedback = document.getElementById('execFeedback');
+      if (!selected || !feedback) return;
+
+      var riskLevel = selected.getAttribute('data-risk');
+      var title = selected.getAttribute('data-title');
+      var target = selected.getAttribute('data-target');
+      var nowText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+
+      if (btn.dataset.state === 'approval-pending') {
+        feedback.innerHTML = renderExecFeedback('warn', '审批处理中', '审批单 ITOM-APR-20260527-031 已通过，正在沿用 ITOM 执行链路自动执行。');
+        btn.disabled = true;
+        btn.textContent = '⏳ 审批通过，执行中...';
+        btn.style.background = '#6B7280';
+        setTimeout(function () {
+          btn.disabled = false;
+          btn.dataset.state = 'done';
+          btn.textContent = '✓ 审批通过并执行完成';
+          btn.style.background = '#059669';
+          feedback.innerHTML = renderExecFeedback('success', '执行成功', title + ' 已执行完成，最近执行时间 ' + nowText + '，结果已按 ITOM 审批链路回写。');
+        }, 1400);
+        return;
+      }
+
+      if (riskLevel === 'L2' && !confirm('【L2 中风险确认】\n\n方案：' + title + '\n风险等级：L2 中风险\n影响对象：' + target + '\n\n确认执行？')) {
+        feedback.innerHTML = renderExecFeedback('info', '已取消执行', '当前未触发执行，保持原有状态不变。');
+        return;
+      }
+
+      if (riskLevel === 'L3') {
+        btn.dataset.state = 'approval-pending';
+        btn.textContent = '📋 查看审批状态';
+        btn.style.background = '#D97706';
+        feedback.innerHTML = renderExecFeedback('warn', '已提交审批', '审批流与 ITOM 自动化审批流程保持一致。审批单 ITOM-APR-20260527-031 已创建，等待审批通过后自动执行。');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '⏳ 执行中...';
+      btn.style.background = '#6B7280';
+      feedback.innerHTML = renderExecFeedback('info', '执行中', title + ' 正在处理 ' + target + '，执行链路复用 ITOM 自动化处置能力。');
+      setTimeout(function () {
+        btn.disabled = false;
+        btn.textContent = '✓ 执行成功';
+        btn.style.background = '#059669';
+        feedback.innerHTML = renderExecFeedback('success', '执行成功', title + ' 已执行完成，最近执行时间 ' + nowText + '，耗时 ' + (riskLevel === 'L1' ? '11s' : '26s') + '。');
+      }, 1400);
+    }
+  </script>
+</body>
+
+</html>

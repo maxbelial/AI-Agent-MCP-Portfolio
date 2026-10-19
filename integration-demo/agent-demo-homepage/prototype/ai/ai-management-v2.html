@@ -1,0 +1,2660 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMS - AI 管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/ems-v2-common.css">
+  <style>
+    /* === Dark Mode Override === */
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --c-primary: #60A5FA;
+      --c-primary-hover: #93C5FD;
+      --c-primary-active: #3B82F6;
+      --c-primary-bg: #1E293B;
+      --c-primary-border: #1E40AF;
+      --c-success: #34D399;
+      --c-success-bg: #064E3B;
+      --c-success-border: #065F46;
+      --c-warning: #FBBF24;
+      --c-warning-bg: #78350F;
+      --c-warning-border: #92400E;
+      --c-danger: #F87171;
+      --c-danger-bg: #7F1D1D;
+      --c-danger-border: #991B1B;
+      --c-text-1: #F1F5F9;
+      --c-text-2: #94A3B8;
+      --c-text-3: #64748B;
+      --c-text-4: #475569;
+      --c-border: #334155;
+      --c-border-light: #1E293B;
+      --c-fill-1: #1E293B;
+      --c-fill-2: #334155;
+      --c-bg: #0F172A;
+      --c-white: #1E293B;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    /* === AI Management Page Styles === */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* === Tab Navigation === */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--c-border);
+      margin-bottom: 4px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--c-text-3);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      bottom: -1px;
+    }
+
+    .tab-btn:hover {
+      color: var(--c-text-1);
+    }
+
+    .tab-btn.active {
+      color: var(--c-primary);
+      border-bottom-color: var(--c-primary);
+      font-weight: 600;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Stat Grid */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-radius: var(--r-lg);
+      background: var(--c-white);
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .15s;
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .stat-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--c-white);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      margin-left: 8px;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      border-radius: var(--r-md);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--c-border);
+      background: var(--c-white);
+      color: var(--c-text-2);
+      transition: all .15s;
+    }
+
+    .btn-sm:hover {
+      background: var(--c-fill-1);
+      border-color: var(--c-primary);
+      color: var(--c-primary);
+    }
+
+    /* Two Column Layout */
+    .two-col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Model Config Table */
+    .model-config-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .model-config-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--c-text-2);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--c-border);
+      background: var(--c-fill-1);
+    }
+
+    .model-config-table td {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      border-bottom: 1px solid var(--c-border-light);
+      vertical-align: middle;
+    }
+
+    .model-config-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .model-config-table tr:hover td {
+      background: var(--c-fill-1);
+    }
+
+    .model-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: var(--c-fill-2);
+      color: var(--c-text-1);
+    }
+
+    .model-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--c-success);
+    }
+
+    .endpoint-code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      background: var(--c-fill-2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--c-text-2);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--c-fill-2);
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .toggle-switch.active {
+      background: var(--c-success);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+      transition: transform .2s;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(16px);
+    }
+
+    /* Token Usage */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .token-card {
+      text-align: center;
+      padding: 16px;
+      border-radius: var(--r-lg);
+      background: var(--c-fill-1);
+    }
+
+    .token-card-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--c-text-1);
+    }
+
+    .token-card-label {
+      font-size: 12px;
+      color: var(--c-text-3);
+      margin-top: 4px;
+    }
+
+    .token-card-sub {
+      font-size: 11px;
+      color: var(--c-text-2);
+      margin-top: 6px;
+    }
+
+    .usage-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--c-fill-2);
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .usage-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .3s;
+    }
+
+    /* Agent Grid */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .agent-card {
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 16px;
+      transition: box-shadow .15s, border-color .15s;
+    }
+
+    .agent-card:hover {
+      border-color: #EC4899;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .agent-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .agent-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(236, 72, 153, .06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .agent-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-1);
+      flex: 1;
+    }
+
+    .agent-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .status-badge.success {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .status-badge.warning {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .agent-metrics {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--c-text-2);
+    }
+
+    .agent-metrics strong {
+      color: var(--c-text-1);
+      font-weight: 600;
+    }
+
+    /* Product Tag */
+    .product-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .product-tag.ai {
+      background: rgba(236, 72, 153, .08);
+      color: #DB2777;
+    }
+
+    /* Data Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--c-text-2);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--c-border);
+      background: var(--c-fill-1);
+    }
+
+    .data-table td {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tr:hover td {
+      background: var(--c-fill-1);
+    }
+
+    .method-tag {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .method-tag.get {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .method-tag.post {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+
+    .method-tag.patch {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .method-tag.delete {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .status-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-dot.success::before {
+      background: var(--c-success);
+    }
+
+    .status-dot.warning::before {
+      background: var(--c-warning);
+    }
+
+    .code-name {
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: var(--c-fill-2);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .api-group-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 8px 14px 4px;
+      background: var(--c-fill-1);
+      border-bottom: 1px solid var(--c-border-light);
+    }
+
+    @media (max-width: 1200px) {
+      .two-col-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .agent-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .token-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .agent-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* === V2 Layout Overrides (header/sidebar/logo) === */
+    :root {
+      --sidebar-collapsed-w: 56px;
+    }
+
+    .header {
+      padding: 0 16px 0 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo-area {
+      width: var(--sidebar-collapsed-w);
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: width .25s var(--ease);
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      transition: width .25s var(--ease), height .25s var(--ease);
+    }
+
+    .logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    body.sidebar-open .logo-area {
+      width: var(--sidebar-w);
+      padding-left: 16px;
+      justify-content: flex-start;
+    }
+
+    body.sidebar-open .logo-mark {
+      width: 120px;
+      height: 36px;
+      border-radius: var(--r-sm);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .bc-item {
+      color: var(--c-text-3);
+      text-decoration: none;
+    }
+
+    .bc-item:hover {
+      color: var(--c-primary);
+    }
+
+    .sep {
+      color: var(--c-text-4);
+      font-size: 11px;
+    }
+
+    .current {
+      color: var(--c-text-1);
+      font-weight: 500;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .cmd-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--c-fill-1);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 6px 14px;
+      color: var(--c-text-3);
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 380px;
+      width: 100%;
+      transition: all .2s;
+    }
+
+    .cmd-trigger:hover {
+      border-color: var(--c-primary);
+      color: var(--c-text-2);
+    }
+
+    .cmd-trigger .shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--c-text-3);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-md);
+      border: none;
+      background: transparent;
+      color: var(--c-text-3);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .header-icon-btn:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .header-icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--c-border);
+      margin: 0 6px;
+    }
+
+    .lang-switcher {
+      position: relative;
+    }
+
+    .lang-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 140px;
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      padding: 4px;
+    }
+
+    .lang-menu.open {
+      display: block;
+    }
+
+    .lang-option {
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+
+    .lang-option:hover {
+      background: var(--c-fill-1);
+      color: var(--c-text-1);
+    }
+
+    .lang-option.active {
+      color: var(--c-primary);
+      font-weight: 500;
+      background: var(--c-primary-bg);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--r-md);
+      color: var(--c-text-2);
+      font-size: 13px;
+      transition: all .15s;
+    }
+
+    .user-area:hover {
+      background: var(--c-fill-1);
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--c-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* === SIDEBAR === */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      width: var(--sidebar-collapsed-w);
+      height: calc(100vh - var(--header-h));
+      background: var(--c-white);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 90;
+      overflow: hidden;
+      padding: 6px 0;
+      transition: width .25s var(--ease);
+    }
+
+    .sidebar.expanded {
+      width: var(--sidebar-w);
+      overflow-y: auto;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--c-text-3);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform .25s var(--ease);
+    }
+
+    .sidebar.expanded .sidebar-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .sidebar-group {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      color: var(--c-text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidebar.expanded .sidebar-group {
+      opacity: 1;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 18px;
+      font-size: 13px;
+      color: var(--c-text-1);
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sidebar-item:hover {
+      color: var(--c-text-1);
+      background: var(--c-fill-1);
+    }
+
+    .sidebar-item.active {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+      font-weight: 500;
+    }
+
+    .sidebar-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--c-primary);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-item .s-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-item .s-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-item .s-label {
+      opacity: 0;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+
+    .sidebar.expanded .sidebar-item .s-label {
+      opacity: 1;
+    }
+
+    .sidebar:not(.expanded) .sidebar-item[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(var(--sidebar-collapsed-w) + 4px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--c-text-1);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    /* === MAIN CONTENT AREA === */
+    .main {
+      position: absolute;
+      top: var(--header-h);
+      left: var(--sidebar-collapsed-w);
+      right: 0;
+      bottom: 0;
+      overflow: auto;
+      background: var(--c-bg);
+      transition: left .25s var(--ease);
+    }
+
+    .sidebar.expanded~.main {
+      left: var(--sidebar-w);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-area">
+        <div class="logo-mark"><img src="../assets/itom-logo.png" alt="EMS"></div>
+      </div>
+      <nav class="header-breadcrumb">
+        <a class="bc-item" href="../baseline/workspace-v2.html">首页</a>
+        <span class="sep">›</span>
+        <span class="current">AI 管理</span>
+      </nav>
+    </div>
+    <div class="header-center">
+      <div class="cmd-trigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width:14px;height:14px;flex-shrink:0">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>搜索 Agent、模型、接口…</span>
+        <span class="shortcut">⌘K</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="lang-switcher" id="langSwitcher">
+        <button class="header-icon-btn" title="语言切换" onclick="toggleLangMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+          </svg>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-option active" onclick="switchLang('zh-CN','简体中文',this)">简体中文</div>
+          <div class="lang-option" onclick="switchLang('zh-TW','繁體中文',this)">繁體中文</div>
+          <div class="lang-option" onclick="switchLang('en','English',this)">English</div>
+        </div>
+      </div>
+      <button class="header-icon-btn" title="暗色模式" onclick="toggleTheme()">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      </button>
+      <button class="header-icon-btn" title="全屏" onclick="toggleFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+        </svg>
+      </button>
+      <div class="header-sep"></div>
+      <button class="user-area">
+        <div class="user-avatar">A</div>
+        <span>Admin</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="展开/收起菜单">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+      </svg>
+    </button>
+    <a class="sidebar-item" href="../baseline/workspace-v2.html" title="工作台">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg></span>
+      <span class="s-label">工作台</span>
+    </a>
+    <div class="sidebar-group">组织管理</div>
+    <a class="sidebar-item" href="../baseline/tenant-management-v2.html" title="租户管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg></span>
+      <span class="s-label">租户管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/product-management-v2.html" title="产品管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+          <path d="M3.27 6.96L12 12.01l8.73-5.05" />
+          <path d="M12 22.08V12" />
+        </svg></span>
+      <span class="s-label">产品管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/license-management-v2.html" title="授权管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg></span>
+      <span class="s-label">授权管理</span>
+    </a>
+    <div class="sidebar-group">权限管理</div>
+    <a class="sidebar-item" href="../baseline/role-management-v2.html" title="角色管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg></span>
+      <span class="s-label">角色管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/org-structure-v2.html" title="组织架构">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="5" r="3" />
+          <path d="M12 8v4" />
+          <path d="M6 16h12" />
+          <path d="M6 16v4" />
+          <path d="M18 16v4" />
+          <path d="M12 12v4" />
+          <path d="M12 16v4" />
+        </svg></span>
+      <span class="s-label">组织架构</span>
+    </a>
+    <div class="sidebar-group">系统设置</div>
+    <a class="sidebar-item" href="../baseline/personal-info-v2.html" title="个人信息">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg></span>
+      <span class="s-label">个人信息</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/third-party-v2.html" title="三方对接">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+        </svg></span>
+      <span class="s-label">三方对接</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/sync-management-v2.html" title="同步管理">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M23 4v2h-6" />
+          <path d="M1 20v-6h6" />
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10" />
+          <path d="M20.49 15a9 9 0 01-14.85 3.36L1 14" />
+        </svg></span>
+      <span class="s-label">同步管理</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/general-settings-v2.html" title="通用设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.26.46.4.98.41 1.51h.09a2 2 0 010 4h-.09c-.01.53-.15 1.05-.41 1.51z" />
+        </svg></span>
+      <span class="s-label">通用设置</span>
+    </a>
+    <a class="sidebar-item" href="../baseline/ai-settings-v2.html" title="AI访问设置">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">AI访问设置</span>
+    </a>
+    <div class="sidebar-group">ITOM 模块</div>
+    <a class="sidebar-item" href="../itom/alert-center-v2.html" title="告警中心">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg></span>
+      <span class="s-label">告警中心</span>
+    </a>
+    <div class="sidebar-group">AI 管理</div>
+    <a class="sidebar-item active" href="ai-management-v2.html" title="Agent Hub">
+      <span class="s-icon"><svg viewBox="0 0 24 24">
+          <path
+            d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+          <circle cx="9" cy="10" r="1" fill="currentColor" />
+          <circle cx="15" cy="10" r="1" fill="currentColor" />
+          <path d="M9 14h6" />
+        </svg></span>
+      <span class="s-label">Agent Hub</span>
+    </a>
+    <div class="org-switcher">
+      <div class="org-avatar">J</div>
+      <div class="org-info">
+        <div class="org-name">JGDemo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="main-inner">
+      <div class="content">
+        <!-- Page Title -->
+        <div>
+          <h1 style="font-size:16px;font-weight:600;color:var(--c-text-1);">Agent Hub
+            <span style="font-size:12px;font-weight:400;color:var(--c-text-3)">Agent 服务：10.10.10.61:28000</span>
+          </h1>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="overview">概览</button>
+          <button class="tab-btn" data-tab="agents">Agent 管理</button>
+          <button class="tab-btn" data-tab="history">调用记录</button>
+        </div>
+
+        <!-- ========== TAB 1: 概览 ========== -->
+        <div class="tab-panel active" id="tab-overview">
+          <!-- Stat Grid: 5 cards -->
+          <div class="stat-grid" style="grid-template-columns:repeat(5,1fr);">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(236,72,153,.08); color:#EC4899;">
+                <svg viewBox="0 0 24 24">
+                  <rect x="4" y="4" width="16" height="16" rx="2" />
+                  <rect x="9" y="9" width="6" height="6" />
+                  <line x1="9" y1="1" x2="9" y2="4" />
+                  <line x1="15" y1="1" x2="15" y2="4" />
+                  <line x1="9" y1="20" x2="9" y2="23" />
+                  <line x1="15" y1="20" x2="15" y2="23" />
+                  <line x1="20" y1="9" x2="23" y2="9" />
+                  <line x1="20" y1="14" x2="23" y2="14" />
+                  <line x1="1" y1="9" x2="4" y2="9" />
+                  <line x1="1" y1="14" x2="4" y2="14" />
+                </svg>
+              </div>
+              <div class="stat-info"><span class="stat-value">1</span><span class="stat-label">模型已接入</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--c-primary-bg); color:var(--c-primary);">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z" />
+                  <circle cx="9" cy="10" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="10" r="1" fill="currentColor" stroke="none" />
+                  <path d="M9 14h6" />
+                </svg>
+              </div>
+              <div class="stat-info"><span class="stat-value">1</span><span class="stat-label">Agent 运行中</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#D1FAE5; color:var(--c-success);">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+              </div>
+              <div class="stat-info"><span class="stat-value">312</span><span class="stat-label">本月调用</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#FEF3C7; color:#D97706;">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <div class="stat-info"><span class="stat-value">34s</span><span class="stat-label">平均耗时</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#DBEAFE; color:#2563EB;">
+                <svg viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div class="stat-info"><span class="stat-value">96%</span><span class="stat-label">分析成功率</span></div>
+            </div>
+          </div>
+
+          <!-- Row 2: Trend Chart + System Health -->
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+            <!-- 7-Day Trend -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">近 7 日调用趋势</div>
+                <span style="font-size:11px;color:var(--c-text-3);">按天统计</span>
+              </div>
+              <div style="padding:16px 16px 12px;">
+                <!-- Mini bar chart using CSS -->
+                <div
+                  style="display:flex;align-items:flex-end;gap:8px;height:100px;padding-bottom:4px;border-bottom:1px solid var(--c-border-light);">
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-text-3);margin-bottom:2px;">38</div>
+                    <div
+                      style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:55px;opacity:.7;">
+                    </div>
+                  </div>
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-text-3);margin-bottom:2px;">47</div>
+                    <div
+                      style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:68px;opacity:.7;">
+                    </div>
+                  </div>
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-text-3);margin-bottom:2px;">29</div>
+                    <div
+                      style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:42px;opacity:.7;">
+                    </div>
+                  </div>
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-text-3);margin-bottom:2px;">54</div>
+                    <div
+                      style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:78px;opacity:.7;">
+                    </div>
+                  </div>
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-text-3);margin-bottom:2px;">56</div>
+                    <div
+                      style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:90px;opacity:.8;">
+                    </div>
+                  </div>
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-text-3);margin-bottom:2px;">50</div>
+                    <div
+                      style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:72px;opacity:.8;">
+                    </div>
+                  </div>
+                  <div
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                    <div style="font-size:10px;color:var(--c-primary);font-weight:600;margin-bottom:2px;">12</div>
+                    <div style="width:100%;background:var(--c-primary);border-radius:3px 3px 0 0;min-height:35px;">
+                    </div>
+                  </div>
+                </div>
+                <!-- X-axis labels -->
+                <div style="display:flex;gap:8px;padding-top:4px;">
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-4);">5/19</div>
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-4);">5/20</div>
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-4);">5/21</div>
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-4);">5/22</div>
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-4);">5/23</div>
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-4);">5/24</div>
+                  <div style="flex:1;text-align:center;font-size:10px;color:var(--c-text-1);font-weight:500;">今天</div>
+                </div>
+                <!-- Legend -->
+                <div
+                  style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--c-border-light);font-size:11px;color:var(--c-text-3);">
+                  <span>日均 <strong style="color:var(--c-text-1);">44.6</strong> 次</span>
+                  <span>峰值 <strong style="color:var(--c-text-1);">56</strong> 次 (5/23)</span>
+                  <span>本周合计 <strong style="color:var(--c-text-1);">312</strong> 次</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">系统状态</div>
+              </div>
+              <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
+                <div
+                  style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--c-success);flex-shrink:0;"></div>
+                  <div style="flex:1;">
+                    <div style="font-size:12px;font-weight:500;color:var(--c-text-1);">Agent 服务</div>
+                    <div style="font-size:11px;color:var(--c-text-3);">10.10.10.61:28000</div>
+                  </div>
+                  <span style="font-size:11px;color:var(--c-success);font-weight:500;">在线</span>
+                </div>
+                <div
+                  style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--c-success);flex-shrink:0;"></div>
+                  <div style="flex:1;">
+                    <div style="font-size:12px;font-weight:500;color:var(--c-text-1);">GLM-5.1 模型</div>
+                    <div style="font-size:11px;color:var(--c-text-3);">响应延迟 120ms</div>
+                  </div>
+                  <span style="font-size:11px;color:var(--c-success);font-weight:500;">正常</span>
+                </div>
+                <div
+                  style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#D97706;flex-shrink:0;"></div>
+                  <div style="flex:1;">
+                    <div style="font-size:12px;font-weight:500;color:var(--c-text-1);">任务队列</div>
+                    <div style="font-size:11px;color:var(--c-text-3);">排队 2 / 处理中 1</div>
+                  </div>
+                  <span style="font-size:11px;color:#D97706;font-weight:500;">繁忙</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Token Usage + Recent Activity -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <!-- Token Usage -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Token 用量</div>
+                <span style="font-size:11px;color:var(--c-text-3);">2026-05 · 本地部署</span>
+              </div>
+              <div style="padding:16px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                  <div style="padding:12px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                    <div style="font-size:20px;font-weight:700;color:#EC4899;">6.2M</div>
+                    <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">本月累计 Token</div>
+                    <div class="usage-bar" style="margin-top:6px;">
+                      <div class="usage-bar-fill" style="width:12%;background:#EC4899;"></div>
+                    </div>
+                  </div>
+                  <div style="padding:12px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                    <div style="font-size:20px;font-weight:700;color:var(--c-success);">$0</div>
+                    <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">本月费用</div>
+                    <div style="font-size:11px;color:var(--c-success);margin-top:6px;">本地部署 · 零成本</div>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:var(--c-text-2);display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                  <div>模型: <strong style="color:var(--c-text-1);">openai/glm-5.1</strong></div>
+                  <div>部署: <strong style="color:var(--c-success);">本地 10.10.10.61</strong></div>
+                  <div>平均 Token/次: <strong style="color:var(--c-text-1);">~19,977</strong></div>
+                  <div>Prompt 版本: <strong style="color:var(--c-text-1);">v3</strong></div>
+                </div>
+                <div style="margin-top:10px;text-align:right;">
+                  <a href="#" onclick="document.querySelector('[data-tab=history]').click();return false;"
+                    style="font-size:12px;color:var(--c-primary);text-decoration:none;">查看调用明细 →</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">最近活动</div>
+                <span style="font-size:11px;color:var(--c-text-3);">今日</span>
+              </div>
+              <div style="padding:12px 16px;">
+                <div style="display:flex;flex-direction:column;gap:0;">
+                  <!-- Timeline items -->
+                  <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--c-border-light);">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--c-success);margin-top:5px;">
+                      </div>
+                      <div style="width:1px;flex:1;background:var(--c-border-light);"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12px;color:var(--c-text-1);">分析完成 <strong>#23700</strong> 交换机端口 Down</div>
+                      <div style="font-size:11px;color:var(--c-text-3);margin-top:1px;">根因: 光模块老化 · 耗时 34s</div>
+                    </div>
+                    <span style="font-size:11px;color:var(--c-text-4);flex-shrink:0;">17:22</span>
+                  </div>
+                  <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--c-border-light);">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--c-success);margin-top:5px;">
+                      </div>
+                      <div style="width:1px;flex:1;background:var(--c-border-light);"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12px;color:var(--c-text-1);">分析完成 <strong>#23698</strong> CPU 使用率 >90%</div>
+                      <div style="font-size:11px;color:var(--c-text-3);margin-top:1px;">根因: 定时任务堆积 · 耗时 31s</div>
+                    </div>
+                    <span style="font-size:11px;color:var(--c-text-4);flex-shrink:0;">16:45</span>
+                  </div>
+                  <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--c-border-light);">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--c-success);margin-top:5px;">
+                      </div>
+                      <div style="width:1px;flex:1;background:var(--c-border-light);"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12px;color:var(--c-text-1);">分析完成 <strong>#23695</strong> 磁盘 I/O 延迟告警</div>
+                      <div style="font-size:11px;color:var(--c-text-3);margin-top:1px;">根因: RAID 重建中 · 耗时 28s</div>
+                    </div>
+                    <span style="font-size:11px;color:var(--c-text-4);flex-shrink:0;">15:30</span>
+                  </div>
+                  <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--c-border-light);">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:#DC2626;margin-top:5px;"></div>
+                      <div style="width:1px;flex:1;background:var(--c-border-light);"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12px;color:var(--c-text-1);">分析失败 <strong>#23680</strong> 内存泄漏告警</div>
+                      <div style="font-size:11px;color:#DC2626;margin-top:1px;">超时未返回 · 已自动重试</div>
+                    </div>
+                    <span style="font-size:11px;color:var(--c-text-4);flex-shrink:0;">12:15</span>
+                  </div>
+                  <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--c-border-light);">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--c-success);margin-top:5px;">
+                      </div>
+                      <div style="width:1px;flex:1;background:var(--c-border-light);"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12px;color:var(--c-text-1);">分析完成 <strong>#23672</strong> BGP 邻居断开</div>
+                      <div style="font-size:11px;color:var(--c-text-3);margin-top:1px;">根因: 对端设备重启 · 耗时 42s</div>
+                    </div>
+                    <span style="font-size:11px;color:var(--c-text-4);flex-shrink:0;">10:08</span>
+                  </div>
+                  <div style="display:flex;gap:10px;padding:8px 0;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:#2563EB;margin-top:5px;"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12px;color:var(--c-text-1);">系统启动 · alert_agent 加载完成</div>
+                      <div style="font-size:11px;color:var(--c-text-3);margin-top:1px;">Prompt v3 · 模型预热 OK</div>
+                    </div>
+                    <span style="font-size:11px;color:var(--c-text-4);flex-shrink:0;">08:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 4: Model Config (compact) -->
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header">
+              <div class="card-title">模型配置 <span class="badge">4</span></div>
+              <button class="btn-sm" onclick="document.getElementById('add-model-modal').style.display='flex'">+
+                添加模型</button>
+            </div>
+            <table class="model-config-table">
+              <thead>
+                <tr>
+                  <th>模型</th>
+                  <th>Endpoint</th>
+                  <th>Token 限额</th>
+                  <th>用途</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="model-badge"><span class="dot"></span>GLM-5.1</span></td>
+                  <td><span class="endpoint-code">10.10.10.61:28000</span></td>
+                  <td>不限（本地部署）</td>
+                  <td>告警根因分析</td>
+                  <td><span class="status-badge success">启用</span></td>
+                </tr>
+                <tr>
+                  <td><span class="model-badge" style="background:#EDE9FE;color:#7C3AED;"><span class="dot"
+                        style="background:#7C3AED;"></span>Qwen2.5</span></td>
+                  <td><span class="endpoint-code">dashscope.aliyuncs.com</span></td>
+                  <td>1M tokens/月</td>
+                  <td>容量预测 · 备用</td>
+                  <td><span class="status-badge" style="background:#F3F4F6;color:#6B7280;">预配置</span></td>
+                </tr>
+                <tr>
+                  <td><span class="model-badge" style="background:#FEF3C7;color:#B45309;"><span class="dot"
+                        style="background:#B45309;"></span>Claude Opus 4.6</span></td>
+                  <td><span class="endpoint-code">api.anthropic.com</span></td>
+                  <td>500K tokens/月</td>
+                  <td>复杂根因 · 深度分析</td>
+                  <td><span class="status-badge" style="background:#F3F4F6;color:#6B7280;">预配置</span></td>
+                </tr>
+                <tr>
+                  <td><span class="model-badge" style="background:#DBEAFE;color:#1D4ED8;"><span class="dot"
+                        style="background:#1D4ED8;"></span>ChatGPT 5.5</span></td>
+                  <td><span class="endpoint-code">api.openai.com</span></td>
+                  <td>800K tokens/月</td>
+                  <td>通用分析 · 多场景</td>
+                  <td><span class="status-badge" style="background:#F3F4F6;color:#6B7280;">预配置</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ========== TAB 2: Agent 管理 ========== -->
+        <div class="tab-panel" id="tab-agents">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Agent 管理 <span class="product-tag ai">AI</span></div>
+              <button class="btn-sm" onclick="document.getElementById('create-agent-modal').style.display='flex'">+ 创建
+                Agent</button>
+            </div>
+            <div class="agent-grid" style="grid-template-columns:1fr 1fr;">
+              <!-- alert_agent: 运行中 -->
+              <div class="agent-card" id="alert-agent-card" style="border:1px solid #EC4899;">
+                <div class="agent-card-header">
+                  <div class="agent-icon">🧠</div>
+                  <span class="agent-name">alert_agent</span>
+                  <div class="toggle-switch active" id="alert-agent-toggle" onclick="toggleAgent('alert_agent', this)">
+                  </div>
+                </div>
+                <div class="agent-status">
+                  <span class="status-badge success" id="alert-agent-status">运行中</span>
+                  <span style="font-size:11px;color:var(--c-text-3);">模型: openai/glm-5.1</span>
+                </div>
+                <div class="agent-metrics">
+                  <span>今日 <strong>12</strong> 次</span>
+                  <span>平均耗时 <strong>34s</strong></span>
+                </div>
+                <div
+                  style="margin-top:8px;font-size:11px;color:var(--c-text-3);padding-top:8px;border-top:1px solid var(--c-border-light);">
+                  <div>用途: <span style="color:var(--c-text-2);">告警事件根因分析</span></div>
+                  <div style="margin-top:3px;">API: <code
+                      style="background:var(--c-fill-2);padding:1px 4px;border-radius:3px;">POST /v1/agents/alert_agent/analyze</code>
+                  </div>
+                  <div style="margin-top:3px;">Prompt 版本: v3 · Token/次: ~19,977</div>
+                </div>
+              </div>
+
+              <!-- log_agent: 已停止（演示已停止状态） -->
+              <div class="agent-card" style="border:1px solid var(--c-border);opacity:0.75;">
+                <div class="agent-card-header">
+                  <div class="agent-icon" style="opacity:.6;">📋</div>
+                  <span class="agent-name">log_agent</span>
+                  <div class="toggle-switch" onclick="toggleAgent('log_agent', this)"></div>
+                </div>
+                <div class="agent-status">
+                  <span class="status-badge" style="background:#F1F5F9;color:#64748B;">已停止</span>
+                  <span style="font-size:11px;color:var(--c-text-3);">模型: openai/glm-5.1</span>
+                </div>
+                <div class="agent-metrics">
+                  <span>今日 <strong>—</strong> 次</span>
+                  <span>平均耗时 <strong>—</strong></span>
+                </div>
+                <div
+                  style="margin-top:8px;font-size:11px;color:var(--c-text-3);padding-top:8px;border-top:1px solid var(--c-border-light);">
+                  <div>用途: <span style="color:var(--c-text-2);">日志聚类与异常检测</span></div>
+                  <div style="margin-top:3px;">API: <code
+                      style="background:var(--c-fill-2);padding:1px 4px;border-radius:3px;">POST /v1/agents/log_agent/analyze</code>
+                  </div>
+                  <div style="margin-top:3px;">Prompt 版本: v2 · Token/次: ~15,200</div>
+                </div>
+              </div>
+
+              <!-- 规划中的 Agent -->
+              <div class="agent-card" style="opacity:0.5;border-style:dashed;">
+                <div class="agent-card-header">
+                  <div class="agent-icon" style="opacity:.4;">📈</div>
+                  <span class="agent-name" style="color:var(--c-text-3);">capacity_agent</span>
+                </div>
+                <div class="agent-status"><span class="status-badge warning">规划中</span></div>
+                <div style="font-size:12px;color:var(--c-text-4);">容量预测 · 下一阶段上线</div>
+              </div>
+
+              <div class="agent-card" style="opacity:0.5;border-style:dashed;">
+                <div class="agent-card-header">
+                  <div class="agent-icon" style="opacity:.4;">🔇</div>
+                  <span class="agent-name" style="color:var(--c-text-3);">noise_reduce_agent</span>
+                </div>
+                <div class="agent-status"><span class="status-badge warning">规划中</span></div>
+                <div style="font-size:12px;color:var(--c-text-4);">告警降噪 · 下一阶段上线</div>
+              </div>
+            </div>
+            <!-- Agent 状态说明 -->
+            <div
+              style="margin-top:12px;padding:10px 14px;background:var(--c-fill-1);border-radius:var(--r-md);font-size:11px;color:var(--c-text-3);line-height:1.8;">
+              <strong style="color:var(--c-text-2);">Agent 状态说明：</strong>
+              <span style="color:var(--c-success);">●</span> 运行中（可接收任务）
+              · <span style="color:#D97706;">●</span> 启动中 / 停止中（过渡态，开关禁用）
+              · <span style="color:#64748B;">●</span> 已停止（不接收任务，可重新启动）
+              · <span style="color:#94A3B8;">◌</span> 规划中（未交付）
+            </div>
+          </div>
+
+          <!-- Agent 运行概况 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">alert_agent · 运行概况</div>
+              <span style="font-size:11px;color:var(--c-text-3);">最近 7 天</span>
+            </div>
+            <div style="padding:16px;">
+              <!-- 运行指标 -->
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+                <div style="text-align:center;padding:12px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="font-size:20px;font-weight:700;color:var(--c-text-1);">96%</div>
+                  <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">分析成功率</div>
+                </div>
+                <div style="text-align:center;padding:12px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="font-size:20px;font-weight:700;color:var(--c-text-1);">34s</div>
+                  <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">平均耗时</div>
+                </div>
+                <div style="text-align:center;padding:12px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="font-size:20px;font-weight:700;color:var(--c-text-1);">89</div>
+                  <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">本周分析数</div>
+                </div>
+                <div style="text-align:center;padding:12px;background:var(--c-fill-1);border-radius:var(--r-md);">
+                  <div style="font-size:20px;font-weight:700;color:var(--c-text-1);">3</div>
+                  <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">超时/失败</div>
+                </div>
+              </div>
+
+              <!-- 最近分析结果 -->
+              <div style="font-size:12px;font-weight:600;color:var(--c-text-2);margin-bottom:8px;">最近分析结果</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div
+                  style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c-fill-1);border-radius:var(--r-md);border-left:3px solid var(--c-success);">
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;color:var(--c-text-1);">#23700 · 交换机端口 Down</div>
+                    <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">根因: 上游光模块老化，建议更换 SFP 模块</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:11px;color:var(--c-text-3);">17:22</div>
+                    <div style="font-size:11px;color:var(--c-success);font-weight:500;">34s</div>
+                  </div>
+                </div>
+                <div
+                  style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c-fill-1);border-radius:var(--r-md);border-left:3px solid var(--c-success);">
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;color:var(--c-text-1);">#23698 · CPU 使用率持续 >90%</div>
+                    <div style="font-size:11px;color:var(--c-text-3);margin-top:2px;">根因: 定时任务堆积导致资源争用，建议错峰调度</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:11px;color:var(--c-text-3);">16:45</div>
+                    <div style="font-size:11px;color:var(--c-success);font-weight:500;">31s</div>
+                  </div>
+                </div>
+                <div
+                  style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c-fill-1);border-radius:var(--r-md);border-left:3px solid #DC2626;">
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;color:var(--c-text-1);">#23680 · 内存泄漏告警</div>
+                    <div style="font-size:11px;color:#DC2626;margin-top:2px;">分析超时，未返回结论</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:11px;color:var(--c-text-3);">12:15</div>
+                    <div style="font-size:11px;color:#DC2626;font-weight:500;">超时</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 配置摘要 -->
+              <div
+                style="margin-top:16px;padding-top:12px;border-top:1px solid var(--c-border-light);display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px;color:var(--c-text-2);">
+                <div>模型: <strong style="color:var(--c-text-1);">GLM-5.1</strong></div>
+                <div>触发: <strong style="color:var(--c-text-1);">事件驱动</strong></div>
+                <div>Prompt: <strong style="color:var(--c-text-1);">v3</strong></div>
+                <div>数据源: <strong style="color:var(--c-text-1);">告警事件</strong></div>
+                <div>输出: <strong style="color:var(--c-text-1);">根因 + 建议</strong></div>
+                <div>超时: <strong style="color:var(--c-text-1);">60s</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB 3: 调用记录 ========== -->
+        <div class="tab-panel" id="tab-history">
+          <!-- 筛选栏 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">调用记录</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <select
+                  style="font-size:12px;padding:4px 8px;border:1px solid var(--c-border);border-radius:var(--r-md);background:var(--c-white);color:var(--c-text-2);">
+                  <option>全部 Agent</option>
+                  <option selected>alert_agent</option>
+                </select>
+                <select
+                  style="font-size:12px;padding:4px 8px;border:1px solid var(--c-border);border-radius:var(--r-md);background:var(--c-white);color:var(--c-text-2);">
+                  <option>全部状态</option>
+                  <option>completed</option>
+                  <option>failed</option>
+                  <option>timeout</option>
+                </select>
+                <select
+                  style="font-size:12px;padding:4px 8px;border:1px solid var(--c-border);border-radius:var(--r-md);background:var(--c-white);color:var(--c-text-2);">
+                  <option selected>今天</option>
+                  <option>最近 7 天</option>
+                  <option>最近 30 天</option>
+                  <option>自定义</option>
+                </select>
+                <button class="btn-sm">导出 CSV</button>
+              </div>
+            </div>
+
+            <!-- 调用明细表 -->
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>Agent</th>
+                  <th>事件 ID</th>
+                  <th>耗时</th>
+                  <th>Token</th>
+                  <th>状态</th>
+                  <th>trace_id</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">17:22:31</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23700</a></td>
+                  <td><strong>34s</strong></td>
+                  <td>19,977</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">a3f2...8c1d</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">16:45:12</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23698</a></td>
+                  <td><strong>31s</strong></td>
+                  <td>18,432</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">b7e1...2a4f</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">15:58:03</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23695</a></td>
+                  <td><strong>38s</strong></td>
+                  <td>21,204</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">c9d4...6b8e</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">15:11:47</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23691</a></td>
+                  <td><strong>29s</strong></td>
+                  <td>17,856</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">d2f8...9e3a</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">14:33:22</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23688</a></td>
+                  <td><strong>42s</strong></td>
+                  <td>22,541</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">e5a1...4c7b</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">13:52:08</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23685</a></td>
+                  <td><strong>36s</strong></td>
+                  <td>20,118</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">f8c3...1d5e</span></td>
+                </tr>
+                <tr style="opacity:.6;">
+                  <td style="font-size:12px;white-space:nowrap;">12:15:44</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23680</a></td>
+                  <td style="color:#DC2626;"><strong>60s</strong></td>
+                  <td>24,310</td>
+                  <td><span class="status-badge" style="background:#FEE2E2;color:#DC2626;">timeout</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">a1b2...7f9c</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">11:40:19</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23676</a></td>
+                  <td><strong>33s</strong></td>
+                  <td>19,503</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">g4d6...8a2b</span></td>
+                </tr>
+                <tr style="opacity:.6;">
+                  <td style="font-size:12px;white-space:nowrap;">11:02:37</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23673</a></td>
+                  <td style="color:#DC2626;"><strong>8s</strong></td>
+                  <td>3,412</td>
+                  <td><span class="status-badge" style="background:#FEE2E2;color:#DC2626;">failed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">x9y1...4z7w</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">10:58:55</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23671</a></td>
+                  <td><strong>30s</strong></td>
+                  <td>18,890</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">h7e9...3c4d</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">10:22:33</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23668</a></td>
+                  <td><strong>35s</strong></td>
+                  <td>20,445</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">j2k5...6m8n</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">09:45:11</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23664</a></td>
+                  <td><strong>28s</strong></td>
+                  <td>16,720</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">p3q7...9r1s</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;white-space:nowrap;">09:08:42</td>
+                  <td><span style="font-size:12px;font-family:monospace;">alert_agent</span></td>
+                  <td><a href="#" style="color:var(--c-primary);text-decoration:none;font-size:12px;">#23660</a></td>
+                  <td><strong>32s</strong></td>
+                  <td>19,724</td>
+                  <td><span class="status-badge success">completed</span></td>
+                  <td><span style="font-size:11px;font-family:monospace;color:var(--c-text-3);">t4u8...2v5w</span></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- 分页 -->
+            <div
+              style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--c-border-light);">
+              <span style="font-size:12px;color:var(--c-text-3);">共 13 条记录 · 今日汇总: 243,132 tokens · 平均 34s</span>
+              <div style="display:flex;gap:4px;">
+                <button class="btn-sm" disabled style="opacity:.4;">‹ 上一页</button>
+                <button class="btn-sm" disabled style="opacity:.4;">下一页 ›</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Theme Toggle (with localStorage persist) =====
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isDark = html.getAttribute('data-theme') === 'dark';
+      var next = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      try { localStorage.setItem('ems-theme', next); } catch (e) { }
+    }
+    // Restore theme on load
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+      } catch (e) { }
+    })();
+
+    // ===== Fullscreen Toggle =====
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // ===== Language Switcher =====
+    function toggleLangMenu() {
+      document.getElementById('langMenu').classList.toggle('open');
+    }
+    function switchLang(code, label, el) {
+      document.querySelectorAll('.lang-option').forEach(function (o) { o.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('langMenu').classList.remove('open');
+    }
+    document.addEventListener('click', function (e) {
+      var sw = document.getElementById('langSwitcher');
+      if (sw && !sw.contains(e.target)) {
+        document.getElementById('langMenu').classList.remove('open');
+      }
+    });
+
+    // ===== Sidebar Toggle =====
+    function toggleSidebar() {
+      var sb = document.getElementById('sidebar');
+      sb.classList.toggle('expanded');
+      var isOpen = sb.classList.contains('expanded');
+      document.body.classList.toggle('sidebar-open', isOpen);
+      try { localStorage.setItem('ems-sidebar', isOpen ? 'expanded' : 'collapsed'); } catch (e) { }
+    }
+    (function () {
+      try {
+        var saved = localStorage.getItem('ems-sidebar');
+        if (saved === 'expanded') {
+          document.getElementById('sidebar').classList.add('expanded');
+          document.body.classList.add('sidebar-open');
+        }
+      } catch (e) { }
+    })();
+
+    // ===== Tab Switching =====
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+
+    // ===== Event Detail Drawer (S2-3) =====
+    (function () {
+      var historyTab = document.getElementById('tab-history');
+      if (!historyTab) return;
+      historyTab.addEventListener('click', function (e) {
+        var link = e.target.closest('a');
+        if (!link) return;
+        var text = link.textContent.trim();
+        if (/^#\d+$/.test(text)) {
+          e.preventDefault();
+          openEventDetail(text);
+        }
+      });
+    })();
+
+    function openEventDetail(eventId) {
+      var overlay = document.getElementById('eventDetailOverlay');
+      var drawer = document.getElementById('eventDetailDrawer');
+      overlay.style.display = 'block';
+      drawer.style.right = '0';
+      document.getElementById('eventDetailId').textContent = eventId;
+      document.getElementById('eventDetailBody').innerHTML =
+        '<div style="margin-bottom:20px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">' +
+        '<span style="background:#FEE2E2;color:#DC2626;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;">紧急</span>' +
+        '<h3 style="font-size:15px;font-weight:600;color:var(--c-text-1);margin:0;">Core-Switch-A1 端口 Down</h3></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">' +
+        '<div><span style="color:var(--c-text-3);">告警对象：</span><span style="color:var(--c-text-1);">Core-Switch-A1 [192.168.1.1]</span></div>' +
+        '<div><span style="color:var(--c-text-3);">告警状态：</span><span style="color:#DC2626;font-weight:600;">告警</span></div>' +
+        '<div><span style="color:var(--c-text-3);">告警时间：</span><span style="color:var(--c-text-1);">2026-05-25 14:32:15</span></div>' +
+        '<div><span style="color:var(--c-text-3);">持续时间：</span><span style="color:#DC2626;font-weight:600;">2h15m</span></div>' +
+        '<div><span style="color:var(--c-text-3);">告警来源：</span><span style="color:var(--c-text-1);">SNMP Trap</span></div>' +
+        '<div><span style="color:var(--c-text-3);">事件 ID：</span><span style="font-family:monospace;color:var(--c-text-1);">' + eventId + '</span></div>' +
+        '</div></div>' +
+        '<div style="margin-bottom:16px;padding:10px 14px;background:var(--c-fill-1);border-radius:var(--r-md);font-size:12px;color:var(--c-text-2);line-height:1.7;">' +
+        '<strong>告警描述：</strong>GigabitEthernet0/1 端口Down，接口状态变为 down</div>' +
+        '<div style="margin-bottom:16px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:10px;">AI 根因分析</h4>' +
+        '<div style="padding:12px 14px;background:#D1FAE5;border-radius:var(--r-lg);font-size:13px;color:#065F46;display:flex;align-items:flex-start;gap:8px;">' +
+        '<span style="font-size:16px;">💡</span><div><strong>分析结论：</strong>该端口Down告警由<span style="background:#A7F3D0;padding:1px 4px;border-radius:3px;font-weight:600;">配置变更</span>导致。检测到告警发生前5分钟有端口shutdown操作记录。</div></div></div>' +
+        '<div style="margin-bottom:16px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:10px;">根因排名</h4>' +
+        '<div style="font-size:12px;color:var(--c-text-2);line-height:2;">' +
+        '<div>🥇 配置变更导致 — <strong style="color:#059669;">92%</strong></div>' +
+        '<div>🥈 物理链路故障 — 5%</div>' +
+        '<div>🥉 对端设备异常 — 3%</div></div></div>' +
+        '<div style="margin-bottom:16px;">' +
+        '<h4 style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:10px;">推荐处置</h4>' +
+        '<div style="padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;color:var(--c-text-2);">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+        '<span style="background:#DBEAFE;color:#2563EB;padding:1px 6px;border-radius:3px;font-size:11px;">Netmiko</span>' +
+        '<span style="font-weight:500;color:var(--c-text-1);">端口状态恢复</span>' +
+        '<span style="margin-left:auto;background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:3px;font-size:11px;">L1 低风险</span></div>' +
+        '<div style="color:var(--c-text-3);">3个步骤 · 成功率 98% · 平均耗时 12s</div></div></div>';
+    }
+
+    function closeEventDetail() {
+      document.getElementById('eventDetailOverlay').style.display = 'none';
+      document.getElementById('eventDetailDrawer').style.right = '-50%';
+    }
+
+    // ===== Agent Toggle with Transition States =====
+    function toggleAgent(agentName, toggleEl) {
+      var isActive = toggleEl.classList.contains('active');
+      var card = toggleEl.closest('.agent-card');
+      var statusBadge = card.querySelector('.status-badge');
+      // Disable toggle during transition
+      toggleEl.style.pointerEvents = 'none';
+      toggleEl.style.opacity = '0.5';
+      if (isActive) {
+        // Running -> Stopping -> Stopped
+        statusBadge.textContent = '\u505c\u6b62\u4e2d';
+        statusBadge.className = 'status-badge';
+        statusBadge.style.cssText = 'background:#FEF3C7;color:#D97706;animation:pulse 1.5s infinite;';
+        card.style.borderColor = 'var(--c-border)';
+        setTimeout(function () {
+          toggleEl.classList.remove('active');
+          statusBadge.textContent = '\u5df2\u505c\u6b62';
+          statusBadge.style.cssText = 'background:#F1F5F9;color:#64748B;';
+          card.style.opacity = '0.75';
+          toggleEl.style.pointerEvents = '';
+          toggleEl.style.opacity = '';
+        }, 2000);
+      } else {
+        // Stopped -> Starting -> Running
+        statusBadge.textContent = '\u542f\u52a8\u4e2d';
+        statusBadge.className = 'status-badge';
+        statusBadge.style.cssText = 'background:#FEF3C7;color:#D97706;animation:pulse 1.5s infinite;';
+        setTimeout(function () {
+          toggleEl.classList.add('active');
+          statusBadge.textContent = '\u8fd0\u884c\u4e2d';
+          statusBadge.className = 'status-badge success';
+          statusBadge.style.cssText = '';
+          card.style.borderColor = '#EC4899';
+          card.style.opacity = '';
+          toggleEl.style.pointerEvents = '';
+          toggleEl.style.opacity = '';
+        }, 2000);
+      }
+    }
+  </script>
+
+  <!-- ===== CREATE AGENT DRAWER ===== -->
+  <div id="create-agent-modal"
+    style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);"
+    onclick="if(event.target===this)this.style.display='none'">
+    <div
+      style="position:absolute;right:0;top:0;bottom:0;width:620px;background:var(--c-white);box-shadow:-8px 0 30px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:slideIn .25s ease;">
+      <!-- Drawer Header -->
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--c-border-light);flex-shrink:0;">
+        <div>
+          <h2 style="font-size:16px;font-weight:600;color:var(--c-text-1);margin:0;">创建 Agent</h2>
+          <p style="font-size:12px;color:var(--c-text-3);margin:4px 0 0;">配置 Agent 的行为、数据源和分析策略</p>
+        </div>
+        <button onclick="document.getElementById('create-agent-modal').style.display='none'"
+          style="background:none;border:none;cursor:pointer;color:var(--c-text-3);font-size:20px;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);"
+          onmouseover="this.style.background='var(--c-fill-1)'"
+          onmouseout="this.style.background='none'">&times;</button>
+      </div>
+
+      <!-- Drawer Body (scrollable) -->
+      <div style="flex:1;overflow-y:auto;padding:24px;">
+
+        <!-- Section 1: Basic Info -->
+        <div style="margin-bottom:24px;">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            基本信息</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">Agent 标识
+                  <span style="color:#DC2626;">*</span></label>
+                <input type="text" placeholder="如 capacity_agent"
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                  onfocus="this.style.borderColor='var(--c-primary)'" onblur="this.style.borderColor='var(--c-border)'">
+                <div style="font-size:11px;color:var(--c-text-4);margin-top:2px;">英文+下划线，系统唯一标识</div>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">显示名称
+                  <span style="color:#DC2626;">*</span></label>
+                <input type="text" placeholder="如 容量预测分析"
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                  onfocus="this.style.borderColor='var(--c-primary)'" onblur="this.style.borderColor='var(--c-border)'">
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">用途描述
+                <span style="color:#DC2626;">*</span></label>
+              <input type="text" placeholder="一句话描述 Agent 做什么，如：分析告警事件根因并给出处置建议"
+                style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                onfocus="this.style.borderColor='var(--c-primary)'" onblur="this.style.borderColor='var(--c-border)'">
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Model & Strategy -->
+        <div style="margin-bottom:24px;padding-top:16px;border-top:1px solid var(--c-border-light);">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            模型与策略</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">使用模型
+                  <span style="color:#DC2626;">*</span></label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="glm-5.1" selected>GLM-5.1 (本地部署)</option>
+                  <option value="gpt-4o">GPT-4o (云端)</option>
+                  <option value="claude-3.5">Claude 3.5 (云端)</option>
+                  <option value="deepseek-v3">DeepSeek V3 (云端)</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">分析深度</label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="quick">快速（单轮推理，~10s）</option>
+                  <option value="standard" selected>标准（多步分析，~30s）</option>
+                  <option value="deep">深度（完整证据链，~60s）</option>
+                </select>
+                <div style="font-size:11px;color:var(--c-text-4);margin-top:2px;">深度越高，分析越全面但耗时更长</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">上下文窗口</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" value="20"
+                    style="width:60px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--c-primary)'"
+                    onblur="this.style.borderColor='var(--c-border)'">
+                  <span style="font-size:12px;color:var(--c-text-3);">条历史告警</span>
+                </div>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">Temperature</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" value="0.3" step="0.1" min="0" max="1"
+                    style="width:60px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--c-primary)'"
+                    onblur="this.style.borderColor='var(--c-border)'">
+                  <span style="font-size:11px;color:var(--c-text-4);">0=精确 1=创意</span>
+                </div>
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">Max
+                  Tokens</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" value="4096" step="512"
+                    style="width:72px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--c-primary)'"
+                    onblur="this.style.borderColor='var(--c-border)'">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Trigger & Execution -->
+        <div style="margin-bottom:24px;padding-top:16px;border-top:1px solid var(--c-border-light);">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            触发与执行</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">触发方式
+                  <span style="color:#DC2626;">*</span></label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="event" selected>事件驱动（告警触发）</option>
+                  <option value="manual">手动触发</option>
+                  <option value="schedule">定时执行（Cron）</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">触发条件</label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="all">所有告警</option>
+                  <option value="critical" selected>仅 Critical / Major</option>
+                  <option value="custom">自定义规则</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">超时时间</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" value="60"
+                    style="width:60px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--c-primary)'"
+                    onblur="this.style.borderColor='var(--c-border)'">
+                  <span style="font-size:12px;color:var(--c-text-3);">秒</span>
+                </div>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">失败重试</label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="0">不重试</option>
+                  <option value="1">重试 1 次</option>
+                  <option value="2" selected>重试 2 次</option>
+                  <option value="3">重试 3 次</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">并发限制</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" value="5" min="1" max="20"
+                    style="width:60px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;outline:none;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--c-primary)'"
+                    onblur="this.style.borderColor='var(--c-border)'">
+                  <span style="font-size:12px;color:var(--c-text-3);">个任务</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Data Sources -->
+        <div style="margin-bottom:24px;padding-top:16px;border-top:1px solid var(--c-border-light);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div
+              style="font-size:12px;font-weight:600;color:var(--c-text-1);text-transform:uppercase;letter-spacing:.5px;">
+              数据源</div>
+            <span style="font-size:11px;color:var(--c-text-4);">Agent 分析时可访问的数据范围</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <label
+              style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--c-primary)'"
+              onmouseout="this.style.borderColor='var(--c-border)'">
+              <input type="checkbox" checked style="accent-color:var(--c-primary);">
+              <div>
+                <div style="font-weight:500;color:var(--c-text-1);">告警事件</div>
+                <div style="font-size:11px;color:var(--c-text-4);">当前及关联告警</div>
+              </div>
+            </label>
+            <label
+              style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--c-primary)'"
+              onmouseout="this.style.borderColor='var(--c-border)'">
+              <input type="checkbox" checked style="accent-color:var(--c-primary);">
+              <div>
+                <div style="font-weight:500;color:var(--c-text-1);">性能指标</div>
+                <div style="font-size:11px;color:var(--c-text-4);">CPU/内存/磁盘/网络</div>
+              </div>
+            </label>
+            <label
+              style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--c-primary)'"
+              onmouseout="this.style.borderColor='var(--c-border)'">
+              <input type="checkbox" checked style="accent-color:var(--c-primary);">
+              <div>
+                <div style="font-weight:500;color:var(--c-text-1);">Syslog 日志</div>
+                <div style="font-size:11px;color:var(--c-text-4);">系统日志关键字检索</div>
+              </div>
+            </label>
+            <label
+              style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--c-primary)'"
+              onmouseout="this.style.borderColor='var(--c-border)'">
+              <input type="checkbox" checked style="accent-color:var(--c-primary);">
+              <div>
+                <div style="font-weight:500;color:var(--c-text-1);">CMDB 拓扑</div>
+                <div style="font-size:11px;color:var(--c-text-4);">设备关系与传播路径</div>
+              </div>
+            </label>
+            <label
+              style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--c-primary)'"
+              onmouseout="this.style.borderColor='var(--c-border)'">
+              <input type="checkbox" checked style="accent-color:var(--c-primary);">
+              <div>
+                <div style="font-weight:500;color:var(--c-text-1);">配置变更</div>
+                <div style="font-size:11px;color:var(--c-text-4);">近期配置 Diff 记录</div>
+              </div>
+            </label>
+            <label
+              style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--c-primary)'"
+              onmouseout="this.style.borderColor='var(--c-border)'">
+              <input type="checkbox" checked style="accent-color:var(--c-primary);">
+              <div>
+                <div style="font-weight:500;color:var(--c-text-1);">知识库</div>
+                <div style="font-size:11px;color:var(--c-text-4);">历史案例 RAG 检索</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 5: Output -->
+        <div style="margin-bottom:24px;padding-top:16px;border-top:1px solid var(--c-border-light);">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            输出配置</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label
+                style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:6px;">输出格式</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <label
+                  style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;"><input
+                    type="radio" name="output" checked style="accent-color:var(--c-primary);"> 根因分析 + 处置建议</label>
+                <label
+                  style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;"><input
+                    type="radio" name="output" style="accent-color:var(--c-primary);"> 置信度评分 + 排序</label>
+                <label
+                  style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;cursor:pointer;"><input
+                    type="radio" name="output" style="accent-color:var(--c-primary);"> 自由文本</label>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">候选根因数量</label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="1">Top 1</option>
+                  <option value="3" selected>Top 3</option>
+                  <option value="5">Top 5</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">输出语言</label>
+                <select
+                  style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                  <option value="zh" selected>中文</option>
+                  <option value="en">English</option>
+                  <option value="auto">跟随系统语言</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6: Prompt -->
+        <div style="margin-bottom:24px;padding-top:16px;border-top:1px solid var(--c-border-light);">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            Prompt 模板</div>
+          <textarea
+            placeholder="输入 Agent 分析时使用的系统提示词…&#10;&#10;示例：你是一个 IT 运维专家，负责对告警事件进行根因分析。请基于提供的数据（告警上下文、性能指标、Syslog、CMDB 拓扑），输出：&#10;1. 根因候选列表（含置信度评分）&#10;2. 证据链说明&#10;3. 处置建议（含优先级）"
+            style="width:100%;height:120px;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;resize:vertical;outline:none;font-family:'SF Mono','Monaco','Consolas',monospace;line-height:1.6;box-sizing:border-box;background:var(--c-fill-1);"
+            onfocus="this.style.borderColor='var(--c-primary)'"
+            onblur="this.style.borderColor='var(--c-border)'"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+            <div style="font-size:11px;color:var(--c-text-4);">支持变量：<code
+                style="background:var(--c-fill-2);padding:1px 4px;border-radius:3px;">{{event_data}}</code> <code
+                style="background:var(--c-fill-2);padding:1px 4px;border-radius:3px;">{{device_info}}</code> <code
+                style="background:var(--c-fill-2);padding:1px 4px;border-radius:3px;">{{history_alerts}}</code> <code
+                style="background:var(--c-fill-2);padding:1px 4px;border-radius:3px;">{{topology}}</code></div>
+            <button
+              style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;text-decoration:underline;"
+              onclick="this.closest('div').previousElementSibling.value='你是一个 IT 运维根因分析专家。请基于以下数据进行分析：\n\n【告警信息】{{event_data}}\n【设备信息】{{device_info}}\n【历史告警】{{history_alerts}}\n【网络拓扑】{{topology}}\n\n请输出：\n1. 根因候选（Top-3，含置信度百分比）\n2. 证据链（每条结论对应的数据支撑）\n3. 处置建议（按优先级排列）'">填入模板</button>
+          </div>
+        </div>
+
+        <!-- Section 7: Advanced -->
+        <div style="padding-top:16px;border-top:1px solid var(--c-border-light);">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            高级设置</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label
+                style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">创建后状态</label>
+              <select
+                style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                <option value="enabled">立即启用</option>
+                <option value="disabled" selected>创建但不启用（草稿）</option>
+              </select>
+            </div>
+            <div>
+              <label
+                style="display:block;font-size:12px;font-weight:500;color:var(--c-text-2);margin-bottom:4px;">通知方式</label>
+              <select
+                style="width:100%;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);box-sizing:border-box;">
+                <option value="none">不通知</option>
+                <option value="failed">仅失败时通知</option>
+                <option value="all" selected>所有结果通知</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Drawer Footer (fixed) -->
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid var(--c-border-light);flex-shrink:0;background:var(--c-white);">
+        <span style="font-size:11px;color:var(--c-text-4);">创建后可在 Agent 管理中修改配置</span>
+        <div style="display:flex;gap:8px;">
+          <button onclick="document.getElementById('create-agent-modal').style.display='none'"
+            style="padding:8px 16px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-2);cursor:pointer;">取消</button>
+          <button onclick="document.getElementById('create-agent-modal').style.display='none'"
+            style="padding:8px 20px;border:none;border-radius:var(--r-md);font-size:13px;background:var(--c-primary);color:#fff;cursor:pointer;font-weight:500;">创建
+            Agent</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADD MODEL DRAWER ===== -->
+  <div id="add-model-modal"
+    style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);"
+    onclick="if(event.target===this)this.style.display='none'">
+    <div
+      style="position:absolute;right:0;top:0;bottom:0;width:520px;background:var(--c-white);box-shadow:-8px 0 30px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:slideIn .25s ease;">
+      <!-- Drawer Header -->
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--c-border-light);flex-shrink:0;">
+        <div>
+          <h2 style="font-size:16px;font-weight:600;color:var(--c-text-1);margin:0;">添加模型</h2>
+          <p style="font-size:12px;color:var(--c-text-3);margin:4px 0 0;">配置新的 LLM 模型接入</p>
+        </div>
+        <button onclick="document.getElementById('add-model-modal').style.display='none'"
+          style="background:none;border:none;cursor:pointer;color:var(--c-text-3);font-size:20px;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);"
+          onmouseover="this.style.background='var(--c-fill-1)'"
+          onmouseout="this.style.background='none'">&times;</button>
+      </div>
+      <!-- Drawer Body -->
+      <div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;">
+        <!-- 基本信息 -->
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;">基本信息</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">LLM 提供商</label>
+              <select id="model-provider" onchange="updateModelOptions()"
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);">
+                <option value="">请选择提供商...</option>
+                <option value="zhipu">智谱 AI (GLM)</option>
+                <option value="qwen">阿里云 (通义千问)</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="openai">OpenAI (ChatGPT)</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="custom">自定义 / 本地部署</option>
+              </select>
+            </div>
+            <div id="model-version-wrapper">
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">模型版本</label>
+              <select id="model-version"
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);">
+                <option value="">请先选择提供商</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">显示名称</label>
+              <input type="text" placeholder="如：GLM-5.1"
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+            </div>
+          </div>
+        </div>
+        <!-- 连接配置 -->
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;">连接配置</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">API 协议</label>
+              <select
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);">
+                <option value="openai-compatible" selected>OpenAI-Compatible（推荐）</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="ollama">Ollama（本地，无需 Key）</option>
+              </select>
+              <span style="font-size:11px;color:var(--c-text-4);margin-top:2px;display:block;">大多数私有部署和国产模型支持
+                OpenAI-Compatible</span>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">Endpoint 地址</label>
+              <input type="text" placeholder="https://api.example.com/v1 或 10.10.10.61:28000"
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">API Key</label>
+              <div style="display:flex;gap:8px;">
+                <input type="password" placeholder="sk-***"
+                  style="flex:1;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+                <button
+                  style="padding:8px 14px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:12px;background:var(--c-white);color:var(--c-text-2);cursor:pointer;white-space:nowrap;"
+                  onclick="this.textContent='连接成功 ✓';this.style.color='var(--c-success)';this.style.borderColor='var(--c-success)'">测试连接</button>
+              </div>
+              <span style="font-size:11px;color:var(--c-text-4);margin-top:2px;display:block;">密钥将加密存储，本地部署可留空</span>
+            </div>
+          </div>
+        </div>
+        <!-- 用量配置 -->
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--c-text-1);margin-bottom:12px;">用量配置</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">Token 月限额</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" placeholder="不限" value=""
+                    style="flex:1;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+                  <span style="font-size:12px;color:var(--c-text-3);white-space:nowrap;">tokens/月</span>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">单次最大 Token</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" placeholder="32000" value="32000"
+                    style="flex:1;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+                  <span style="font-size:12px;color:var(--c-text-3);white-space:nowrap;">tokens</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">用途标签</label>
+              <input type="text" placeholder="如：告警根因分析、容量预测"
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+              <span style="font-size:11px;color:var(--c-text-4);margin-top:2px;display:block;">描述此模型的主要用途，便于管理</span>
+            </div>
+          </div>
+        </div>
+        <!-- 高级选项 -->
+        <details style="border:1px solid var(--c-border-light);border-radius:var(--r-md);padding:12px 16px;">
+          <summary style="font-size:13px;font-weight:600;color:var(--c-text-1);cursor:pointer;">高级选项</summary>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">Temperature</label>
+                <input type="number" step="0.1" min="0" max="2" value="0.3" placeholder="0.3"
+                  style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">超时时间</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input type="number" value="60" placeholder="60"
+                    style="flex:1;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+                  <span style="font-size:12px;color:var(--c-text-3);">秒</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">重试次数</label>
+              <input type="number" min="0" max="5" value="2" placeholder="2"
+                style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 0;">
+              <div class="toggle-switch active" onclick="this.classList.toggle('active')" style="flex-shrink:0;"></div>
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--c-text-1);">启用负载均衡</div>
+                <div style="font-size:11px;color:var(--c-text-3);">当主模型不可用时自动切换备用模型</div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+      <!-- Drawer Footer -->
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid var(--c-border-light);flex-shrink:0;background:var(--c-white);">
+        <span style="font-size:11px;color:var(--c-text-4);">添加后可在模型配置表中管理</span>
+        <div style="display:flex;gap:8px;">
+          <button onclick="document.getElementById('add-model-modal').style.display='none'"
+            style="padding:8px 16px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-2);cursor:pointer;">取消</button>
+          <button onclick="document.getElementById('add-model-modal').style.display='none'"
+            style="padding:8px 20px;border:none;border-radius:var(--r-md);font-size:13px;background:var(--c-primary);color:#fff;cursor:pointer;font-weight:500;">添加模型</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Add Model: Provider → Version options =====
+    function updateModelOptions() {
+      var provider = document.getElementById('model-provider').value;
+      var wrapper = document.getElementById('model-version-wrapper');
+      var inputStyle = 'width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;box-sizing:border-box;';
+      var selectStyle = 'width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-md);font-size:13px;background:var(--c-white);color:var(--c-text-1);';
+
+      if (provider === 'custom') {
+        wrapper.innerHTML = '<label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">Model ID</label>'
+          + '<input id="model-version" type="text" placeholder="如：llama3:8b、glm-4-9b、my-model-v1" style="' + inputStyle + '">'
+          + '<span style="font-size:11px;color:var(--c-text-4);margin-top:2px;display:block;">填写本地部署或自定义服务的 Model ID</span>';
+      } else {
+        var options = {
+          'zhipu': ['GLM-5.1 (最新)', 'GLM-4-Plus', 'GLM-4-Air'],
+          'qwen': ['Qwen2.5-Max', 'Qwen2.5-Plus', 'Qwen2.5-Turbo'],
+          'anthropic': ['Claude Opus 4.6', 'Claude Sonnet 4', 'Claude Haiku'],
+          'openai': ['ChatGPT 5.5', 'GPT-4o', 'GPT-4o-mini'],
+          'deepseek': ['DeepSeek-V3', 'DeepSeek-R1', 'DeepSeek-Coder']
+        };
+        var opts = '';
+        if (provider && options[provider]) {
+          options[provider].forEach(function (o) { opts += '<option>' + o + '</option>'; });
+        } else {
+          opts = '<option>请先选择提供商</option>';
+        }
+        wrapper.innerHTML = '<label style="font-size:12px;color:var(--c-text-2);display:block;margin-bottom:4px;">模型版本</label>'
+          + '<select id="model-version" style="' + selectStyle + '">' + opts + '</select>';
+      }
+    }
+  </script>
+
+  <style>
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+  </style>
+
+  <!-- ===== EVENT DETAIL DRAWER (S2-3) ===== -->
+  <div id="eventDetailOverlay"
+    style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);"
+    onclick="if(event.target===this)closeEventDetail()">
+    <div id="eventDetailDrawer"
+      style="position:absolute;right:-50%;top:0;bottom:0;width:50%;max-width:640px;background:var(--c-white);box-shadow:-8px 0 30px rgba(0,0,0,.12);display:flex;flex-direction:column;transition:right .25s ease;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--c-border-light);flex-shrink:0;">
+        <div>
+          <h2 style="font-size:15px;font-weight:600;color:var(--c-text-1);margin:0;">告警事件详情</h2>
+          <p style="font-size:12px;color:var(--c-text-3);margin:4px 0 0;" id="eventDetailId"></p>
+        </div>
+        <button onclick="closeEventDetail()"
+          style="background:none;border:none;cursor:pointer;color:var(--c-text-3);font-size:20px;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);"
+          onmouseover="this.style.background='var(--c-fill-1)'"
+          onmouseout="this.style.background='none'">&times;</button>
+      </div>
+      <div id="eventDetailBody" style="flex:1;overflow-y:auto;padding:20px 24px;"></div>
+    </div>
+  </div>
+</body>
+
+</html>

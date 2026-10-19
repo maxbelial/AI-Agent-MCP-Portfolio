@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 平台 - EMS NEO</title>
+  <link rel="stylesheet" href="../assets/ems-v6-common.css">
+  <link rel="stylesheet" href="ai-hub.css?v=20260918a">
+</head>
+
+<body>
+  <header class="header" id="emsHeader"></header>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main">
+    <div class="main-inner">
+      <div class="page-title-bar" style="padding-bottom:0">
+        <h1 class="page-title">AI 平台
+          <span style="font-size:12px;font-weight:400;color:var(--c-text-3)">
+            模型接入 · Agent 库 · Skill · EMS CLI · 场景档位（DevOps / AI 平台管理员）
+          </span>
+        </h1>
+      </div>
+
+            <div class="content">
+<div class="ac-panel active" id="panel-platform">
+
+          <div class="platform-banner">
+            <div class="pb-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <div class="pb-body">
+              <strong>面向 AI 平台运营 · DevOps</strong>：模型接入 · Agent 提示词 · Skill 工作流文件 · EMS 内置 CLI · 场景默认档位配置。
+              审批 / 审计在 <a href="ai-governance.html" style="color:var(--c-primary)">AI 治理 →</a> · 账单在 <a href="ai-billing.html" style="color:var(--c-primary)">AI 计费中心 →</a>。
+            </div>
+          </div>
+
+          <!-- Sub-tab: 模型 / Agent / EMS CLI / 场景档位 -->
+          <div class="ac-subtabs">
+            <div class="ac-subtab" data-sub="p-model" onclick="acSwitchSubtab('p-model')">模型接入 <span class="count" id="modelTabCount">5</span></div>
+            <div class="ac-subtab active" data-sub="p-agent" onclick="acSwitchSubtab('p-agent')">Agent 库 <span class="count">15</span></div>
+            <div class="ac-subtab" data-sub="p-skill" onclick="acSwitchSubtab('p-skill')">Skill <span class="count" id="skillTabCount">9</span></div>
+            <div class="ac-subtab" data-sub="p-cli" onclick="acSwitchSubtab('p-cli')">EMS CLI <span class="count" id="cliTabCount">19</span></div>
+            <div class="ac-subtab" data-sub="p-tier" onclick="acSwitchSubtab('p-tier')">场景档位</div>
+          </div>
+
+          <div class="ac-subpanel" id="sub-p-model">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">模型接入
+                  <span class="head-desc">统一接入模型池 · 具体使用模型在 Agent 中配置</span>
+                </div>
+                <button class="btn sm primary" data-ai-manage onclick="openModelEditor()">+ 接入模型</button>
+              </div>
+              <div class="tool-actions" style="padding:0 var(--sp-16) var(--sp-12)">
+                <input class="tool-search" id="modelSearch" placeholder="搜索模型、供应商或场景" oninput="renderModels()">
+                <select class="tool-select" id="modelTypeFilter" onchange="renderModels()"><option value="all">全部接入类型</option><option value="cloud">云端 API</option><option value="local">本地模型服务</option></select>
+              </div>
+              <table class="ac-data-table" id="modelTable">
+                <thead>
+                  <tr><th>模型</th><th>供应商 / 类型</th><th>能力</th><th>模型来源</th><th>今日调用 / 成本</th><th>状态</th><th>操作</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="ac-subpanel active" id="sub-p-agent">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">Agent 库 · 15 个 Agent（按产品分组）
+                  <span class="head-desc">产品场景 Agent 与平台通用 Agent 在此统一管理 · 点开卡片查看模型、执行档位、工具权限和业务入口</span>
+                </div>
+              </div>
+              <div style="padding:0 var(--sp-16) var(--sp-12);font-size:12px;color:var(--c-text-2);line-height:1.7">
+                <span class="kpi-status ok">● 完整链路</span> 表示已在原型中打通业务入口、Agent、Skill、CLI 与审计；<span class="kpi-status warn">● 原型占位</span> 表示仅用于展示能力规划，研发交付文档中默认剔除。
+              </div>
+
+              <div id="agentGrid"></div>
+
+          </div>
+          </div>
+
+          <div class="ac-subpanel" id="sub-p-skill">
+            <div class="tool-kpis">
+              <button class="tool-kpi active"><span class="tool-kpi-label">全部 Skill</span><strong id="skillTotalCount">9</strong><small>Markdown 工作流</small></button>
+              <button class="tool-kpi"><span class="tool-kpi-label">系统预置</span><strong id="officialSkillCount">7</strong><small>随产品交付</small></button>
+              <button class="tool-kpi"><span class="tool-kpi-label">用户导入</span><strong id="businessSkillCount">2</strong><small>当前环境</small></button>
+              <button class="tool-kpi"><span class="tool-kpi-label">今日加载</span><strong>2,172</strong><small>运行时按需读取</small></button>
+            </div>
+
+            <div class="ac-card" style="margin-top:var(--sp-16)">
+              <div class="ac-card-head">
+                <div class="head-title">Skill 管理
+                  <span class="head-desc">导入、删除与预览 Markdown 工作流文件</span>
+                </div>
+                <div class="tool-actions">
+                  <input class="tool-search" id="skillSearch" placeholder="搜索 Skill 或任务" oninput="filterSkills()">
+                  <button class="btn sm primary" data-ai-manage onclick="openSkillImportDrawer()">导入 Markdown</button>
+                </div>
+              </div>
+              <div class="catalog-groups" id="skillCatalog"></div>
+              <div class="tool-empty" id="skillEmpty">没有符合条件的 Skill</div>
+            </div>
+
+          </div>
+
+          <div class="ac-subpanel" id="sub-p-cli">
+            <div class="tool-kpis">
+              <button class="tool-kpi active"><span class="tool-kpi-label">内置命令</span><strong id="cliTotalCount">19</strong><small>随 EMS 产品交付</small></button>
+              <button class="tool-kpi"><span class="tool-kpi-label">可用命令</span><strong id="cliAvailableCount">19</strong><small>运行环境已加载</small></button>
+              <button class="tool-kpi"><span class="tool-kpi-label">今日调用</span><strong id="cliTodayCalls">1,842</strong><small>全部内置命令</small></button>
+              <button class="tool-kpi" onclick="openToolCalls('失败调用')"><span class="tool-kpi-label">近 24h 失败</span><strong>7</strong><small>成功率 99.6%</small></button>
+            </div>
+
+            <div class="ac-card" style="margin-top:var(--sp-16)">
+              <div class="ac-card-head">
+                <div class="head-title">运行状态
+                  <span class="head-desc">EMS 内部 Agent Runtime 已预装 · 用户无需安装、登记或授权</span>
+                </div>
+                <span class="kpi-status ok">● 运行正常</span>
+              </div>
+              <div class="cli-runtime-grid">
+                <div><span>当前版本</span><strong>EMS CLI 1.0.0</strong><small>更新于 2026-09-18</small></div>
+                <div><span>运行环境</span><strong>3 / 3 正常</strong><small>生产 · 灰度 · 测试</small></div>
+                <div><span>今日调用</span><strong>1,842</strong><small>平均 428 ms</small></div>
+                <div><span>身份来源</span><strong>自动继承</strong><small>当前用户 / 平台服务身份</small></div>
+              </div>
+            </div>
+
+            <div class="ac-card" style="margin-top:var(--sp-16)">
+              <div class="ac-card-head">
+                <div class="head-title">命令目录
+                  <span class="head-desc">EMS 内置命令 · Agent 根据提示词与任务上下文按需发现</span>
+                </div>
+                <div class="tool-actions">
+                  <input class="tool-search" id="toolSearch" placeholder="搜索命令或用途" oninput="filterAgentTools()">
+                  <select class="tool-select" id="toolDomain" onchange="filterAgentTools()"><option value="all">全部产品域</option><option>ITOM</option><option>CMDB</option><option>NPM</option><option>ITSM</option><option>FSM</option><option>ITAM</option><option>PMS</option></select>
+                </div>
+              </div>
+              <div class="catalog-groups" id="cliCatalog"></div>
+              <div class="tool-empty" id="toolEmpty">没有符合条件的命令</div>
+            </div>
+
+            <div class="ac-card" style="margin-top:var(--sp-16)">
+              <div class="ac-card-head"><div class="head-title">最近调用<span class="head-desc">完整记录进入 AI 治理审计</span></div><a class="ai-audit-link" href="ai-governance.html?sub=t5&view=exec">查看全部 →</a></div>
+              <table class="ac-data-table"><thead><tr><th>时间</th><th>场景 / Agent</th><th>命令</th><th>身份</th><th>租户</th><th>结果</th><th>耗时</th></tr></thead><tbody>
+                <tr><td>10:26:18</td><td>告警根因分析 / 根因分析 Agent</td><td><code>itom alert get</code></td><td>当前用户</td><td>周大福 CTF</td><td><span class="kpi-status ok">● 成功</span></td><td>312 ms</td></tr>
+                <tr><td>10:25:54</td><td>告警根因分析 / 根因分析 Agent</td><td><code>cmdb ci relations</code></td><td>当前用户</td><td>周大福 CTF</td><td><span class="kpi-status ok">● 成功</span></td><td>428 ms</td></tr>
+                <tr><td>10:24:36</td><td>智能派工 / FSM 调度推荐 Agent</td><td><code>ems fsm engineer workload</code></td><td>平台服务身份</td><td>达美乐（Domino）</td><td><span class="kpi-status ok">● 成功</span></td><td>286 ms</td></tr>
+                <tr><td>10:22:18</td><td>事件理解与分配 / ITSM 事件理解与分配 Agent</td><td><code>ems itsm incident classify</code></td><td>当前用户</td><td>达美乐</td><td><span class="kpi-status ok">● 成功</span></td><td>214 ms</td></tr>
+                <tr><td>10:21:06</td><td>告警转事件 / 工单起草 Agent</td><td><code>ems itsm incident create</code></td><td>当前用户</td><td>达美乐</td><td><span class="kpi-status warn">● 待确认</span></td><td>--</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+
+          <!-- Sub-panel: 场景档位（场景默认档位配置 · 可配置项：档位/白名单/熔断/通知渠道） -->
+          <div class="ac-subpanel" id="sub-p-tier">
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">场景档位矩阵
+                  <span class="head-desc">按当前租户配置场景执行档位 · 所有档位变更与风险规则均提交 <a href="ai-governance.html?sub=t1" class="ai-audit-link">AI 治理审批 →</a></span>
+                </div>
+              </div>
+              <table class="ac-data-table">
+                <thead>
+                  <tr><th>产品 · 功能点</th><th>默认档</th><th style="width:30%">当前生效档</th><th>规则说明</th></tr>
+                </thead>
+                <tbody id="tierTbody"></tbody>
+              </table>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">白名单规则（L1 自动执行）
+                  <span class="head-desc">默认空 · 客户主动配置 · 新增/修改走审批卡点</span>
+                </div>
+                <button class="btn sm primary" data-ai-manage onclick="openTierRuleModal()">+ 新增白名单规则</button>
+              </div>
+              <table class="ac-data-table">
+                <thead>
+                  <tr><th>规则名称</th><th>场景</th><th>触发条件</th><th>自动动作（L1）</th><th>状态</th><th>操作</th></tr>
+                </thead>
+                <tbody id="wlTbody"></tbody>
+              </table>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">全局熔断阈值
+                  <span class="head-desc">全平台统一配置 · 不区分租户</span>
+                </div>
+              </div>
+              <div style="padding:16px">
+                <div class="detail-grid" style="margin-bottom:12px">
+                  <div class="ad-field"><div class="ad-field-label">连续失败次数</div><input class="ad-input" id="breakerFailures" type="number" min="1" value="5"></div>
+                  <div class="ad-field"><div class="ad-field-label">15 分钟错误率（%）</div><input class="ad-input" id="breakerErrorRate" type="number" min="1" max="100" value="20"></div>
+                  <div class="ad-field"><div class="ad-field-label">月度预算使用率（%）</div><input class="ad-input" id="breakerBudgetRate" type="number" min="1" max="100" value="100"></div>
+                  <div class="ad-field"><div class="ad-field-label">单业务对象最大正式调用</div><input class="ad-input" id="breakerObjectCalls" type="number" min="1" value="5"></div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn sm primary" data-ai-manage onclick="saveBreakerConfig()">保存全局阈值</button></div>
+                <div style="font-size:12px;color:var(--c-text-2);line-height:1.8">
+                  当前熔断状态：<span id="breakerStatus"><span style="color:var(--c-success);font-weight:500">未触发</span>（本月 AI 成本 ¥328 / 预算 ¥1,000 · 33% · 错误率 0.4%）</span>
+                  <div style="margin-top:6px">熔断触发后暂停所有租户的自动写动作，保留只读分析、L2 人工处理和原产品手工流程；不会自动创建 L3 审批。通知 IT 主管后由有权用户人工解除。</div>
+                  <div style="margin-top:8px">阈值配置与触发演练统一在 <a href="ai-governance.html?sub=t3" class="ai-audit-link">AI 治理 · T3 熔断 →</a></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ac-card">
+              <div class="ac-card-head">
+                <div class="head-title">Agent 未采纳抑制
+                  <span class="head-desc">平台默认 · 可按租户场景覆盖 · 不改变档位</span>
+                </div>
+              </div>
+              <div style="padding:16px">
+                <div class="detail-grid" style="margin-bottom:12px">
+                  <div class="ad-field"><div class="ad-field-label">统计窗口（天）</div><input class="ad-input" id="suppressWindowDays" type="number" min="1" value="7"></div>
+                  <div class="ad-field"><div class="ad-field-label">连续未采纳次数</div><input class="ad-input" id="suppressRejectCount" type="number" min="1" value="30"></div>
+                  <div class="ad-field"><div class="ad-field-label">暂停主动调用（小时）</div><input class="ad-input" id="suppressPauseHours" type="number" min="1" value="24"></div>
+                  <div class="ad-field"><div class="ad-field-label">统计维度</div><input class="ad-input" value="租户 × Agent × 场景" disabled></div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn sm primary" data-ai-manage onclick="saveSuppressionConfig()">保存平台默认</button></div>
+                <div style="font-size:12px;color:var(--c-text-2);line-height:1.8">CLI 失败、数据不足、License 不可用或用户未看到建议时不计入未采纳。命中后仅暂停对应租户场景的主动调用，手动调用和产品人工流程仍可使用。租户场景可以覆盖默认值，覆盖记录必须审计。</div>
+              </div>
+            </div>
+
+            <div class="ac-card" style="margin-top:var(--sp-16)">
+              <div class="ac-card-head">
+                <div class="head-title">档位定义 · AI 执行控制三级
+                  <span class="head-desc">每个档位 AI 能做什么、不能做什么</span>
+                </div>
+              </div>
+              <div class="card-grid-3" style="padding:var(--sp-16)">
+                <div class="agent-card" style="cursor:default">
+                  <div class="card-head-row">
+                    <div class="card-info"><strong>L1 · 自动执行</strong><small>只读分析或低风险白名单动作</small></div>
+                    <span class="tier-badge tier-l1 sm">治理审批</span>
+                  </div>
+                  <div class="card-metric-list" style="grid-template-columns:1fr">
+                    <div style="font-size:11px;color:var(--c-text-2);line-height:1.7">自动执行只读分析，或执行已批准、低风险且可验证的白名单动作。高风险对象和动作不得配置为 L1。<br><small style="color:var(--c-text-3)">例如不得把高等级告警关联任务自动派给资质不足的工程师</small></div>
+                  </div>
+                </div>
+                <div class="agent-card" style="cursor:default">
+                  <div class="card-head-row">
+                    <div class="card-info"><strong>L2 · 手工确认</strong><small>AI 起草 · 人工确认后执行</small></div>
+                    <span class="tier-badge tier-l2 sm">主流档</span>
+                  </div>
+                  <div class="card-metric-list" style="grid-template-columns:1fr">
+                    <div style="font-size:11px;color:var(--c-text-2);line-height:1.7">AI 组合只读分析和数据变更，形成可编辑方案，<strong>业务用户确认后执行</strong>。<br><small style="color:var(--c-text-3)">单次确认不是审批；执行前重新校验权限、对象状态和影响</small></div>
+                  </div>
+                </div>
+                <div class="agent-card" style="cursor:default">
+                  <div class="card-head-row">
+                    <div class="card-info"><strong>L3 · 业务审批</strong><small>AI 起草动作 · 提交产品业务审批流</small></div>
+                    <span class="tier-badge tier-l3 sm">严格档</span>
+                  </div>
+                  <div class="card-metric-list" style="grid-template-columns:1fr">
+                    <div style="font-size:11px;color:var(--c-text-2);line-height:1.7">高风险任务每次形成建议、证据与不可变动作快照，<strong>提交目标产品业务审批流</strong>。审批节点由产品流程决定，通过且执行前复核成功后自动执行。<br><small style="color:var(--c-text-3)">AI 治理中心只审计结果，不处理运行任务审批</small></div>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:var(--sp-4) var(--sp-16) var(--sp-12);font-size:11px;color:var(--c-text-3);line-height:1.7">
+                治理边界：档位切换、L1 白名单、Agent 发布和平台权限变更进入 AI 治理；L2 单次确认和 L3 业务审批分别由业务用户与目标产品流程处理。
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增白名单规则弹窗（提交后走审批卡点 · 与 governance 审批队列口径一致） -->
+      </div>
+    </div>
+  </div>
+  <div class="tier-rule-overlay" id="tierRuleOverlay" onclick="if(event.target===this)closeTierRuleModal()">
+    <div class="tier-rule-modal">
+      <div class="tier-rule-head">
+        <span class="tier-rule-title">新增白名单规则</span>
+        <button class="tier-rule-close" onclick="closeTierRuleModal()" title="关闭">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="tier-rule-body">
+        <div>
+          <div class="tier-field-label">规则名称</div>
+          <input class="tier-form-input" id="tierRuleName" type="text" placeholder="例：P1 网络告警自动转单">
+        </div>
+        <div>
+          <div class="tier-field-label">所属场景</div>
+          <select class="tier-form-select" id="tierRuleScene">
+            <option value="告警转工单">告警转工单（自动转单）</option>
+            <option value="M5 服务请求">服务请求（低风险自动通过）</option>
+            <option value="告警降噪">告警降噪（维护窗口静默等规则）</option>
+          </select>
+        </div>
+        <div>
+          <div class="tier-field-label">触发条件</div>
+          <input class="tier-form-input" id="tierRuleCond" type="text" placeholder="例：来源=ITOM 且 优先级=P1 且 分类=网络">
+        </div>
+        <div>
+          <div class="tier-field-label">自动动作（L1）</div>
+          <input class="tier-form-input" id="tierRuleAction" type="text" placeholder="例：自动转单给网络运维组">
+        </div>
+        <div style="font-size:11px;color:var(--c-text-3);line-height:1.7">提交后进入 <strong>审批卡点卡点</strong>（IT 主管审批），审批通过后生效；所有新增/修改/启停操作记录到 审计。</div>
+      </div>
+      <div class="tier-rule-foot">
+        <button class="btn sm" onclick="closeTierRuleModal()">取消</button>
+        <button class="btn sm primary" onclick="submitTierRule()">提交审批</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 审计详情抽屉（六要素） -->
+  <div class="ac-drawer-overlay" id="agentDrawerOverlay" onclick="if(event.target===this)closeAgentDrawer()">
+    <div class="ac-drawer">
+      <div class="ac-drawer-head">
+        <span class="ac-drawer-title" id="agentDrawerTitle">Agent 编辑</span>
+        <button class="ac-drawer-close" onclick="closeAgentDrawer()">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ac-drawer-body" id="agentDrawerBody"></div>
+      <div class="ac-drawer-foot">
+        <button class="btn sm" onclick="closeAgentDrawer()">取消</button>
+        <button class="btn sm" onclick="runAgentTest()">运行测试</button>
+        <button class="btn sm primary" data-ai-manage id="agentSaveBtn" onclick="saveAgent()">保存（记录审计）</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ac-drawer-overlay" id="maintenanceDrawerOverlay" onclick="if(event.target===this)closeMaintenanceDrawer()">
+    <div class="ac-drawer">
+      <div class="ac-drawer-head">
+        <span class="ac-drawer-title" id="maintenanceDrawerTitle">维护</span>
+        <button class="ac-drawer-close" onclick="closeMaintenanceDrawer()" title="关闭">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ac-drawer-body" id="maintenanceDrawerBody"></div>
+      <div class="ac-drawer-foot" id="maintenanceDrawerFoot"></div>
+    </div>
+  </div>
+
+  <!-- 脱敏策略弹窗 -->
+
+
+
+  <script>
+    window.EMS_PAGE = {
+      activeMenu: 'ai/ai-platform.html',
+      basePath: '../',
+      breadcrumb: 'AI 平台',
+      aiQuickActions: [
+        { title: 'Agent 运营', desc: '各 Agent 效果与成本', prompt: '各场景 Agent 今日效果与成本如何？' },
+        { title: '模型接入', desc: '模型与接入点', prompt: '当前接入的模型有哪些？各自用在什么场景？' },
+        { title: '场景档位', desc: '档位配置建议', prompt: '当前场景档位配置有什么风险？' }
+      ]
+    };
+  </script>
+  <script>
+    var AI_PLATFORM_ROLE = localStorage.getItem('ems-role-demo') || 'u1';
+    var AI_PLATFORM_CAN_MANAGE = ['u2', 'u3', 'um'].indexOf(AI_PLATFORM_ROLE) >= 0;
+    var MODEL_STORAGE_KEY = 'ems-ai-model-connections-v1';
+    var DEFAULT_MODELS = [
+      {id:'model-deepseek',name:'DeepSeek V4 Pro',provider:'DeepSeek',type:'cloud',endpoint:'https://api.deepseek.com/v1',authType:'API Key',credentialAlias:'secret/deepseek-prod',capabilities:['文本','推理','JSON'],scope:'平台模型池',owner:'平台',scenes:'告警降噪 · NEO Copilot',inputPrice:'2.00',outputPrice:'8.00',contextWindow:128000,maxOutputTokens:8192,qps:20,timeout:60,calls:5824,cost:312,status:'active'},
+      {id:'model-openai',name:'ChatGPT 5.5',provider:'OpenAI',type:'cloud',endpoint:'https://api.openai.com/v1',authType:'API Key',credentialAlias:'secret/openai-prod',capabilities:['文本','推理','多模态','JSON'],scope:'平台模型池',owner:'平台',scenes:'根因分析 · 变更评估',inputPrice:'18.00',outputPrice:'72.00',contextWindow:200000,maxOutputTokens:16384,qps:15,timeout:90,calls:3214,cost:298,status:'active'},
+      {id:'model-anthropic',name:'Opus 4.7',provider:'Anthropic',type:'cloud',endpoint:'https://api.anthropic.com/v1',authType:'API Key',credentialAlias:'secret/anthropic-prod',capabilities:['文本','推理','长上下文'],scope:'平台模型池',owner:'平台',scenes:'复杂变更 · 疑难问答',inputPrice:'36.00',outputPrice:'180.00',contextWindow:200000,maxOutputTokens:16384,qps:10,timeout:120,calls:1847,cost:237,status:'active'},
+      {id:'model-gemini',name:'Gemini 2.5 Ultra',provider:'Google',type:'cloud',endpoint:'https://generativelanguage.googleapis.com',authType:'API Key',credentialAlias:'secret/gemini-pending',capabilities:['文本','多模态','JSON'],scope:'平台模型池',owner:'平台',scenes:'多模态查询',inputPrice:'0',outputPrice:'0',contextWindow:1000000,maxOutputTokens:8192,qps:10,timeout:90,calls:1232,cost:0,status:'tested'},
+      {id:'model-qwen-local',name:'Qwen3 235B · 广发证券',provider:'阿里通义',type:'local',endpoint:'http://10.172.1.50:8080/v1',authType:'平台服务身份',credentialAlias:'byok/tn_gf/qwen3',capabilities:['文本','推理','JSON'],scope:'BYOK 池',owner:'广发证券',scenes:'租户默认模型覆盖',inputPrice:'0',outputPrice:'0',contextWindow:128000,maxOutputTokens:8192,qps:8,timeout:120,calls:730,cost:0,status:'active'}
+    ];
+    var MODELS = loadModels();
+    function loadModels(){try{var value=JSON.parse(localStorage.getItem(MODEL_STORAGE_KEY)||'null');var models=Array.isArray(value)?value:JSON.parse(JSON.stringify(DEFAULT_MODELS));var supplies=JSON.parse(localStorage.getItem('ems-ai-byok-connections-v1')||'[]');var legacyMode={'全平台':'平台模型池','指定 Agent':'平台模型池','测试环境':'平台模型池','平台托管':'平台模型池','BYOK':'BYOK 池','私有化':'BYOK 池','私有化环境':'BYOK 池'};models.forEach(function(model){model.contextWindow=model.contextWindow||128000;model.maxOutputTokens=model.maxOutputTokens||8192;model.qps=model.qps||10;model.timeout=model.timeout||60;model.scope=legacyMode[model.scope]||model.scope||'平台模型池';model.owner=model.owner||(model.scope==='BYOK 池'?'租户':'平台');});DEFAULT_MODELS.filter(function(model){return model.scope==='平台模型池';}).forEach(function(defaultModel){if(!models.some(function(model){return model.id===defaultModel.id;}))models.push(JSON.parse(JSON.stringify(defaultModel)));});if(Array.isArray(supplies)){supplies.forEach(function(conn){var id='model-byok-'+conn.deploy+'-'+conn.tid;models=models.filter(function(model){return model.id!==id;});models.push({id:id,name:conn.model+' · '+conn.tenant,provider:conn.vendor,type:conn.local?'local':'cloud',endpoint:conn.endpoint||'待配置',authType:conn.local?'平台服务身份':'API Key',credentialAlias:'byok/'+conn.tid+'/'+conn.model,capabilities:['文本','推理','JSON'],scope:'BYOK 池',owner:conn.tenant,scenes:'租户默认模型覆盖',inputPrice:'0',outputPrice:'0',contextWindow:128000,maxOutputTokens:8192,qps:8,timeout:120,calls:0,cost:0,status:'tested'});});}return models;}catch(e){return JSON.parse(JSON.stringify(DEFAULT_MODELS));}}
+    function saveModels(){localStorage.setItem(MODEL_STORAGE_KEY,JSON.stringify(MODELS));}
+    function getModel(id){return MODELS.find(function(item){return item.id===id;});}
+    var AI_CLI_CAN_MAINTAIN = AI_PLATFORM_ROLE === 'um';
+    var AI_CLI_CAN_APPROVE = AI_PLATFORM_ROLE === 'u3';
+    var CLI_STORAGE_KEY = 'ems-ai-cli-definitions-v2';
+    var DEFAULT_CLI_COMMANDS = [
+      { id:'cli-alert-get', name:'ems itom alert get', domain:'ITOM', desc:'读取单条告警与上下文', purpose:'根因分析与现场派工风险取证', type:'read', agents:'根因分析 Agent · FSM 调度推荐 Agent', calls:526, status:'published', version:'v1.0', schema:'tenant: string (required)\nalert_id: string (required)', output:'status: success | failed\ndata: object\nevidence: array\ntrace_id: string' },
+      { id:'cli-metric-query', name:'ems itom metric query', domain:'ITOM', desc:'查询指标时序与异常区间', purpose:'指标异常验证', type:'read', agents:'根因分析 Agent', calls:418, status:'published', version:'v1.1', schema:'tenant: string (required)\nmetric: string (required)\ntime_range: string (required)', output:'status: success | failed\nseries: array\nanomalies: array\ntrace_id: string' },
+      { id:'cli-ci-get', name:'ems cmdb ci get', domain:'CMDB', desc:'读取 CI 类型、关键度和业务服务', purpose:'影响面与现场派工风险判断', type:'read', agents:'根因分析 Agent · FSM 调度推荐 Agent', calls:188, status:'published', version:'v1.0', schema:'tenant: string (required)\nci_id: string (required)', output:'status: success | failed\nci: {id, type, criticality, business_service, status}\ntrace_id: string' },
+      { id:'cli-ci-relations', name:'ems cmdb ci relations', domain:'CMDB', desc:'读取 CI 上下游关系', purpose:'影响面与依赖分析', type:'read', agents:'根因分析 Agent · FSM 调度推荐 Agent', calls:306, status:'published', version:'v1.0', schema:'tenant: string (required)\nci_id: string (required)\ndepth: integer (optional)', output:'status: success | failed\nrelations: array\ntrace_id: string' },
+      { id:'cli-path-diagnose', name:'ems npm path diagnose', domain:'NPM', desc:'执行受控网络路径诊断', purpose:'网络故障验证', type:'read', agents:'根因分析 Agent', calls:164, status:'published', version:'v1.0', schema:'tenant: string (required)\nsource: string (required)\ntarget: string (required)', output:'status: success | failed\nhops: array\nloss: number\ntrace_id: string' },
+      { id:'cli-incident-history', name:'ems itsm incident history', domain:'ITSM', desc:'查询历史相似事件', purpose:'历史证据检索', type:'read', agents:'根因分析 Agent', calls:205, status:'published', version:'v1.0', schema:'tenant: string (required)\nkeywords: string (required)', output:'status: success | failed\nincidents: array\ntrace_id: string' },
+      { id:'cli-incident-get', name:'ems itsm incident get', domain:'ITSM', desc:'读取事件影响、优先级、服务和来源关联', purpose:'事件转现场工单的派工约束补充', type:'read', agents:'FSM 调度推荐 Agent', calls:83, status:'published', version:'v1.0', schema:'tenant: string (required)\nincident_id: string (required)', output:'status: success | failed\nincident: {id, impact, urgency, priority, category, customer, service, sla, alert_id, asset_id, ci_id}\ntrace_id: string' },
+      { id:'cli-incident-create', name:'ems itsm incident create', domain:'ITSM', desc:'根据告警创建事件', purpose:'告警转事件', type:'write', agents:'告警转工单 Agent', calls:87, status:'published', version:'v1.0', schema:'tenant: string (required)\ntitle: string (required)\nsource_id: string (required)\nidempotency_key: string (required)', output:'status: success | failed\nincident_id: string\ntrace_id: string' },
+      { id:'cli-incident-classify', name:'ems itsm incident classify', domain:'ITSM', desc:'根据事件描述、告警上下文、影响范围和 CI 生成分类/标签建议', purpose:'事件理解与标签补全', type:'read', agents:'ITSM 事件理解与分配 Agent', calls:64, status:'published', version:'v0.2', schema:'tenant: string (required)\nincident_id: string (required)\nsource_context: object\nallowed_fields: array\ntrace_id: string', output:'status: success | failed\nclassification_patch: object\nconfidence: number\nevidence: array\ntrace_id: string' },
+      { id:'cli-incident-tag-update', name:'ems itsm incident tag update', domain:'ITSM', desc:'在字段白名单内写入分类、标签、SLA、优先级和重要性', purpose:'分类字段写入', type:'write', agents:'ITSM 事件理解与分配 Agent', calls:31, status:'published', version:'v0.2', schema:'tenant: string (required)\nincident_id: string (required)\nclassification_patch: object\nreason: string\nexecution_identity: string\ntrace_id: string', output:'status: success | failed\nupdated_fields: array\naudit_id: string\nincident_version: string' },
+      { id:'cli-priority-evaluate', name:'ems itsm priority evaluate', domain:'ITSM', desc:'按 ITSM 优先级矩阵校验影响、紧急度、重要性和 VIP 输入', purpose:'优先级矩阵校验', type:'read', agents:'ITSM 事件理解与分配 Agent', calls:64, status:'published', version:'v0.2', schema:'tenant: string (required)\nimpact: string\nurgency: string\nimportance: string\nvip: boolean\nci_criticality: string', output:'status: success | failed\npriority: string\nmatrix_version: string\nreason: string' },
+      { id:'cli-sla-match', name:'ems itsm sla match', domain:'ITSM', desc:'按客户、服务、分类、优先级和重要性匹配 SLA 策略', purpose:'SLA 等级补全', type:'read', agents:'ITSM 事件理解与分配 Agent', calls:64, status:'published', version:'v0.2', schema:'tenant: string (required)\ncustomer_id: string\nservice_id: string\ncategory: string\npriority: string\nimportance: string', output:'status: success | failed\nsla_level: string\nresponse_target: string\nresolution_target: string\npolicy_id: string' },
+      { id:'cli-incident-assign', name:'ems itsm incident assign', domain:'ITSM', desc:'通过 ITSM 权限写入处理组和处理人', purpose:'智能分配处理人', type:'write', agents:'ITSM 事件理解与分配 Agent', calls:17, status:'published', version:'v0.2', schema:'tenant: string (required)\nincident_id: string (required)\nassignment_group: string\nassignee: string\nreason: string\nexecution_identity: string\ntrace_id: string', output:'status: success | failed\nassignment: object\naudit_id: string\nincident_version: string' },
+      { id:'cli-engineer-query', name:'ems fsm engineer query', domain:'FSM', desc:'查询工程师服务画像', purpose:'按服务范围、级别、技能、接单状态和收费标准筛选候选人', type:'read', agents:'FSM 调度推荐 Agent', calls:142, status:'published', version:'v1.0', schema:'tenant: string (required)\nsite_id: string (required)\nrequired_skills: array (optional)\navailability_status: available | unavailable (optional)', output:'status: success | failed\nengineers: [{id, name, level, skills, service_area, availability_status, unavailable_until, rate}]\ntrace_id: string' },
+      { id:'cli-engineer-workload', name:'ems fsm engineer workload', domain:'FSM', desc:'查询工程师当前负载', purpose:'区分作业中、已申请验收和其他未结束工单', type:'read', agents:'FSM 调度推荐 Agent', calls:118, status:'published', version:'v1.0', schema:'tenant: string (required)\nengineer_ids: array (required)', output:'status: success | failed\nworkloads: [{engineer_id, working, acceptance_pending, other_open, capacity}]\ntrace_id: string' },
+      { id:'cli-workorder-get', name:'ems fsm workorder get', domain:'FSM', desc:'读取待派工工单与来源关联', purpose:'获取派工约束，并识别 ITSM、ITOM、ITAM 和 CMDB 上下文', type:'read', agents:'FSM 调度推荐 Agent', calls:164, status:'published', version:'v1.1', schema:'tenant: string (required)\nwork_order_id: string (required)', output:'status: success | failed\nwork_order: {id, fee_budget, site, type, description, required_skills, sla_due, status, source_system, incident_id, alert_id, asset_id, ci_id}\ntrace_id: string' },
+      { id:'cli-workorder-history', name:'ems fsm workorder history', domain:'FSM', desc:'查询同站点同类型历史履约', purpose:'计算服务连续性、历史费用和 SLA 表现', type:'read', agents:'FSM 调度推荐 Agent', calls:96, status:'published', version:'v1.0', schema:'tenant: string (required)\nsite_id: string (required)\ntype: string (required)\ntime_range: string (required)', output:'status: success | failed\nhistory: [{engineer_id, completed_at, sla_met, actual_fee}]\ntrace_id: string' },
+      { id:'cli-dispatch-history', name:'ems fsm dispatch history', domain:'FSM', desc:'查询派工与认领轮次', purpose:'识别未认领候选、重派轮次和停止条件', type:'read', agents:'FSM 调度推荐 Agent', calls:72, status:'published', version:'v1.0', schema:'tenant: string (required)\nwork_order_id: string (required)', output:'status: success | failed\nrounds: [{round, engineer_ids, notified_at, claim_due_at, claimed_by}]\ntrace_id: string' },
+      { id:'cli-survey-summary', name:'ems fsm survey summary', domain:'FSM', desc:'查询工程师服务满意度', purpose:'计算同站点同类型满意度及投诉负向因子', type:'read', agents:'FSM 调度推荐 Agent', calls:68, status:'published', version:'v1.0', schema:'tenant: string (required)\nsite_id: string (required)\ntype: string (required)\nengineer_ids: array (required)', output:'status: success | failed\nsummaries: [{engineer_id, valid_samples, average_score, open_complaints}]\ntrace_id: string' },
+      { id:'cli-asset-get', name:'ems itam asset get', domain:'ITAM', desc:'读取资产台账、维保与厂商要求', purpose:'资产证据与现场派工技能判断', type:'read', agents:'数据质量 Agent · FSM 调度推荐 Agent', calls:40, status:'published', version:'v1.0', schema:'tenant: string (required)\nasset_id: string (required)', output:'status: success | failed\nasset: {id, category, brand, model, warranty, vendor_authorization, failure_history, spare_parts}\ntrace_id: string' }
+    ];
+    var CLI_COMMANDS = loadCliCommands();
+
+    function loadCliCommands() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(CLI_STORAGE_KEY) || 'null');
+        if (!Array.isArray(saved)) return JSON.parse(JSON.stringify(DEFAULT_CLI_COMMANDS));
+        DEFAULT_CLI_COMMANDS.forEach(function (item) { if (!saved.some(function (old) { return old.id === item.id; })) saved.push(JSON.parse(JSON.stringify(item))); });
+        return saved.filter(function (item) { return item.id !== 'cli-dispatch-candidates'; });
+      }
+      catch (e) { return JSON.parse(JSON.stringify(DEFAULT_CLI_COMMANDS)); }
+    }
+    function saveCliCommands() { localStorage.setItem(CLI_STORAGE_KEY, JSON.stringify(CLI_COMMANDS)); }
+    function getCliCommand(id) { return CLI_COMMANDS.find(function (item) { return item.id === id; }); }
+    function guardCliMaintain() { if (AI_CLI_CAN_MAINTAIN) return true; showToast('EMS CLI 命令定义仅由平台维护角色管理', 'warn'); return false; }
+
+    function guardAiPlatformManage() {
+      if (AI_PLATFORM_CAN_MANAGE) return true;
+      window.showToast && showToast('当前角色仅可查看与运行测试，配置变更由 AI 平台管理员维护', 'warn');
+      return false;
+    }
+
+    function applyAiPlatformRoleAccess() {
+      document.body.classList.toggle('ai-platform-readonly', !AI_PLATFORM_CAN_MANAGE);
+      document.querySelectorAll('[data-ai-manage]').forEach(function (el) {
+        el.style.display = AI_PLATFORM_CAN_MANAGE ? '' : 'none';
+      });
+      document.querySelectorAll('[data-cli-maintain]').forEach(function (el) { el.style.display = AI_CLI_CAN_MAINTAIN ? '' : 'none'; });
+      if (!AI_PLATFORM_CAN_MANAGE && !document.getElementById('aiReadonlyNotice')) {
+        var banner = document.querySelector('.platform-banner');
+        if (banner) {
+          var notice = document.createElement('div');
+          notice.id = 'aiReadonlyNotice';
+          notice.className = 'ai-readonly-notice';
+          notice.innerHTML = '<strong>只读访问</strong><span>可查看 Agent、Skill、CLI 状态并运行测试；模型、权限、发布和档位配置由 AI 平台管理员维护。</span>';
+          banner.insertAdjacentElement('afterend', notice);
+        }
+      }
+    }
+
+    function acSwitchSubtab(name) {
+      document.querySelectorAll('.ac-subtab').forEach(function (s) {
+        s.classList.toggle('active', s.getAttribute('data-sub') === name);
+      });
+      document.querySelectorAll('.ac-subpanel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'sub-' + name);
+      });
+      var url = new URL(window.location);
+      url.searchParams.set('sub', name);
+      history.replaceState(null, '', url.toString());
+    }
+
+    function modelStatusMeta(status){return {draft:['草稿','warn'],tested:['测试通过','info'],active:['运行中','ok'],disabled:['已停用','muted']}[status]||[status,'warn'];}
+    function renderModels(){
+      var tbody=document.querySelector('#modelTable tbody'); if(!tbody)return;
+      var search=((document.getElementById('modelSearch')||{}).value||'').trim().toLowerCase();
+      var type=((document.getElementById('modelTypeFilter')||{}).value||'all'); tbody.innerHTML='';
+      MODELS.filter(function(model){return(type==='all'||model.type===type)&&(!search||(model.name+' '+model.provider+' '+model.scenes).toLowerCase().indexOf(search)>=0);}).forEach(function(model){
+        var status=modelStatusMeta(model.status);var row=document.createElement('tr');row.setAttribute('data-model-id',model.id);
+        row.innerHTML='<td><strong>'+escapeSkillHtml(model.name)+'</strong><small><code>'+escapeSkillHtml(model.endpoint)+'</code></small></td><td>'+escapeSkillHtml(model.provider)+'<small>'+(model.type==='local'?'本地模型服务':'云端 API')+' · '+escapeSkillHtml(model.authType)+'</small></td><td>'+model.capabilities.map(function(c){return '<code>'+escapeSkillHtml(c)+'</code>';}).join(' ')+'</td><td>'+escapeSkillHtml(model.scope)+'<small>'+escapeSkillHtml(model.owner||'平台')+' · '+escapeSkillHtml(model.scenes)+'</small></td><td>'+Number(model.calls||0).toLocaleString()+'<small>¥'+Number(model.cost||0).toLocaleString()+'</small></td><td><span class="kpi-status '+status[1]+'">● '+status[0]+'</span></td><td class="row-actions"><a onclick="openModelDetail(this)">详情</a> · <a onclick="testModelConnection(this)">测试</a>'+(AI_PLATFORM_CAN_MANAGE&&model.scope!=='BYOK 池'?' · <a onclick="openModelEditor(this)">修改</a>':'')+(AI_PLATFORM_CAN_MANAGE&&model.status==='tested'?' · <a onclick="activateModel(this)">启用</a>':'')+(AI_PLATFORM_CAN_MANAGE&&model.status==='active'?' · <a onclick="disableModel(this)">停用</a>':'')+'</td>';
+        tbody.appendChild(row);
+      });
+      document.getElementById('modelTabCount').textContent=MODELS.length;
+    }
+    function openModelDetail(link){
+      var model=getModel(link.closest('tr').getAttribute('data-model-id'));if(!model)return;
+      openMaintenanceDrawer('模型详情 · '+model.name,'<div class="detail-section"><div class="detail-section-title">连接</div><div class="detail-grid"><div class="detail-item"><span class="k">供应商</span><span class="v">'+escapeSkillHtml(model.provider)+'</span></div><div class="detail-item"><span class="k">接入类型</span><span class="v">'+(model.type==='local'?'本地模型服务':'云端 API')+'</span></div><div class="detail-item"><span class="k">接入点</span><span class="v">'+escapeSkillHtml(model.endpoint)+'</span></div><div class="detail-item"><span class="k">鉴权</span><span class="v">'+escapeSkillHtml(model.authType)+' · '+escapeSkillHtml(model.credentialAlias)+'</span></div></div></div><div class="detail-section"><div class="detail-section-title">能力与范围</div><div class="detail-box">'+escapeSkillHtml(model.capabilities.join(' · '))+'<br>可用范围：'+escapeSkillHtml(model.scope)+'<br>当前场景：'+escapeSkillHtml(model.scenes)+'</div></div><div class="detail-section"><div class="detail-section-title">模型限制</div><div class="detail-grid"><div class="detail-item"><span class="k">上下文窗口</span><span class="v">'+Number(model.contextWindow||0).toLocaleString()+' Token</span></div><div class="detail-item"><span class="k">最大输出</span><span class="v">'+Number(model.maxOutputTokens||0).toLocaleString()+' Token</span></div><div class="detail-item"><span class="k">调用频率</span><span class="v">'+Number(model.qps||0)+' QPS</span></div><div class="detail-item"><span class="k">请求超时</span><span class="v">'+Number(model.timeout||0)+' 秒</span></div></div></div><div class="detail-section"><div class="detail-section-title">Token 单价</div><div class="detail-box">输入单价 ¥'+escapeSkillHtml(model.inputPrice)+' / 百万 Token · 输出单价 ¥'+escapeSkillHtml(model.outputPrice)+' / 百万 Token<br><span class="ad-field-hint">实际输入和输出 Token 由每次模型调用自动计量。</span></div></div>',[{label:'关闭',onClick:closeMaintenanceDrawer},{label:'连通测试',kind:'primary',onClick:function(){testModelConnection(link);}}]);
+      var modeBox=document.querySelector('#maintenanceDrawerBody .detail-section:nth-child(2) .detail-box');
+      if(modeBox)modeBox.innerHTML=escapeSkillHtml(model.capabilities.join(' · '))+'<br>模型来源：'+escapeSkillHtml(model.scope)+'<br>归属：'+escapeSkillHtml(model.owner||'平台')+'<br>计划使用场景：'+escapeSkillHtml(model.scenes)+'<div class="ad-field-hint">平台模型由 Agent 的默认模型和备用模型配置决定；租户存在生效 BYOK 时运行期优先使用该模型。</div>';
+    }
+    function openModelEditor(link){
+      if(!guardAiPlatformManage())return;var row=link&&link.closest?link.closest('tr'):null;var model=row?getModel(row.getAttribute('data-model-id')):null;
+      var caps=['文本','推理','多模态','JSON','长上下文'].map(function(cap){return '<label class="ad-command-item"><input type="checkbox" data-model-cap="'+cap+'" '+(model&&model.capabilities.indexOf(cap)>=0?'checked':'')+'><span>'+cap+'</span></label>';}).join('');
+      openMaintenanceDrawer(model?'修改模型接入':'接入模型','<div class="detail-section"><div class="detail-section-title">基础信息</div><div class="detail-grid"><div class="ad-field"><div class="ad-field-label">模型名称</div><input id="modelEditName" class="ad-input" value="'+escapeSkillHtml(model?model.name:'')+'"></div><div class="ad-field"><div class="ad-field-label">供应商</div><input id="modelEditProvider" class="ad-input" value="'+escapeSkillHtml(model?model.provider:'')+'"></div><div class="ad-field"><div class="ad-field-label">接入类型</div><select id="modelEditType" class="ad-select"><option value="cloud" '+(!model||model.type==='cloud'?'selected':'')+'>云端 API</option><option value="local" '+(model&&model.type==='local'?'selected':'')+'>本地模型服务</option></select></div><div class="ad-field"><div class="ad-field-label">可用范围</div><select id="modelEditScope" class="ad-select"><option>测试环境</option><option '+(model&&model.scope==='指定 Agent'?'selected':'')+'>指定 Agent</option><option '+(model&&model.scope==='全平台'?'selected':'')+'>全平台</option><option '+(model&&model.scope==='私有化环境'?'selected':'')+'>私有化环境</option></select></div></div></div><div class="detail-section"><div class="detail-section-title">连接与鉴权</div><div class="ad-field"><div class="ad-field-label">接入点</div><input id="modelEditEndpoint" class="ad-input" value="'+escapeSkillHtml(model?model.endpoint:'')+'" placeholder="https://api.example.com/v1"></div><div class="detail-grid"><div class="ad-field"><div class="ad-field-label">鉴权方式</div><select id="modelEditAuth" class="ad-select"><option>API Key</option><option '+(model&&model.authType==='平台服务身份'?'selected':'')+'>平台服务身份</option><option>无鉴权 · 内部网络</option></select></div><div class="ad-field"><div class="ad-field-label">凭证别名</div><input id="modelEditCredential" class="ad-input" value="'+escapeSkillHtml(model?model.credentialAlias:'')+'" placeholder="secret/provider-prod"></div></div><div class="ad-field-hint">只保存凭证别名，密钥由密钥服务托管，页面不回显明文。</div></div><div class="detail-section"><div class="detail-section-title">模型能力</div><div class="ad-command-grid">'+caps+'</div></div><div class="detail-section"><div class="detail-section-title">模型限制</div><div class="detail-grid"><div class="ad-field"><div class="ad-field-label">上下文窗口（Token）</div><input id="modelEditContextWindow" class="ad-input" type="number" min="1" value="'+Number(model&&model.contextWindow||128000)+'"></div><div class="ad-field"><div class="ad-field-label">最大输出 Token</div><input id="modelEditMaxOutput" class="ad-input" type="number" min="1" value="'+Number(model&&model.maxOutputTokens||8192)+'"></div><div class="ad-field"><div class="ad-field-label">QPS 上限</div><input id="modelEditQps" class="ad-input" type="number" min="1" value="'+Number(model&&model.qps||10)+'"></div><div class="ad-field"><div class="ad-field-label">请求超时（秒）</div><input id="modelEditTimeout" class="ad-input" type="number" min="1" value="'+Number(model&&model.timeout||60)+'"></div></div></div><div class="detail-section"><div class="detail-section-title">Token 单价与场景</div><div class="detail-grid"><div class="ad-field"><div class="ad-field-label">输入单价（元/百万 Token）</div><input id="modelEditInputPrice" class="ad-input" type="number" min="0" value="'+escapeSkillHtml(model?model.inputPrice:'0')+'"></div><div class="ad-field"><div class="ad-field-label">输出单价（元/百万 Token）</div><input id="modelEditOutputPrice" class="ad-input" type="number" min="0" value="'+escapeSkillHtml(model?model.outputPrice:'0')+'"></div></div><div class="ad-field-hint">这里只配置计价标准；实际输入和输出 Token 由每次调用自动计量。</div><div class="ad-field"><div class="ad-field-label">计划使用场景</div><input id="modelEditScenes" class="ad-input" value="'+escapeSkillHtml(model?model.scenes:'')+'" placeholder="如：根因分析 · 变更评估"></div></div>',[{label:'取消',onClick:closeMaintenanceDrawer},{label:'保存草稿',onClick:function(){saveModelConnection(model,false);}},{label:'保存并测试',kind:'primary',onClick:function(){saveModelConnection(model,true);}}]);
+      var modeSelect=document.getElementById('modelEditScope');
+      modeSelect.previousElementSibling.textContent='模型来源';
+      modeSelect.innerHTML='<option>平台模型池</option>';
+      modeSelect.value='平台模型池';
+      modeSelect.disabled=true;
+      modeSelect.insertAdjacentHTML('afterend','<div class="ad-field-hint">BYOK 由 AI 计费中心登记，验证后自动同步到此处。</div>');
+      modeSelect.insertAdjacentHTML('afterend','<div class="ad-field-hint">模型测试状态由发布流程管理；实际使用模型在 Agent 中配置。</div>');
+    }
+    function saveModelConnection(model,runTest){
+      var name=document.getElementById('modelEditName').value.trim(),provider=document.getElementById('modelEditProvider').value.trim(),endpoint=document.getElementById('modelEditEndpoint').value.trim(),credential=document.getElementById('modelEditCredential').value.trim();
+      if(!name||!provider||!endpoint||!credential){showToast('请填写模型、供应商、接入点和凭证别名','warn');return;}
+      if(!/^https?:\/\//.test(endpoint)){showToast('接入点必须使用 HTTP 或 HTTPS 地址','warn');return;}
+      var contextWindow=Number(document.getElementById('modelEditContextWindow').value),maxOutput=Number(document.getElementById('modelEditMaxOutput').value),qps=Number(document.getElementById('modelEditQps').value),timeout=Number(document.getElementById('modelEditTimeout').value);
+      if(contextWindow<1||maxOutput<1||maxOutput>contextWindow||qps<1||timeout<1){showToast('请检查模型限制：最大输出不能超过上下文窗口，QPS 和超时必须大于 0','warn');return;}
+      if(!model){model={id:'model-'+Date.now(),calls:0,cost:0,status:'draft'};MODELS.push(model);}
+      model.name=name;model.provider=provider;model.endpoint=endpoint;model.type=document.getElementById('modelEditType').value;model.scope='平台模型池';model.owner='平台';model.authType=document.getElementById('modelEditAuth').value;model.credentialAlias=credential;model.capabilities=Array.from(document.querySelectorAll('[data-model-cap]:checked')).map(function(el){return el.getAttribute('data-model-cap');});model.contextWindow=contextWindow;model.maxOutputTokens=maxOutput;model.qps=qps;model.timeout=timeout;model.inputPrice=document.getElementById('modelEditInputPrice').value||'0';model.outputPrice=document.getElementById('modelEditOutputPrice').value||'0';model.scenes=document.getElementById('modelEditScenes').value.trim()||'待配置';model.status='draft';saveModels();renderModels();closeMaintenanceDrawer();showToast('平台模型接入草稿已保存','success');
+      if(runTest)setTimeout(function(){var row=document.querySelector('[data-model-id="'+model.id+'"]');if(row)testModelConnection(row.querySelector('a'));},180);
+    }
+    function testModelConnection(link){
+      var model=getModel(link.closest('tr').getAttribute('data-model-id'));if(!model)return;
+      openMaintenanceDrawer('连通测试 · '+model.name,'<div class="detail-section"><div class="detail-section-title">测试内容</div><div class="detail-grid"><div class="detail-item"><span class="k">接入点</span><span class="v">'+escapeSkillHtml(model.endpoint)+'</span></div><div class="detail-item"><span class="k">凭证</span><span class="v">'+escapeSkillHtml(model.credentialAlias)+'</span></div><div class="detail-item"><span class="k">基础对话</span><span class="v">待验证</span></div><div class="detail-item"><span class="k">JSON 输出</span><span class="v">待验证</span></div></div><div class="maintenance-test-output" id="modelTestOutput"></div></div>',[{label:'关闭',onClick:closeMaintenanceDrawer},{label:'开始测试',kind:'primary',onClick:function(){var out=document.getElementById('modelTestOutput');out.classList.add('show');out.innerHTML='<strong style="color:var(--c-success)">连接成功</strong><br>鉴权有效 · 基础对话正常 · JSON 输出符合要求 · 首 Token 620 ms';model.status='tested';model.testedAt=new Date().toISOString();saveModels();renderModels();}}]);
+    }
+    function activateModel(link){var model=getModel(link.closest('tr').getAttribute('data-model-id'));if(!model)return;showConfirmModal({title:'启用模型',message:'启用后可被 Agent 按提示词与运行策略选择；模型变化不会改变业务身份和数据权限。',okText:'确认启用',onOk:function(){model.status='active';saveModels();renderModels();showToast('模型已启用','success');}});}
+    function disableModel(link){var model=getModel(link.closest('tr').getAttribute('data-model-id'));if(!model)return;showConfirmModal({title:'停用模型',message:'停用前请确认已配置备用模型；现有调用将切换到 Agent 的备用模型。',okText:'确认停用',danger:true,onOk:function(){model.status='disabled';saveModels();renderModels();showToast('模型已停用','success');}});}
+
+    var activeToolType = 'all';
+    function cliStatusMeta(status) {
+      return { draft:['草稿','warn'], tested:['测试通过','info'], pending:['待发布审批','warn'], published:['可用','ok'], archived:['已停用','muted'] }[status] || [status,'warn'];
+    }
+    function cliActions(command) {
+      return '<a onclick="openCliDetail(this)">详情</a> · <a onclick="runToolTest(this)">测试</a> · <a onclick="openToolCalls(\'' + command.name + '\')">记录</a>';
+    }
+    function renderCliCommands() {
+      var catalog = document.getElementById('cliCatalog'); if (!catalog) return;
+      var search = ((document.getElementById('toolSearch') || {}).value || '').trim().toLowerCase();
+      var domain = ((document.getElementById('toolDomain') || {}).value || 'all');
+      var visibleCommands = CLI_COMMANDS.filter(function(command){
+        return (domain === 'all' || command.domain === domain) && (!search || (command.name + ' ' + command.desc + ' ' + command.purpose).toLowerCase().indexOf(search) >= 0);
+      });
+      var groups = {};
+      visibleCommands.forEach(function(command){ (groups[command.domain] || (groups[command.domain] = [])).push(command); });
+      catalog.innerHTML = Object.keys(groups).map(function(product){
+        var meta = (typeof PRODUCT_META !== 'undefined' && PRODUCT_META[product]) || {c:'#64748b',bd:'#e2e8f0'};
+        var rows = groups[product].map(function(command){
+          var tenantReadiness = command.domain === 'FSM' ? fsmCliReadiness(activeAiTenant()) : {ready:true,label:'可用'};
+          var chainTag = chainStateBadge(cliChainState(command.id));
+          return '<div class="catalog-row" data-tool-id="'+command.id+'" data-domain="'+escapeSkillHtml(command.domain)+'">'
+            + '<div class="catalog-identity"><span class="catalog-icon cli-icon">&gt;_</span><div><code>'+escapeSkillHtml(command.name)+'</code><small>'+escapeSkillHtml(command.desc)+'</small></div></div>'
+            + '<div class="catalog-main"><strong>'+escapeSkillHtml(command.purpose)+'</strong><small>结构化参数 · JSON 输出 · 自动继承业务身份</small></div>'
+            + '<div class="catalog-metric"><strong>'+Number(command.calls||0).toLocaleString()+'</strong><small>今日调用</small></div>'
+            + '<div class="catalog-tail"><div class="catalog-statuses">'+chainTag+'<span class="kpi-status '+(tenantReadiness.ready?'ok':'warn')+'">● '+(tenantReadiness.ready?'当前租户可用':tenantReadiness.label)+'</span></div><div class="catalog-actions">'+cliActions(command)+'</div></div></div>';
+        }).join('');
+        return '<section class="catalog-group" style="border-color:'+meta.bd+';border-top-color:'+meta.c+'"><div class="catalog-group-head"><span class="ov-dot" style="background:'+meta.c+'"></span><strong>'+product+'</strong><span>'+groups[product].length+' 个命令</span></div><div class="catalog-rows">'+rows+'</div></section>';
+      }).join('');
+      document.getElementById('cliTotalCount').textContent = CLI_COMMANDS.length;
+      var currentReadiness=fsmCliReadiness(activeAiTenant());
+      document.getElementById('cliAvailableCount').textContent = CLI_COMMANDS.filter(function(item){return item.domain!=='FSM'||currentReadiness.ready;}).length;
+      document.getElementById('cliTodayCalls').textContent = CLI_COMMANDS.reduce(function (sum,item) { return sum + Number(item.calls||0); },0).toLocaleString();
+      var tabCount = document.getElementById('cliTabCount'); if (tabCount) tabCount.textContent = CLI_COMMANDS.length;
+      document.getElementById('toolEmpty').style.display = visibleCommands.length ? 'none' : 'block';
+    }
+    function filterAgentTools(type, trigger) {
+      renderCliCommands();
+    }
+
+    function openMaintenanceDrawer(title, html, actions) {
+      document.getElementById('maintenanceDrawerTitle').textContent = title;
+      document.getElementById('maintenanceDrawerBody').innerHTML = html;
+      var foot = document.getElementById('maintenanceDrawerFoot');
+      foot.innerHTML = '';
+      (actions || []).forEach(function (action) {
+        var button = document.createElement('button');
+        button.className = 'btn sm ' + (action.kind || ''); button.textContent = action.label;
+        button.addEventListener('click', action.onClick || closeMaintenanceDrawer); foot.appendChild(button);
+      });
+      document.getElementById('maintenanceDrawerOverlay').classList.add('open');
+    }
+    function closeMaintenanceDrawer() { document.getElementById('maintenanceDrawerOverlay').classList.remove('open'); }
+
+    function openCliDetail(link) {
+      var row = link.closest('[data-tool-id]');
+      var command = getCliCommand(row.getAttribute('data-tool-id')); if (!command) return;
+      var name = command.name;
+      var tenant = activeAiTenant();
+      var readiness = command.domain === 'FSM' ? fsmCliReadiness(tenant) : {ready:true,label:'能力完整',detail:'当前租户已具备该产品命令所需能力'};
+      openMaintenanceDrawer('命令详情 · ' + name, '<div class="detail-section"><div class="detail-section-title">用途</div><div class="detail-box">' + chainStateBadge(cliChainState(command.id)) + '<div style="margin-top:8px">' + escapeSkillHtml(command.purpose) + '</div></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">当前租户能力</div><div class="detail-box"><strong>'+escapeSkillHtml(tenant)+'</strong> · <span class="kpi-status '+(readiness.ready?'ok':'warn')+'">● '+escapeSkillHtml(readiness.label)+'</span><br>'+escapeSkillHtml(readiness.detail)+'</div>'+(command.domain==='FSM'?'<div class="ad-field-hint">必需模块：FSM 工单、工程师画像、工程师负载。必需字段：状态、网点、技能、接单状态、恢复时间、收费、服务范围、作业中/待验收负载。</div>':'')+'</div>'
+        + '<div class="detail-section"><div class="detail-section-title">命令帮助</div><div class="detail-box"><code>' + escapeSkillHtml(name) + ' --help</code><br>结构化参数校验 · JSON 输出 · 禁止 Shell 运算符和重定向</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">输入参数 Schema</div><div class="detail-box" style="white-space:pre-line"><code>' + escapeSkillHtml(command.schema) + '</code></div></div><div class="detail-section"><div class="detail-section-title">结构化输出</div><div class="detail-box" style="white-space:pre-line"><code>' + escapeSkillHtml(command.output) + '</code></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">身份与权限</div><div class="detail-box">自动继承当前用户或平台服务身份 · 按租户与业务对象权限执行<br>命令本身不定义自动执行或手工确认，执行控制由业务场景档位决定。</div></div>', [
+        { label: '关闭', onClick: closeMaintenanceDrawer },
+        { label: '运行测试', kind: 'primary', onClick: function () { runToolTest(link); } }
+      ]);
+    }
+
+    function runToolTest(link) {
+      var row = link.closest('[data-tool-id]');
+      var command = getCliCommand(row.getAttribute('data-tool-id')); if (!command) return;
+      var name = command.name;
+      openMaintenanceDrawer('运行测试 · ' + name, '<div class="detail-section"><div class="detail-section-title">测试参数</div><textarea id="cliTestInput" class="ad-textarea" placeholder="输入 JSON 测试参数">{\n  "tenant": "demo",\n  "object_id": "ALT-20260918-001"\n}</textarea><div class="ad-field-hint">使用测试环境和当前身份校验；写命令仅执行 dry-run，不提交业务数据。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">执行检查</div><div class="detail-grid"><div class="detail-item"><span class="k">参数 Schema</span><span class="v">待验证</span></div><div class="detail-item"><span class="k">身份与租户</span><span class="v">待验证</span></div><div class="detail-item"><span class="k">输出契约</span><span class="v">待验证</span></div><div class="detail-item"><span class="k">写入方式</span><span class="v">dry-run</span></div></div><div class="maintenance-test-output" id="cliTestOutput"></div></div>', [
+        { label: '关闭', onClick: closeMaintenanceDrawer },
+        { label: '开始测试', kind: 'primary', onClick: function () {
+          var output = document.getElementById('cliTestOutput'); output.classList.add('show');
+          var tenant=activeAiTenant();var readiness=command.domain==='FSM'?fsmCliReadiness(tenant):{ready:true};
+          if(!readiness.ready){output.innerHTML='<strong style="color:var(--c-danger)">测试未通过 · '+escapeSkillHtml(tenant)+'</strong><br>'+escapeSkillHtml(readiness.detail)+'<br>AI 场景不会调用该命令。';return;}
+          output.innerHTML = '<strong style="color:var(--c-success)">测试通过 · '+escapeSkillHtml(tenant)+'</strong><br>模块与必需字段完整 · 参数校验通过 · 身份与租户范围有效 · 输出符合 JSON 契约 · 耗时 428 ms<br>测试人：当前平台维护用户 · 本次测试已记录调用日志。';
+        } }
+      ]);
+    }
+
+    function openCliEditor(link) {
+      if (!guardCliMaintain()) return;
+      var row = link && link.closest ? link.closest('tr') : null;
+      var command = row ? getCliCommand(row.getAttribute('data-tool-id')) : null;
+      var type = command ? command.type : 'read';
+      var domain = command ? command.domain : 'ITOM';
+      var name = command ? command.name : 'ems ';
+      var desc = command ? command.desc : '';
+      var purpose = command ? command.purpose : '';
+      var domains = ['ITOM','CMDB','NPM','ITSM','FSM','ITAM','PMS'].map(function (item) { return '<option ' + (item === domain ? 'selected' : '') + '>' + item + '</option>'; }).join('');
+      openMaintenanceDrawer((row ? '修改' : '新增') + ' EMS CLI 命令', '<div class="detail-section"><div class="detail-section-title">命令定义</div><div class="ad-field"><div class="ad-field-label">命令</div><input id="cliEditName" class="ad-input" value="' + escapeSkillHtml(name) + '" placeholder="ems product resource action"></div><div class="detail-grid"><div class="ad-field"><div class="ad-field-label">产品域</div><select id="cliEditDomain" class="ad-select">' + domains + '</select></div><div class="ad-field"><div class="ad-field-label">动作类型</div><select id="cliEditType" class="ad-select"><option value="read" ' + (type === 'read' ? 'selected' : '') + '>查询</option><option value="write" ' + (type === 'write' ? 'selected' : '') + '>业务写入</option></select></div></div><div class="ad-field"><div class="ad-field-label">命令说明</div><input id="cliEditDesc" class="ad-input" value="' + escapeSkillHtml(desc) + '"></div><div class="ad-field"><div class="ad-field-label">适用任务</div><input id="cliEditPurpose" class="ad-input" value="' + escapeSkillHtml(purpose) + '"></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">输入输出契约</div><div class="ad-field"><div class="ad-field-label">参数 Schema</div><textarea id="cliEditSchema" class="ad-textarea">' + escapeSkillHtml(command ? command.schema : 'tenant: string (required)\nobject_id: string (required)') + '</textarea></div><div class="ad-field"><div class="ad-field-label">结构化输出</div><textarea id="cliEditOutput" class="ad-textarea">' + escapeSkillHtml(command ? command.output : 'status: success | failed\ndata: object\nevidence: array\ntrace_id: string') + '</textarea></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">关联 Agent</div><input id="cliEditAgents" class="ad-input" value="' + escapeSkillHtml(command ? command.agents : '未关联') + '" placeholder="未关联，或填写 Agent 名称"><div class="ad-field-hint">解除全部关联后才能停用已发布命令；关联不会扩大 Agent 权限。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">运行边界</div><div class="detail-box">官方 Runner 执行 · 自动继承身份 · 租户和对象级鉴权 · 禁止任意 Shell、脚本上传和重定向</div></div>', [
+        { label: '取消', onClick: closeMaintenanceDrawer },
+        { label: '保存草稿', onClick: function () { saveCliDefinition(command, false); } },
+        { label: '保存并测试', kind: 'primary', onClick: function () { saveCliDefinition(command, true); } }
+      ]);
+    }
+
+    function saveCliDefinition(command, runTest) {
+      var name = document.getElementById('cliEditName').value.trim();
+      var domain = document.getElementById('cliEditDomain').value;
+      var type = document.getElementById('cliEditType').value;
+      var desc = document.getElementById('cliEditDesc').value.trim();
+      var purpose = document.getElementById('cliEditPurpose').value.trim();
+      var schema = document.getElementById('cliEditSchema').value.trim();
+      var output = document.getElementById('cliEditOutput').value.trim();
+      var agents = document.getElementById('cliEditAgents').value.trim() || '未关联';
+      if (!/^ems\s+[a-z0-9-]+\s+[a-z0-9-]+\s+[a-z0-9-]+$/.test(name) || !desc || !purpose || !schema || !output) { showToast('请按命令格式填写完整定义和输入输出契约', 'warn'); return; }
+      if (CLI_COMMANDS.some(function (item) { return item.name === name && (!command || item.id !== command.id); })) { showToast('命令名称已存在', 'warn'); return; }
+      if (!command) { command = { id:'cli-custom-' + Date.now(), agents:'未关联', calls:0, version:'草稿', status:'draft' }; CLI_COMMANDS.push(command); }
+      if (command.status === 'published') { command.history = command.history || []; command.history.push({ version:command.version, schema:command.schema, output:command.output }); command.baseVersion = command.version; }
+      command.name=name; command.domain=domain; command.type=type; command.desc=desc; command.purpose=purpose; command.schema=schema; command.output=output; command.agents=agents; command.status='draft'; command.version=command.baseVersion ? '草稿 · 线上 ' + command.baseVersion : '草稿';
+      saveCliCommands(); renderCliCommands(); closeMaintenanceDrawer(); showToast('命令定义草稿已保存', 'success');
+      if (runTest) setTimeout(function () { var row = document.querySelector('[data-tool-id="' + command.id + '"]'); if (row) runToolTest(row.querySelector('a')); }, 180);
+    }
+
+    function submitCliPublish(link) {
+      if (!guardCliMaintain()) return; var command = getCliCommand(link.closest('[data-tool-id]').getAttribute('data-tool-id')); if (!command) return;
+      showConfirmModal({ title:'提交命令发布审批', message:'提交后锁定当前命令定义、输入输出契约与测试结果。', okText:'提交审批', onOk:function(){ command.status='pending'; command.submittedBy=AI_PLATFORM_ROLE; saveCliCommands(); renderCliCommands(); showToast('命令发布申请已提交','success'); } });
+    }
+    function approveCliPublish(link) {
+      var command = getCliCommand(link.closest('[data-tool-id]').getAttribute('data-tool-id')); if (!command || !AI_CLI_CAN_APPROVE) return;
+      showActionModal({ title:'命令发布审批 · ' + command.name, sections:[{heading:'检查结果',html:'测试通过 · 参数 Schema 完整 · 输出契约有效 · 身份边界已声明'},{heading:'申请信息',html:'申请角色：' + escapeSkillHtml(command.submittedBy || '未知') + ' · 审批角色：' + escapeSkillHtml(AI_PLATFORM_ROLE)}], actions:[{label:'取消'},{label:'退回修改',kind:'danger',onClick:function(){command.status='draft';command.submittedBy='';saveCliCommands();renderCliCommands();}},{label:'审批通过',kind:'primary',onClick:function(){var n=parseFloat(String(command.baseVersion||command.version).replace('v',''))||0;command.version='v'+(n?(n+0.1).toFixed(1):'1.0');command.baseVersion='';command.status='published';command.publishedAt=new Date().toISOString();saveCliCommands();renderCliCommands();showToast('命令已发布 · '+command.version,'success');}}] });
+    }
+    function archiveCliCommand(link) {
+      var command = getCliCommand(link.closest('[data-tool-id]').getAttribute('data-tool-id')); if (!command || !AI_CLI_CAN_APPROVE) return;
+      if (command.agents && command.agents !== '未关联') { showToast('请先解除关联 Agent，再停用命令','warn'); return; }
+      showConfirmModal({ title:'停用命令', message:'停用后保留版本和调用记录，Agent 不再允许调用。', okText:'确认停用', danger:true, onOk:function(){command.status='archived';saveCliCommands();renderCliCommands();showToast('命令已停用','success');} });
+    }
+
+    function openToolCalls(name) {
+      openMaintenanceDrawer('调用记录 · ' + name,
+        '<div class="detail-section"><div class="detail-section-title">调用概况</div><div class="detail-grid">'
+        + '<div class="detail-item"><span class="k">近 24 小时</span><span class="v">1,842 次</span></div>'
+        + '<div class="detail-item"><span class="k">成功率</span><span class="v">99.6%</span></div>'
+        + '<div class="detail-item"><span class="k">平均耗时</span><span class="v">428 ms</span></div>'
+        + '<div class="detail-item"><span class="k">失败 / 拦截</span><span class="v">7 次</span></div></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">最近调用</div><div class="detail-chain">'
+        + '<div class="detail-chain-item"><span class="t">09:42</span><div><strong>根因分析 Agent</strong><br>周大福 CTF · 成功 · 428 ms</div></div>'
+        + '<div class="detail-chain-item"><span class="t">09:18</span><div><strong>NEO Agent</strong><br>达美乐 · 成功 · 612 ms</div></div>'
+        + '<div class="detail-chain-item"><span class="t">昨天</span><div><strong>容量预测 Agent</strong><br>广发证券 · 已拦截 · 参数越界</div></div>'
+        + '</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">审计范围</div><div class="detail-box" style="font-family:inherit">记录调用身份、租户、业务对象、输入摘要、执行结果、耗时和 Trace ID。</div></div>',
+        [{ label: '关闭', onClick: closeMaintenanceDrawer }]);
+    }
+
+    var SKILL_STORAGE_KEY = 'ems-ai-business-skills-v2';
+    var AI_PLATFORM_CAN_APPROVE = ['u3', 'um'].indexOf(AI_PLATFORM_ROLE) >= 0;
+    var DEFAULT_SKILL_INPUT_SCHEMA = JSON.stringify({ type:'object', required:['scene_code','tenant_id','context'], properties:{ scene_code:{type:'string'}, tenant_id:{type:'string'}, context:{type:'object'}, constraints:{type:'object'} } }, null, 2);
+    var DEFAULT_SKILL_OUTPUT_SCHEMA = JSON.stringify({ type:'object', required:['status','conclusion','confidence','evidence','unverified','suggested_actions','cli_runs','errors','user_message','retryable','trace_id'], properties:{ status:{type:'string',enum:['success','partial','failed']}, conclusion:{type:'string'}, confidence:{type:'number',minimum:0,maximum:1}, evidence:{type:'array',items:{type:'object'}}, unverified:{type:'array',items:{type:'string'}}, suggested_actions:{type:'array',items:{type:'object'}}, cli_runs:{type:'array',items:{type:'object'}}, errors:{type:'array',items:{type:'object'}}, user_message:{type:'string'}, retryable:{type:'boolean'}, trace_id:{type:'string'} } }, null, 2);
+    var DEFAULT_BUSINESS_SKILLS = [
+      { id: 'bs-vip-alert', name: '重点客户告警升级', code: 'skill.business.vip-alert-escalation', task: '识别重点客户告警并补充升级建议', steps: '识别重点客户与告警影响\n查询关联事件与服务等级\n生成升级建议并标注证据', cliDependency:'required', commands: ['itom', 'itsm'], agents: ['sa3'], version: 'v1.2', loads: 48, status: 'published', submittedBy: 'u2', inputSchema:DEFAULT_SKILL_INPUT_SCHEMA, outputSchema:DEFAULT_SKILL_OUTPUT_SCHEMA, failurePolicy:'证据不足时停止生成动作，只返回已验证事实和缺失项。' },
+      { id: 'bs-store-network', name: '门店网络故障检查', code: 'skill.business.store-network-check', task: '按门店网络标准生成检查步骤', steps: '读取站点网络与拓扑\n执行链路和设备状态检查\n汇总证据并输出排查顺序', cliDependency:'required', commands: ['npm', 'cmdb'], agents: [], version: 'v0.3', loads: 12, status: 'tested', submittedBy: '', inputSchema:DEFAULT_SKILL_INPUT_SCHEMA, outputSchema:DEFAULT_SKILL_OUTPUT_SCHEMA, failurePolicy:'命令失败或数据超时时，保留已有证据并转人工排查。' }
+    ];
+    var BUSINESS_SKILLS = loadBusinessSkills();
+    var activeSkillDomain = 'all';
+
+    function cloneData(value) { return JSON.parse(JSON.stringify(value)); }
+    function upgradeSkillOutputSchema(raw) {
+      try {
+        var schema = JSON.parse(raw || DEFAULT_SKILL_OUTPUT_SCHEMA); var base = JSON.parse(DEFAULT_SKILL_OUTPUT_SCHEMA);
+        schema.required = Array.isArray(schema.required) ? schema.required : [];
+        schema.properties = schema.properties || {};
+        base.required.forEach(function (key) { if (schema.required.indexOf(key) < 0) schema.required.push(key); if (!schema.properties[key]) schema.properties[key] = base.properties[key]; });
+        return JSON.stringify(schema, null, 2);
+      } catch (e) { return DEFAULT_SKILL_OUTPUT_SCHEMA; }
+    }
+    function escapeSkillHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
+    function loadBusinessSkills() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(SKILL_STORAGE_KEY) || 'null');
+        var skills = Array.isArray(saved) ? saved : cloneData(DEFAULT_BUSINESS_SKILLS);
+        skills.forEach(function (skill) { skill.cliDependency = skill.cliDependency || (skill.commands && skill.commands.length ? 'required' : 'none'); skill.inputSchema = skill.inputSchema || DEFAULT_SKILL_INPUT_SCHEMA; skill.outputSchema = upgradeSkillOutputSchema(skill.outputSchema); skill.failurePolicy = skill.failurePolicy || '输入不完整、证据不足或命令失败时停止执行，并返回缺失项与人工处理建议。'; });
+        return skills;
+      } catch (e) { return cloneData(DEFAULT_BUSINESS_SKILLS); }
+    }
+    function saveBusinessSkills() { localStorage.setItem(SKILL_STORAGE_KEY, JSON.stringify(BUSINESS_SKILLS)); }
+    function getBusinessSkill(id) { return BUSINESS_SKILLS.find(function (item) { return item.id === id; }); }
+    function getAgentName(id) { return AGENT_DATA && AGENT_DATA[id] ? AGENT_DATA[id].name : id; }
+    function skillStatusMeta(status) {
+      return {
+        draft: ['草稿', 'warn'], tested: ['测试通过', 'info'], pending: ['待发布审批', 'warn'],
+        published: ['已发布', 'ok'], archived: ['已停用', 'muted']
+      }[status] || [status, 'warn'];
+    }
+    function skillCliDependencyLabel(value) { return { required:'需要 CLI', optional:'可选 CLI', none:'无需 CLI' }[value] || '需要 CLI'; }
+    function skillActions(skill) {
+      var actions = '<a onclick="openSkillDetail(this)">详情</a> · <a onclick="testSkill(this)">测试</a>';
+      if (!AI_PLATFORM_CAN_MANAGE) return actions;
+      if (['draft', 'tested', 'published'].indexOf(skill.status) >= 0) actions += ' · <a onclick="openSkillEditor(this)">' + (skill.status === 'published' ? '创建新版本' : '修改') + '</a>';
+      actions += ' · <a onclick="openSkillAssociations(this)">关联 Agent</a>';
+      if (skill.status === 'tested') actions += ' · <a onclick="submitSkillPublish(this)">提交发布</a>';
+      if (skill.status === 'pending' && AI_PLATFORM_CAN_APPROVE) actions += ' · <a onclick="approveSkillPublish(this)">审批</a>';
+      if (skill.status === 'published') actions += ' · <a onclick="archiveSkill(this)">停用</a>';
+      if (skill.status === 'draft' || skill.status === 'tested') actions += ' · <a onclick="deleteSkill(this)">删除</a>';
+      return actions;
+    }
+    function renderBusinessSkills() {
+      document.querySelectorAll('#skillTable tbody tr[data-source="business"]').forEach(function (row) { row.remove(); });
+      var tbody = document.querySelector('#skillTable tbody');
+      BUSINESS_SKILLS.forEach(function (skill) {
+        var tr = document.createElement('tr');
+        var status = skillStatusMeta(skill.status);
+        var agents = skill.agents.length ? skill.agents.map(getAgentName).join('、') : '未关联';
+        tr.setAttribute('data-domain', 'business'); tr.setAttribute('data-source', 'business');
+        tr.setAttribute('data-status', skill.status); tr.setAttribute('data-skill-id', skill.id);
+        tr.innerHTML = '<td><strong>' + escapeSkillHtml(skill.name) + '</strong><small>' + escapeSkillHtml(skill.code) + ' · 业务</small></td>'
+          + '<td>' + escapeSkillHtml(skill.task) + '</td><td><small>' + skillCliDependencyLabel(skill.cliDependency) + '</small>' + (skill.commands.length ? skill.commands.map(function (c) { return '<code>' + escapeSkillHtml(c) + '</code>'; }).join(' ') : '<span class="readonly-value">' + (skill.cliDependency === 'none' ? '纯推理' : '按需发现') + '</span>') + '</td>'
+          + '<td>' + escapeSkillHtml(agents) + '</td><td>' + escapeSkillHtml(skill.version || '草稿') + '</td><td>' + Number(skill.loads || 0) + '</td>'
+          + '<td><span class="kpi-status ' + status[1] + '">● ' + status[0] + '</span></td><td class="row-actions">' + skillActions(skill) + '</td>';
+        tbody.appendChild(tr);
+      });
+      updateSkillCounts(); filterSkills();
+    }
+    function filterSkills(domain) {
+      if (domain) activeSkillDomain = domain;
+      document.querySelectorAll('[data-skill-filter]').forEach(function (item) {
+        item.classList.toggle('active', item.getAttribute('data-skill-filter') === activeSkillDomain);
+      });
+      var search = (document.getElementById('skillSearch') || {}).value || '';
+      var status = (document.getElementById('skillStatus') || {}).value || 'all';
+      var visible = 0;
+      document.querySelectorAll('#skillTable tbody tr').forEach(function (row) {
+        var domainMatch = activeSkillDomain === 'all' || row.getAttribute('data-domain') === activeSkillDomain;
+        var statusMatch = status === 'all' || row.getAttribute('data-status') === status;
+        var textMatch = !search.trim() || row.textContent.toLowerCase().indexOf(search.trim().toLowerCase()) >= 0;
+        var show = domainMatch && statusMatch && textMatch;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      var empty = document.getElementById('skillEmpty');
+      if (empty) empty.style.display = visible ? 'none' : 'block';
+    }
+
+    function openSkillDetail(link) {
+      var row = link.closest('tr');
+      var name = row.querySelector('strong').textContent;
+      var code = row.querySelector('small').textContent;
+      var skill = getBusinessSkill(row.getAttribute('data-skill-id'));
+      var inputSchema = skill ? skill.inputSchema : DEFAULT_SKILL_INPUT_SCHEMA;
+      var outputSchema = skill ? skill.outputSchema : DEFAULT_SKILL_OUTPUT_SCHEMA;
+      var failurePolicy = skill ? skill.failurePolicy : '输入不完整、证据不足或命令失败时停止执行，并返回缺失项与人工处理建议。';
+      openMaintenanceDrawer('Skill 详情 · ' + name,
+        '<div class="detail-section"><div class="detail-section-title">标识与任务</div><div class="detail-box"><code>' + escapeSkillHtml(code) + '</code><br>' + escapeSkillHtml(row.cells[1].textContent) + '</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">执行方法</div><div class="detail-box">' + (skill ? escapeSkillHtml(skill.steps).replace(/\n/g, '<br>') : '识别适用条件 → 获取必要上下文 → 选择推荐命令 → 交叉验证证据 → 按输出契约生成结果') + '</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">运行边界</div><div class="detail-grid"><div class="detail-item"><span class="k">CLI 依赖</span><span class="v">' + escapeSkillHtml(skill ? skillCliDependencyLabel(skill.cliDependency) : '需要 CLI') + '</span></div><div class="detail-item"><span class="k">推荐命令域</span><span class="v">' + escapeSkillHtml(skill && skill.commands.length ? skill.commands.join('、') : (skill && skill.cliDependency === 'none' ? '无需 CLI' : row.cells[2].textContent)) + '</span></div><div class="detail-item"><span class="k">关联 Agent</span><span class="v">' + escapeSkillHtml(row.cells[3].textContent) + '</span></div></div><div class="ad-field-hint" style="margin-top:10px">推荐不等于授权，未进入 Agent 命令范围的调用会被拒绝。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">输入 JSON Schema</div><div class="detail-box" style="white-space:pre;overflow:auto"><code>' + escapeSkillHtml(inputSchema) + '</code></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">输出 JSON Schema</div><div class="detail-box" style="white-space:pre;overflow:auto"><code>' + escapeSkillHtml(outputSchema) + '</code></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">失败处理</div><div class="detail-box">' + escapeSkillHtml(failurePolicy) + '</div></div>', [
+          { label: '关闭', onClick: closeMaintenanceDrawer },
+          { label: '加载记录', onClick: function () { openSkillRuns(link); } },
+          { label: '运行测试', kind: 'primary', onClick: function () { testSkill(link); } }
+        ]);
+    }
+
+    function testSkill(link) {
+      var row = link.closest('tr');
+      var name = row.querySelector('strong').textContent;
+      var skill = getBusinessSkill(row.getAttribute('data-skill-id'));
+      openMaintenanceDrawer('测试 Skill · ' + name, '<div class="detail-section"><div class="detail-section-title">测试样本 · JSON</div><textarea id="skillTestInput" class="ad-textarea" style="min-height:180px;font-family:monospace" placeholder="输入符合输入 Schema 的 JSON">{\n  "scene_code": "itom.alert.root-cause",\n  "tenant_id": "tenant-demo",\n  "context": {\n    "alert_id": "ALT-20260918-001",\n    "summary": "核心交换机端口丢包率持续超过 8%"\n  },\n  "constraints": { "dry_run": true }\n}</textarea><div class="ad-field-hint">仅验证 Skill 的输入、步骤、命令建议和输出契约，不执行业务写操作。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">测试范围</div><div class="detail-grid"><div class="detail-item"><span class="k">输入 Schema</span><span class="v">待验证</span></div><div class="detail-item"><span class="k">方法完整性</span><span class="v">待验证</span></div><div class="detail-item"><span class="k">命令建议</span><span class="v">' + escapeSkillHtml(skill ? skill.commands.join('、') : row.cells[2].textContent) + '</span></div><div class="detail-item"><span class="k">输出 Schema</span><span class="v">待验证</span></div></div><div class="maintenance-test-output" id="skillTestOutput"></div></div>', [
+        { label: '关闭', onClick: closeMaintenanceDrawer },
+        { label: '开始测试', kind: 'primary', onClick: function () {
+          var output = document.getElementById('skillTestOutput'); output.classList.add('show');
+          try {
+            var sample = JSON.parse(document.getElementById('skillTestInput').value);
+            if (!sample.scene_code || !sample.tenant_id || !sample.context || typeof sample.context !== 'object') throw new Error('missing required');
+          } catch (e) { output.innerHTML = '<strong style="color:var(--c-danger)">测试未通过</strong><br>测试样本不是有效 JSON，或缺少 scene_code、tenant_id、context 必填字段。'; return; }
+          if (skill && skill.cliDependency === 'required' && !skill.commands.length) { output.innerHTML = '<strong style="color:var(--c-danger)">测试未通过</strong><br>该 Skill 声明“需要 CLI”，但尚未配置推荐命令域。'; return; }
+          output.innerHTML = '<strong style="color:var(--c-success)">测试通过</strong><br>输入符合 JSON Schema · 执行步骤完整 · 推荐命令均在允许域内 · 模拟结果符合输出 JSON Schema。';
+          if (skill && skill.status !== 'published' && skill.status !== 'archived') { skill.status = 'tested'; skill.testedAt = new Date().toISOString(); saveBusinessSkills(); renderBusinessSkills(); }
+        } }
+      ]);
+    }
+
+    function openSkillRuns(link) {
+      var row = link.closest('tr');
+      var name = row.querySelector('strong').textContent;
+      openMaintenanceDrawer('加载记录 · ' + name,
+        '<div class="detail-section"><div class="detail-section-title">最近运行</div><div class="detail-box">10:26 · 根因分析 Agent · 已采用 · 4 条命令<br>10:18 · 根因分析 Agent · 已采用 · 3 条命令<br>09:42 · NEO Agent · 未采用 · 场景不匹配</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">关联 Agent</div><div class="detail-box">' + escapeSkillHtml(row.cells[3].textContent) + '</div></div>',
+        [{ label: '关闭', onClick: closeMaintenanceDrawer }]);
+    }
+
+    function openSkillEditor(link, copiedName, copiedTask, copiedCode) {
+      if (!guardAiPlatformManage()) return;
+      var row = link && link.closest ? link.closest('tr') : null;
+      var skill = row ? getBusinessSkill(row.getAttribute('data-skill-id')) : null;
+      var editing = !!skill;
+      var currentName = copiedName || (skill ? skill.name : '');
+      var currentTask = copiedTask || (skill ? skill.task : '');
+      var currentCode = copiedCode || (skill ? skill.code : '');
+      var currentSteps = skill ? skill.steps : '获取业务上下文\n选择允许的 CLI 命令\n验证结果并按输出契约返回';
+      var currentCommands = skill ? skill.commands.join(', ') : '';
+      var currentCliDependency = skill ? skill.cliDependency : 'required';
+      var currentInputSchema = skill ? skill.inputSchema : DEFAULT_SKILL_INPUT_SCHEMA;
+      var currentOutputSchema = skill ? skill.outputSchema : DEFAULT_SKILL_OUTPUT_SCHEMA;
+      var currentFailurePolicy = skill ? skill.failurePolicy : '输入不完整、证据不足或命令失败时停止执行，并返回缺失项与人工处理建议。';
+      openMaintenanceDrawer(editing ? (skill.status === 'published' ? '创建 Skill 新版本' : '修改业务 Skill') : '新增业务 Skill', '<div class="detail-section"><div class="detail-section-title">基本信息</div><div class="ad-field"><div class="ad-field-label">Skill 名称</div><input id="skillEditName" class="ad-input" placeholder="Skill 名称" value="' + escapeSkillHtml(currentName) + '"></div><div class="ad-field"><div class="ad-field-label">Skill 编码</div><input id="skillEditCode" class="ad-input" placeholder="skill.business.network-check" value="' + escapeSkillHtml(currentCode) + '"></div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">适用条件与任务目标</div><textarea id="skillEditTask" class="ad-textarea" placeholder="说明何时使用，以及需要完成什么任务">' + escapeSkillHtml(currentTask) + '</textarea></div>'
+        + '<div class="detail-section"><div class="detail-section-title">执行方法</div><textarea id="skillEditSteps" class="ad-textarea" style="min-height:150px" placeholder="分析步骤、判断规则、推荐命令、证据要求与失败处理">' + escapeSkillHtml(currentSteps) + '</textarea></div>'
+        + '<div class="detail-section"><div class="detail-section-title">CLI 能力依赖</div><select id="skillEditCliDependency" class="ad-select"><option value="required" ' + (currentCliDependency === 'required' ? 'selected' : '') + '>需要 CLI</option><option value="optional" ' + (currentCliDependency === 'optional' ? 'selected' : '') + '>可选 CLI</option><option value="none" ' + (currentCliDependency === 'none' ? 'selected' : '') + '>无需 CLI · 纯推理</option></select><div class="ad-field" style="margin-top:10px"><div class="ad-field-label">推荐命令域</div><input id="skillEditCommands" class="ad-input" placeholder="如 itom, cmdb, itsm" value="' + escapeSkillHtml(currentCommands) + '"></div><div class="ad-field-hint">“需要 CLI”时至少配置一个命令域；“可选 CLI”或“无需 CLI”允许为空。推荐命令不授予权限。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">输入 JSON Schema</div><textarea id="skillEditInputSchema" class="ad-textarea" style="min-height:180px;font-family:monospace">' + escapeSkillHtml(currentInputSchema) + '</textarea><div class="ad-field-hint">定义场景编码、租户、业务上下文和约束字段。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">输出 JSON Schema</div><textarea id="skillEditOutputSchema" class="ad-textarea" style="min-height:220px;font-family:monospace">' + escapeSkillHtml(currentOutputSchema) + '</textarea><div class="ad-field-hint">输出必须可机器校验，并保留证据、未验证项和来源追踪。</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">失败处理</div><textarea id="skillEditFailurePolicy" class="ad-textarea">' + escapeSkillHtml(currentFailurePolicy) + '</textarea></div>', [
+        { label: '取消', onClick: closeMaintenanceDrawer },
+        { label: '保存草稿', onClick: function () { if (saveBusinessSkill(skill, false)) closeMaintenanceDrawer(); } },
+        { label: '保存并测试', kind: 'primary', onClick: function () { if (saveBusinessSkill(skill, false)) { closeMaintenanceDrawer(); var saved = getBusinessSkill(skill ? skill.id : BUSINESS_SKILLS[BUSINESS_SKILLS.length - 1].id); setTimeout(function () { var savedRow = document.querySelector('[data-skill-id="' + saved.id + '"]'); if (savedRow) testSkill(savedRow.querySelector('a')); }, 180); } } }
+      ]);
+    }
+
+    function saveBusinessSkill(skill, runTest) {
+      var name = (document.getElementById('skillEditName') || {}).value || '';
+      var code = (document.getElementById('skillEditCode') || {}).value || '';
+      var task = (document.getElementById('skillEditTask') || {}).value || '';
+      var steps = (document.getElementById('skillEditSteps') || {}).value || '';
+      var commands = ((document.getElementById('skillEditCommands') || {}).value || '').split(',').map(function (v) { return v.trim().toLowerCase(); }).filter(Boolean);
+      var cliDependency = (document.getElementById('skillEditCliDependency') || {}).value || 'required';
+      if (cliDependency === 'none') commands = [];
+      var inputSchema = (document.getElementById('skillEditInputSchema') || {}).value || '';
+      var outputSchema = (document.getElementById('skillEditOutputSchema') || {}).value || '';
+      var failurePolicy = (document.getElementById('skillEditFailurePolicy') || {}).value || '';
+      if (!name.trim() || !code.trim() || !task.trim() || !steps.trim() || !failurePolicy.trim()) { showToast('请填写名称、编码、任务目标、执行方法和失败处理', 'warn'); return false; }
+      if (cliDependency === 'required' && !commands.length) { showToast('该 Skill 需要 CLI，请至少配置一个推荐命令域', 'warn'); return false; }
+      try {
+        var inputContract = JSON.parse(inputSchema); var outputContract = JSON.parse(outputSchema);
+        var requiredInput = ['scene_code','tenant_id','context'];
+        var requiredOutput = ['status','conclusion','confidence','evidence','unverified','suggested_actions','cli_runs','errors','user_message','retryable','trace_id'];
+        if (inputContract.type !== 'object' || outputContract.type !== 'object' || !Array.isArray(inputContract.required) || !Array.isArray(outputContract.required)) throw new Error('invalid schema');
+        if (requiredInput.some(function (key) { return inputContract.required.indexOf(key) < 0; }) || requiredOutput.some(function (key) { return outputContract.required.indexOf(key) < 0; })) throw new Error('missing platform fields');
+      } catch (e) { showToast('JSON Schema 格式无效，或缺少平台必填字段', 'warn'); return false; }
+      var duplicate = BUSINESS_SKILLS.some(function (item) { return item.code === code.trim() && (!skill || item.id !== skill.id); });
+      if (duplicate) { showToast('Skill 编码已存在', 'warn'); return false; }
+      if (skill) {
+        if (skill.status === 'published') {
+          skill.history = skill.history || [];
+          skill.history.push({ version: skill.version, publishedAt: skill.publishedAt || '', snapshot: { name: skill.name, task: skill.task, steps: skill.steps, cliDependency:skill.cliDependency, commands: skill.commands.slice(), inputSchema:skill.inputSchema, outputSchema:skill.outputSchema, failurePolicy:skill.failurePolicy } });
+          skill.baseVersion = skill.version;
+        }
+        skill.name = name.trim(); skill.code = code.trim(); skill.task = task.trim(); skill.steps = steps.trim(); skill.cliDependency = cliDependency; skill.commands = commands; skill.inputSchema = JSON.stringify(inputContract, null, 2); skill.outputSchema = JSON.stringify(outputContract, null, 2); skill.failurePolicy = failurePolicy.trim();
+        skill.status = runTest ? 'tested' : 'draft';
+        skill.version = skill.baseVersion ? '草稿 · 线上 ' + skill.baseVersion : '草稿';
+      } else {
+        skill = { id: 'bs-' + Date.now(), name: name.trim(), code: code.trim(), task: task.trim(), steps: steps.trim(), cliDependency:cliDependency, commands: commands, inputSchema:JSON.stringify(inputContract,null,2), outputSchema:JSON.stringify(outputContract,null,2), failurePolicy:failurePolicy.trim(), agents: [], version: '草稿', loads: 0, status: runTest ? 'tested' : 'draft', submittedBy: '' };
+        BUSINESS_SKILLS.push(skill);
+      }
+      if (runTest) skill.testedAt = new Date().toISOString();
+      saveBusinessSkills(); renderBusinessSkills();
+      showToast(runTest ? 'Skill 已保存 · 测试通过' : 'Skill 草稿已保存', 'success');
+      return true;
+    }
+
+    function copySkill(link) {
+      if (!guardAiPlatformManage()) return;
+      var row = link.closest('tr');
+      var sourceCode = row.querySelector('small').textContent.split(' · ')[0];
+      openSkillEditor(null, row.querySelector('strong').textContent + '（副本）', row.cells[1].textContent, sourceCode.replace('skill.', 'skill.business.') + '-copy');
+    }
+
+    function deleteSkill(link) {
+      if (!guardAiPlatformManage()) return;
+      var row = link.closest('tr');
+      var skill = getBusinessSkill(row.getAttribute('data-skill-id'));
+      if (!skill) return;
+      if (skill.agents.length) {
+        showActionModal({ title: '暂不能删除 · ' + skill.name, sections: [{ heading: '已关联 Agent', html: escapeSkillHtml(skill.agents.map(getAgentName).join('、')) }, { heading: '处理要求', html: '请先解除 Agent 关联，再删除草稿。' }], actions: [{ label: '关闭', kind: '' }, { label: '管理关联', kind: 'primary', onClick: function () { openSkillAssociations(link); } }] });
+        return;
+      }
+      showConfirmModal({ title: '删除业务 Skill', message: '确认删除「' + skill.name + '」？删除后不可恢复，操作将记录审计。', okText: '删除', danger: true, onOk: function () {
+        BUSINESS_SKILLS = BUSINESS_SKILLS.filter(function (item) { return item.id !== skill.id; }); saveBusinessSkills(); renderBusinessSkills(); showToast('业务 Skill 已删除 · 已记录审计', 'success');
+      } });
+    }
+
+    function openSkillAssociations(link) {
+      if (!guardAiPlatformManage()) return;
+      var row = link.closest('tr'); var skill = getBusinessSkill(row.getAttribute('data-skill-id')); if (!skill) return;
+      var choices = Object.keys(AGENT_DATA).filter(function (id) { return id.indexOf('sx') !== 0; }).map(function (id) {
+        return '<label class="ad-command-item"><input type="checkbox" data-skill-agent="' + escapeSkillHtml(id) + '" ' + (skill.agents.indexOf(id) >= 0 ? 'checked' : '') + '><span>' + escapeSkillHtml(AGENT_DATA[id].name) + '</span></label>';
+      }).join('');
+      openMaintenanceDrawer('关联 Agent · ' + skill.name,
+        '<div class="detail-section"><div class="detail-section-title">可用 Agent</div><div class="ad-command-grid">' + choices + '</div></div>'
+        + '<div class="detail-section"><div class="detail-section-title">权限边界</div><div class="detail-box">关联仅允许 Agent 按任务加载 Skill，不会扩大 Agent 的 CLI 命令和数据权限。</div></div>', [
+          { label: '取消', onClick: closeMaintenanceDrawer },
+          { label: '保存关联', kind: 'primary', onClick: function () {
+            skill.agents = Array.from(document.querySelectorAll('[data-skill-agent]:checked')).map(function (el) { return el.getAttribute('data-skill-agent'); }); saveBusinessSkills(); renderBusinessSkills(); closeMaintenanceDrawer(); showToast('Agent 关联已更新', 'success');
+          } }
+        ]);
+    }
+
+    function submitSkillPublish(link) {
+      if (!guardAiPlatformManage()) return;
+      var skill = getBusinessSkill(link.closest('tr').getAttribute('data-skill-id')); if (!skill) return;
+      showConfirmModal({ title: '提交发布审批 · ' + skill.name, message: '提交后内容锁定，由治理角色复核测试结果、命令建议与 Agent 关联。申请人与审批人必须分离。', okText: '提交审批', onOk: function () {
+        skill.status = 'pending'; skill.submittedBy = AI_PLATFORM_ROLE; saveBusinessSkills(); renderBusinessSkills(); showToast('已提交发布审批', 'success');
+      } });
+    }
+
+    function approveSkillPublish(link) {
+      var skill = getBusinessSkill(link.closest('tr').getAttribute('data-skill-id')); if (!skill) return;
+      if (!AI_PLATFORM_CAN_APPROVE) { showToast('当前角色无发布审批权限', 'warn'); return; }
+      if (skill.submittedBy === AI_PLATFORM_ROLE) { showToast('申请人与审批人必须分离，请由其他治理角色审批', 'warn'); return; }
+      showActionModal({ title: '发布审批 · ' + skill.name, sections: [{ heading: '审批内容', html: '测试已通过 · 命令建议已核对 · 关联 ' + skill.agents.length + ' 个 Agent' }, { heading: '职责分离', html: '申请角色：' + escapeSkillHtml(skill.submittedBy || '未知') + ' · 当前审批角色：' + escapeSkillHtml(AI_PLATFORM_ROLE) }], actions: [{ label: '取消', kind: '' }, { label: '退回修改', kind: 'danger', onClick: function () {
+        skill.status = 'draft'; skill.submittedBy = ''; saveBusinessSkills(); renderBusinessSkills(); showToast('已退回修改', 'success');
+      } }, { label: '审批通过', kind: 'primary', onClick: function () {
+        var current = parseFloat(String(skill.baseVersion || skill.version).replace('v', '')) || 0; skill.version = 'v' + (current ? (current + 0.1).toFixed(1) : '1.0'); skill.baseVersion = ''; skill.status = 'published'; skill.publishedAt = new Date().toISOString(); saveBusinessSkills(); renderBusinessSkills(); showToast('Skill 已发布 · ' + skill.version, 'success');
+      } }] });
+    }
+
+    function archiveSkill(link) {
+      if (!AI_PLATFORM_CAN_APPROVE) { showToast('停用已发布 Skill 需要治理角色权限', 'warn'); return; }
+      var skill = getBusinessSkill(link.closest('tr').getAttribute('data-skill-id')); if (!skill) return;
+      if (skill.agents.length) { showActionModal({ title: '暂不能停用 · ' + skill.name, sections: [{ heading: '已关联 Agent', html: escapeSkillHtml(skill.agents.map(getAgentName).join('、')) }, { heading: '处理要求', html: '请先解除全部 Agent 关联，再停用该版本。' }], actions: [{ label: '关闭', kind: '' }, { label: '管理关联', kind: 'primary', onClick: function () { openSkillAssociations(link); } }] }); return; }
+      showConfirmModal({ title: '停用 Skill · ' + skill.name, message: '停用后保留版本与历史加载记录，不再允许 Agent 加载。', okText: '确认停用', danger: true, onOk: function () { skill.status = 'archived'; saveBusinessSkills(); renderBusinessSkills(); showToast('Skill 已停用 · 历史版本已保留', 'success'); } });
+    }
+
+    function updateSkillCounts() {
+      var rows = document.querySelectorAll('#skillTable tbody tr');
+      var business = document.querySelectorAll('#skillTable tbody tr[data-source="business"]');
+      var totalEl = document.getElementById('skillTotalCount');
+      var businessEl = document.getElementById('businessSkillCount');
+      var tabEl = document.getElementById('skillTabCount');
+      if (totalEl) totalEl.textContent = rows.length;
+      if (businessEl) businessEl.textContent = business.length;
+      if (tabEl) tabEl.textContent = rows.length;
+    }
+
+    var SKILL_FILE_STORAGE_KEY = 'ems-ai-skill-md-files-v1';
+    var SYSTEM_SKILL_FILES = [
+      {id:'md-alert-evidence',name:'告警证据采集',fileName:'alert-evidence.md',desc:'收集告警、指标、CI 与历史事件',source:'系统预置',size:'3.8 KB',updated:'2026-09-12',loads:526,content:'# 告警证据采集\n\n## 目标\n收集告警、指标、CI 关系和历史事件，形成可追溯证据。\n\n## 工作流\n1. 读取告警上下文。\n2. 查询关联指标和 CI。\n3. 汇总已验证事实与缺失项。\n4. 输出结论、证据和建议动作。'},
+      {id:'md-alert-cluster',name:'同源告警聚类',fileName:'alert-cluster.md',desc:'识别同源告警并形成事件组',source:'系统预置',size:'4.2 KB',updated:'2026-09-10',loads:384,content:'# 同源告警聚类\n\n按指纹、拓扑和时间窗识别同源告警。\n\n## 工作流\n1. 生成告警指纹。\n2. 校验拓扑邻接关系。\n3. 合并重复或同源告警。'},
+      {id:'md-network-diagnosis',name:'网络故障诊断',fileName:'network-diagnosis.md',desc:'验证链路、丢包、延迟与路径异常',source:'系统预置',size:'5.1 KB',updated:'2026-09-08',loads:164,content:'# 网络故障诊断\n\n## 工作流\n1. 获取源端和目标端。\n2. 检查可达性、延迟和丢包。\n3. 对照拓扑定位异常节点。'},
+      {id:'md-dispatch',name:'智能派工推荐',fileName:'dispatch-recommend.md',desc:'结合 FSM 工单与关联事件、告警、资产、CI 上下文推荐，并处理 FSM SLA 阈值事件',source:'系统预置',size:'8.4 KB',updated:'2026-09-24',loads:96,content:'# 智能派工推荐\n\n## 目标\n以 FSM 工单为派工主对象生成可解释 Top 3；收到 FSM 响应 SLA 阈值事件后，根据 FSM 返回的重派次数事实决定重派或升级人工。系统 Skill 不允许删除。\n\n## 上下文\n先读取 FSM 工单及来源引用。存在 incident_id、alert_id、asset_id 或 ci_id 时，按需读取 ITSM 事件、ITOM 告警、ITAM 资产与 CMDB CI；没有引用时不得猜测或搜索关联对象。上游信息只补充技能、资质、人员级别与风险判断，不覆盖 FSM 状态、站点、SLA 和派工结果。\n\n## 硬性过滤\n工程师档案已激活且可接单；服务范围覆盖站点；满足工单及关联资产要求的关键技能和有效认证；有效负载低于容量。高等级告警、关键 CI、厂商授权或维保限制必须进入风险判断。\n\n## 评分\n综合匹配度 = 同站点同类型历史连续性 × 30% + 调查问卷满意度 × 20% + 技能 × 15% + 可用负载 × 15% + 收费 × 10% + 到场时效 × 10% - 负向因子。\n同一站点、同一类型且由同一工程师成功履约的历史记录权重最高。上一轮未认领、历史转派、迟到、低满意度和未关闭投诉扣分。\n\n## 工作流\n1. 查询 FSM 工单和来源引用，按关联读取 ITSM、ITOM、ITAM、CMDB 上下文。\n2. 查询工程师、负载、历史履约、派工认领记录和满意度。\n3. 执行硬性过滤、负向扣分和排序，输出 Top 3、费用、ETA、预计完成时间和跨产品证据。\n4. 收到 FSM SLA 阈值事件时读取当前与最大重派次数；未达到上限则排除上一轮候选并重派，否则升级人工。\n5. Skill 可选择直接升级人工，但不得修改 SLA 阈值或越过 FSM 最大重派次数。\n\n## 边界\nSkill 不授予权限或决定档位。上游关键证据缺失或冲突时禁止 L1，并清楚标记未验证项。不得降低技能、资质或风险条件以凑足候选。'},
+      {id:'md-itsm-intake-routing',name:'ITSM 事件理解与分配',fileName:'itsm-incident-intake-routing.md',desc:'识别事件描述/告警/CI，补全分类标签，并在分单规则未覆盖时推荐处理组/处理人',source:'系统预置',size:'6.8 KB',updated:'2026-09-24',loads:64,content:'# ITSM 事件理解与分配\n\n## 目标\n先补全事件分类、SLA、优先级、重要性和标签，再执行固定分单规则评估；分单规则未命中、冲突或不完整时生成可解释处理组/处理人建议。\n\n## 工作流\n1. 读取事件描述、告警上下文、影响范围、关联 CI、客户与服务信息。\n2. 在 ITSM 字典、优先级矩阵、SLA 策略和字段白名单内生成分类补全建议。\n3. 调用固定分单规则评估；规则命中成功时只解释不覆盖。\n4. 分单规则未命中或不完整时，结合相似事件、团队职责、排班、负载、SLA、VIP 和风险输出推荐。\n5. L1/L2/L3 写入均通过 ITSM CLI 权限校验，并记录审计。\n\n## 边界\n不创建、关闭或解决事件；不做认领、重派或 SLA 升级；不得绕过 ITSM 权限和 workflow。'},
+      {id:'md-evidence-check',name:'证据交叉验证',fileName:'evidence-check.md',desc:'区分事实、推测和未验证项',source:'系统预置',size:'2.9 KB',updated:'2026-09-02',loads:742,content:'# 证据交叉验证\n\n任何结论必须关联来源；无法验证的内容标记为推测或未验证。'},
+      {id:'md-business-draft',name:'业务草稿生成',fileName:'business-draft.md',desc:'生成事件、知识和处理说明草稿',source:'系统预置',size:'3.1 KB',updated:'2026-08-28',loads:318,content:'# 业务草稿生成\n\n根据业务上下文生成结构清晰、可由人工确认的草稿。'}
+    ];
+    function loadImportedSkillFiles(){try{var value=JSON.parse(localStorage.getItem(SKILL_FILE_STORAGE_KEY)||'[]');return Array.isArray(value)?value:[];}catch(e){return [];}}
+    var IMPORTED_SKILL_FILES=loadImportedSkillFiles();
+    function saveImportedSkillFiles(){localStorage.setItem(SKILL_FILE_STORAGE_KEY,JSON.stringify(IMPORTED_SKILL_FILES));}
+    function getSkillFile(id){return SYSTEM_SKILL_FILES.concat(IMPORTED_SKILL_FILES).find(function(item){return item.id===id;});}
+    function renderSkillFiles(){
+      var catalog=document.getElementById('skillCatalog');if(!catalog)return;var search=((document.getElementById('skillSearch')||{}).value||'').trim().toLowerCase();
+      var visible=SYSTEM_SKILL_FILES.concat(IMPORTED_SKILL_FILES).filter(function(item){return !search||(item.name+' '+item.fileName+' '+item.desc).toLowerCase().indexOf(search)>=0;});
+      var sources=['系统预置','用户导入'];
+      catalog.innerHTML=sources.map(function(source){var items=visible.filter(function(item){return item.source===source;});if(!items.length)return '';var color=source==='系统预置'?'#2563eb':'#7c3aed';var border=source==='系统预置'?'#bfdbfe':'#ddd6fe';var rows=items.map(function(item){return '<div class="catalog-row" data-skill-file-id="'+item.id+'"><div class="catalog-identity"><span class="catalog-icon skill-icon">MD</span><div><strong>'+escapeSkillHtml(item.name)+'</strong><small>'+escapeSkillHtml(item.fileName)+'</small></div></div><div class="catalog-main"><strong>'+escapeSkillHtml(item.desc)+'</strong><small>'+escapeSkillHtml(item.size)+' · 更新于 '+escapeSkillHtml(item.updated)+'</small></div><div class="catalog-metric"><strong>'+Number(item.loads||0).toLocaleString()+'</strong><small>今日加载</small></div><div class="catalog-tail"><div class="catalog-statuses">'+chainStateBadge(skillChainState(item.id))+'<span class="kpi-status '+(source==='系统预置'?'ok':'info')+'">● '+source+'</span></div><div class="catalog-actions"><a onclick="openSkillDetail(this)">详情</a>'+(source==='用户导入'&&AI_PLATFORM_CAN_MANAGE?' · <a class="danger-link" onclick="deleteImportedSkill(this)">删除</a>':'')+'</div></div></div>';}).join('');return '<section class="catalog-group" style="border-color:'+border+';border-top-color:'+color+'"><div class="catalog-group-head"><span class="ov-dot" style="background:'+color+'"></span><strong>'+source+'</strong><span>'+items.length+' 个 Skill</span></div><div class="catalog-rows">'+rows+'</div></section>';}).join('');
+      document.getElementById('skillEmpty').style.display=visible.length?'none':'block';
+      var allSkills=SYSTEM_SKILL_FILES.concat(IMPORTED_SKILL_FILES);var total=allSkills.length;document.getElementById('skillTotalCount').textContent=total;document.getElementById('officialSkillCount').textContent=allSkills.filter(function(item){return item.source==='系统预置';}).length;document.getElementById('businessSkillCount').textContent=allSkills.filter(function(item){return item.source==='用户导入';}).length;document.getElementById('skillTabCount').textContent=total;
+    }
+    function filterSkills(){renderSkillFiles();}
+    function openSkillDetail(link){var item=getSkillFile(link.closest('[data-skill-file-id]').getAttribute('data-skill-file-id'));if(!item)return;openMaintenanceDrawer('Skill 详情 · '+item.name,'<div class="detail-section"><div class="detail-section-title">文件信息</div><div style="margin-bottom:10px">'+chainStateBadge(skillChainState(item.id))+'</div><div class="detail-grid"><div class="detail-item"><span class="k">提示词引用标识</span><span class="v">'+escapeSkillHtml(item.fileName)+'</span></div><div class="detail-item"><span class="k">来源</span><span class="v">'+escapeSkillHtml(item.source)+'</span></div><div class="detail-item"><span class="k">大小</span><span class="v">'+escapeSkillHtml(item.size)+'</span></div><div class="detail-item"><span class="k">更新时间</span><span class="v">'+escapeSkillHtml(item.updated)+'</span></div></div></div><div class="detail-section"><div class="detail-section-title">Markdown 预览</div><pre class="detail-box" style="white-space:pre-wrap;line-height:1.7;font-family:inherit">'+escapeSkillHtml(item.content)+'</pre></div>',[{label:'关闭',onClick:closeMaintenanceDrawer}]);}
+    var pendingSkillImportFile = null;
+    function openSkillImportDrawer(){
+      if(!guardAiPlatformManage())return;
+      pendingSkillImportFile=null;
+      openMaintenanceDrawer('导入 Skill','<div class="detail-section"><div class="detail-section-title">Skill 信息</div><div class="ad-field"><div class="ad-field-label">Skill 名称 <span style="color:var(--c-danger)">*</span></div><input id="skillImportName" class="ad-input" placeholder="例如：智能派工推荐"></div><div class="ad-field"><div class="ad-field-label">用途 / 摘要 <span style="color:var(--c-danger)">*</span></div><textarea id="skillImportPurpose" class="ad-textarea" placeholder="简要说明这个 Skill 解决什么问题、适用于什么场景"></textarea></div></div><div class="detail-section"><div class="detail-section-title">Markdown 文件</div><input type="file" id="skillImportFile" accept=".md,text/markdown" onchange="previewSkillImportFile(this)"><div class="ad-field-hint">仅支持 .md 文件，最大 1 MB。Skill 导入后进入全局 Skill 库。</div><div id="skillImportPreview" class="detail-box" style="display:none;margin-top:10px;max-height:260px;overflow:auto;white-space:pre-wrap"></div></div>',[{label:'取消',onClick:closeMaintenanceDrawer},{label:'确认导入',kind:'primary',onClick:confirmSkillImport}]);
+    }
+    function previewSkillImportFile(input){
+      var file=input.files&&input.files[0];if(!file)return;
+      if(!/\.md$/i.test(file.name)){showToast('仅支持导入 .md 文件','warn');input.value='';return;}
+      if(file.size>1024*1024){showToast('Markdown 文件不能超过 1 MB','warn');input.value='';return;}
+      var reader=new FileReader();reader.onload=function(){
+        var content=String(reader.result||'').trim();if(!content){showToast('Markdown 文件内容为空','warn');return;}
+        pendingSkillImportFile={fileName:file.name,size:(file.size/1024).toFixed(1)+' KB',content:content};
+        var heading=(content.match(/^#\s+(.+)$/m)||[])[1]||file.name.replace(/\.md$/i,'');
+        var name=document.getElementById('skillImportName');if(name&&!name.value.trim())name.value=heading;
+        var preview=document.getElementById('skillImportPreview');if(preview){preview.style.display='block';preview.textContent=file.name+' · '+pendingSkillImportFile.size+'\n\n'+content;}
+      };reader.readAsText(file,'utf-8');
+    }
+    function confirmSkillImport(){
+      var name=(document.getElementById('skillImportName')||{}).value||'';
+      var purpose=(document.getElementById('skillImportPurpose')||{}).value||'';
+      name=name.trim();purpose=purpose.trim();
+      if(!name||!purpose){showToast('请填写 Skill 名称和用途 / 摘要','warn');return;}
+      if(!pendingSkillImportFile){showToast('请选择 Markdown 文件','warn');return;}
+      if(SYSTEM_SKILL_FILES.concat(IMPORTED_SKILL_FILES).some(function(item){return item.fileName===pendingSkillImportFile.fileName;})){showToast('同名 Skill 文件已存在，请使用唯一文件名','warn');return;}
+      IMPORTED_SKILL_FILES.push({id:'md-import-'+Date.now(),name:name,fileName:pendingSkillImportFile.fileName,desc:purpose,source:'用户导入',size:pendingSkillImportFile.size,updated:new Date().toISOString().slice(0,10),loads:0,content:pendingSkillImportFile.content});
+      saveImportedSkillFiles();renderSkillFiles();closeMaintenanceDrawer();showToast('Skill Markdown 已导入全局 Skill 库','success');
+    }
+    function deleteImportedSkill(link){var item=getSkillFile(link.closest('[data-skill-file-id]').getAttribute('data-skill-file-id'));if(!item||item.source!=='用户导入')return;showConfirmModal({title:'删除 Skill',message:'确认删除「'+escapeSkillHtml(item.name)+'」？删除后不再供 AI 运行时读取。',okText:'删除',danger:true,onOk:function(){IMPORTED_SKILL_FILES=IMPORTED_SKILL_FILES.filter(function(file){return file.id!==item.id;});SYSTEM_SKILL_FILES=SYSTEM_SKILL_FILES.filter(function(file){return file.id!==item.id;});saveImportedSkillFiles();renderSkillFiles();showToast('Skill 已删除','success');}});}
+
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var s = q.get('sub');
+      if (s && ['p-model', 'p-agent', 'p-skill', 'p-cli', 'p-tier'].indexOf(s) >= 0) {
+        setTimeout(function () { acSwitchSubtab(s); }, 100);
+      }
+    })();
+
+    /* ===== Agent 库（按产品分组 · 产品预置 · 承载能力 + 埋点摘要） ===== */
+    var PRODUCT_META = {
+      ITOM:  { c: '#2563EB', bg: '#eff6ff', bd: '#bfdbfe' },
+      CMDB:  { c: '#7C3AED', bg: '#f5f3ff', bd: '#ddd6fe' },
+      ITSM:  { c: '#059669', bg: '#ecfdf5', bd: '#a7f3d0' },
+      FSM:   { c: '#D97706', bg: '#fffbeb', bd: '#fde68a' },
+      NPM:   { c: '#0891B2', bg: '#ecfeff', bd: '#a5f3fc' },
+      ITAM:  { c: '#4f46e5', bg: '#eef2ff', bd: '#c7d2fe' },
+      平台:  { c: '#DB2777', bg: '#fdf2f8', bd: '#fbcfe8' }
+    };
+    var PRODUCT_AGENT = { ITOM: ['sa1', 'sa2', 'sa3', 'sa9'], CMDB: ['sa7'], ITSM: ['A1', 'A2', 'A3', 'A4', 'A6', 'A8'], ITAM: ['A5'], FSM: ['A7'], NPM: ['sa10'], 平台: ['sa6'] };
+    var PRE_REQ = {
+      ITOM: '告警标准化 API · 告警指纹算法 · 时序指标 API · 拓扑发现数据',
+      CMDB: 'CI 关系图谱 · 服务链路映射 · CI 查询/关系查询 API',
+      ITSM: '工单模板引擎 · 分类字典/标签库 · 分单规则引擎 · SLA 策略 · 历史事件库（RAG 弹药库）',
+      FSM: '工程师技能矩阵 · 位置/负载 API · SLA 计时器 API',
+      NPM: '拨测结果 API · 路径探测数据 · EMS CLI 命令域',
+      ITAM: '台账数据 API · 资产发现引擎 · 数据质量基线',
+      平台: '跨产品工具编排 · 统一审计 · AI Gateway 三道防护'
+    };
+    var _AGENT_ICON = {
+      sa1: '#3b82f6', sa2: '#8b5cf6', sa3: '#dc2626',
+      sa6: '#db2777', sa7: '#4f46e5', sa9: '#0ea5e9', sa10: '#0891b2',
+      A1: '#0891b2', A2: '#7c3aed', A3: '#ea580c', A4: '#e11d48',
+      A5: '#16a34a', A6: '#ca8a04', A7: '#475569', A8: '#059669'
+    };
+    var COMPLETE_AGENT_IDS = ['A7', 'A8'];
+    var COMPLETE_SKILL_IDS = ['md-dispatch', 'md-itsm-intake-routing'];
+    var COMPLETE_CLI_IDS = ['cli-engineer-query', 'cli-engineer-workload', 'cli-workorder-get', 'cli-workorder-history', 'cli-dispatch-history', 'cli-survey-summary', 'cli-incident-classify', 'cli-incident-tag-update', 'cli-priority-evaluate', 'cli-sla-match', 'cli-incident-assign'];
+    function chainStateBadge(state) {
+      var complete = state === 'complete';
+      return '<span class="kpi-status ' + (complete ? 'ok' : 'warn') + '">● ' + (complete ? '完整链路' : '原型占位') + '</span>';
+    }
+    function agentChainState(id) { return COMPLETE_AGENT_IDS.indexOf(id) >= 0 ? 'complete' : 'prototype'; }
+    function skillChainState(id) { return COMPLETE_SKILL_IDS.indexOf(id) >= 0 ? 'complete' : 'prototype'; }
+    function cliChainState(id) { return COMPLETE_CLI_IDS.indexOf(id) >= 0 ? 'complete' : 'prototype'; }
+    function renderAgentLibrary() {
+      var grid = document.getElementById('agentGrid');
+      if (!grid) return;
+      var html = '';
+      Object.keys(PRODUCT_AGENT).forEach(function (prod) {
+        var meta = PRODUCT_META[prod];
+        var ids = PRODUCT_AGENT[prod];
+        var rowsHtml = ids.map(function (aid) {
+          var d = AGENT_DATA[aid];
+          if (!d) return '';
+          var caps = TIER_DATA.filter(function (t) { return t.agent === aid; }).map(function (t) { return t.name; });
+          var tierCls = (d.tier || 'L1').split(' ')[0].toLowerCase();
+          var tierTag = '<span class="tier-badge tier-' + tierCls + ' sm">' + (d.tier || 'L1').split(' ')[0] + '</span>';
+          var chainTag = chainStateBadge(agentChainState(aid));
+          var mParts = (d.metrics || '').split(' · ');
+          var m1 = mParts[0] ? mParts[0].replace('今日', '').trim() : '—';
+          var m2raw = mParts[1] || '—';
+          var m2m = m2raw.match(/\d+(\.\d+)?%/);
+          var m2 = m2m ? m2m[0] : (m2raw.length > 10 ? m2raw.slice(0, 10) + '…' : m2raw);
+          var embed = d.embed;
+          return '<div class="agent-row" data-aid="' + aid + '" onclick="openAgentDrawer(\'' + aid + '\')" title="点击查看详情（模型/档位/工具/埋点）">'
+            + '<div class="ar-left">'
+            + '<div class="icon-square" style="background:' + (_AGENT_ICON[aid] || '#6366f1') + '"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:auto;display:block"><path d="M12 2a7 7 0 017 7v1h1a2 2 0 012 2v1a2 2 0 01-2 2h-1a7 7 0 01-14 0H4a2 2 0 01-2-2v-1a2 2 0 012-2h1V9a7 7 0 017-7z"/></svg></div>'
+            + '<div class="ar-title"><strong>' + d.name + '</strong><small>' + (d.scenes || '') + '</small></div>'
+            + '<span class="ar-own ' + ((d.own || '').indexOf('子产品领域') >= 0 ? 'own-sub' : 'own-plat') + '">' + ((d.own || '').indexOf('子产品领域') >= 0 ? '产品自建' : '平台通用') + '</span>'
+            + tierTag
+            + chainTag
+            + '</div>'
+            + '<div class="ar-main">'
+            + '<div class="ar-caps"><span class="cap-badge">承载 ' + caps.length + ' 项能力：' + caps.join(' · ') + '</span></div>'
+            + (embed ? '<div class="ar-embed"><span>埋点</span>' + embed.page + ' · ' + embed.spot + ' · ' + embed.trigger + '</div>' : '')
+            + '</div>'
+            + '<div class="ar-metrics"><div class="am"><strong>' + m1 + '</strong><small>今日</small></div><div class="am"><strong>' + m2 + '</strong><small>效果</small></div><span class="ar-arrow">→</span></div>'
+            + '</div>';
+        }).join('');
+        html += '<div class="agent-group" style="border:1px solid ' + meta.bd + ';border-top:3px solid ' + meta.c + '">'
+          + '<div class="agent-group-head"><span class="ov-dot" style="background:' + meta.c + '"></span><strong>' + prod + '</strong>'
+          + '<span class="ag-count">' + ids.length + ' 个 Agent · ' + TIER_DATA.filter(function (t) { return t.product === prod; }).length + ' 项能力</span>'
+          + '<small>' + (PRE_REQ[prod] || '') + '</small></div>'
+          + '<div class="agent-rows">' + rowsHtml + '</div>'
+          + '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+/* ===== 场景档位（平台 Tab · sub-p-tier 场景默认档位配置） ===== */
+    var TIER_DATA = [
+      /* ── ITOM ── */
+      { id: 'p1', product: 'ITOM', name: '告警降噪聚类', desc: '去重 / 抑制 / 静默规则', def: 'L1', tiers: ['L1', 'L2', 'L3'], note: '去重/抑制/静默为 L1 硬编码窄场景；规则新增或变更走治理审批', agent: 'sa1' },
+      { id: 'p2', product: 'ITOM', name: '根因分析 + 证据链', desc: 'AI 根因猜测 + 证据', def: 'L3', tiers: ['L2', 'L3'], note: '不做 L1 白名单：AI 不自动 confirm 根因', agent: 'sa2' },
+      { id: 'p3', product: 'ITOM', name: '告警转工单', desc: 'AI 起草工单 + 确认抽屉', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '可切 L1 硬编码：客户配置白名单后完全自动', agent: 'sa3' },
+      { id: 'p4', product: 'ITOM', name: '容量预测 → 扩容', desc: '容量预警自动触发扩容工单', def: 'L1', tiers: ['L1', 'L2', 'L3'], note: 'L1 自动执行场景（S13）：预警命中白名单规则后自动提扩容工单', agent: 'sa9' },
+      /* ── CMDB ── */
+      { id: 'p5', product: 'CMDB', name: 'AI 自动分类', desc: '新发现设备自动识别类型', def: 'L3', tiers: ['L3'], note: '分类建议可直接查看；写入 CMDB 前提交 L3 业务审批', agent: 'sa7' },
+      { id: 'p6', product: 'CMDB', name: 'AI 关系补全', desc: '拓扑分析发现缺失 CI 关系', def: 'L3', tiers: ['L3'], note: '补全建议可直接查看；写入关系前提交 L3 业务审批', agent: 'sa7' },
+      { id: 'p7', product: 'CMDB', name: 'AI 影响面分析', desc: '变更/故障自动计算上下游影响', def: 'L2', tiers: ['L2', 'L3'], note: 'L2：AI 出具影响面 → 变更审批人确认（供 p10 变更风险使用）', agent: 'A4' },
+      { id: 'p8', product: 'CMDB', name: 'AI 数据质量报告', desc: 'CMDB 健康度报告 · 定位数据问题', def: 'L3', tiers: ['L3'], note: 'L3：自动生成报告，数据质量 <60% 时跨域 AI 不可用（前置告警）', agent: 'sa7' },
+      /* ── ITSM ── */
+      { id: 'p9', product: 'ITSM', name: '知识推荐（RAG）', desc: '历史工单 + SOP 检索推荐', def: 'L3', tiers: ['L3'], note: 'L3：处理工单时推荐相似案例与 SOP', agent: 'A2' },
+      { id: 'p10', product: 'ITSM', name: '变更风险评估', desc: 'AI 起草风险评估 · 审批人决策', def: 'L2', tiers: ['L2', 'L3'], note: '不做 L1 白名单：变更审批永远不自动通过（合规硬约束）', agent: 'A4' },
+      { id: 'p11', product: 'ITSM', name: '服务请求 AI 审批', desc: 'AI 分类 + 合规检查', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '可切 L1 白名单：客户自定义「低风险自动通过」规则', agent: 'A1' },
+      { id: 'p19', product: 'ITSM', name: '意图识别与智能标签', desc: '回填 ai-故障分类/业务影响/诉求类型', def: 'L3', tiers: ['L2', 'L3'], note: '新建/描述保存自动触发，人工可改（M8 样本反哺）· 低代码 PM v1 文档 §1.1', agent: 'A1' },
+      { id: 'p20', product: 'ITSM', name: 'AI 优先级研判', desc: '语义评估故障紧急程度', def: 'L3', tiers: ['L3'], note: '仅建议：回填 ai-推荐优先级，运维人工确认', agent: 'A1' },
+      { id: 'p21', product: 'ITSM', name: '知识草稿生成', desc: '工单关闭自动生成知识库草稿', def: 'L2', tiers: ['L2', 'L3'], note: 'L2：草稿管理员审核后入库（不做 L1 白名单）', agent: 'A3' },
+      { id: 'p22', product: 'ITSM', name: '同源故障聚类', desc: '每日定时批量识别重复故障', def: 'L3', tiers: ['L3'], note: 'L3：输出重复故障分组清单 → 问题管理，人确认', agent: 'A4' },
+      { id: 'p23', product: 'ITSM', name: 'IT 自助助手', desc: 'FAQ 自然语言问答 · 自助闭环', def: 'L3', tiers: ['L2', 'L3'], note: 'L2 可切：低风险问题（账号重置等）AI 自动闭环，其余转人工', agent: 'A6' },
+      { id: 'p32', product: 'ITSM', name: '事件理解与标签补全', desc: '识别告警/描述/影响范围/CI，补全分类、SLA、优先级、重要性和标签', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '低风险且字段白名单/矩阵校验通过可 L1；多候选、VIP/P1 或字段冲突进入 L2/L3', agent: 'A8' },
+      { id: 'p33', product: 'ITSM', name: '智能分配处理人', desc: '固定规则优先，规则未命中/冲突/不完整时推荐或写入处理组/处理人', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '不做认领和重派；确认采纳后通过 ITSM 权限 CLI 写入，SLA 升级仍由 ITSM workflow 处理', agent: 'A8' },
+      /* ── FSM ── */
+      { id: 'p12', product: 'FSM', name: '智能派工与认领闭环', desc: '推荐、通知、无人认领重派、SLA 升级 · 跟踪至认领', def: 'L2', tiers: ['L1', 'L2', 'L3'], note: '按租户配置；低风险可 L1，普通派工默认 L2，高等级告警或关键站点强制 L3', agent: 'A7' },
+      { id: 'p13', product: 'FSM', name: 'SLA 违约预警', desc: '预测 SLA 即将超时提前升级', def: 'L3', tiers: ['L3'], note: 'L3：预测 + 提醒，升级动作由人触发', agent: 'sa10' },
+      { id: 'p27', product: 'FSM', name: '上门检查清单 + 备件', desc: '上门任务前置检查 + 建议备件生成', def: 'L2', tiers: ['L2', 'L3'], note: 'L2：FSM 单新建自动生成，随单确认（低代码 PM v1 §3.1）', agent: 'A2' },
+      { id: 'p28', product: 'FSM', name: '历史案例推荐', desc: '语义召回同设备同类故障案例', def: 'L3', tiers: ['L3'], note: 'L3：回填 ai-相似维修案例编号列表', agent: 'A2' },
+      { id: 'p29', product: 'FSM', name: '表单智能校验', desc: '维修提交识别描述简略/逻辑冲突', def: 'L3', tiers: ['L3'], note: 'L3：回填 ai-表单整改提示，外勤补全后提交', agent: 'A1' },
+      { id: 'p30', product: 'FSM', name: '外勤语音助手', desc: '语音转文字 → 排查步骤建议', def: 'L3', tiers: ['L3'], note: 'L3：外勤语音交互，建议仅参考', agent: 'A6' },
+      { id: 'p31', product: 'FSM', name: '维修照片核验', desc: '完工实拍图片 AI 核验', def: 'L3', tiers: ['L2', 'L3'], note: 'L2 可切：核验合格自动归档，不合格提示整改（A2 多模态扩展）', agent: 'A2' },
+      /* ── NPM ── */
+      { id: 'p14', product: 'NPM', name: '网络质量异常检测', desc: '基线学习识别异常丢包/延迟', def: 'L3', tiers: ['L3'], note: 'L3：检测结果并入 ITOM 告警降噪输入（p1）', agent: 'sa2' },
+      { id: 'p15', product: 'NPM', name: '链路劣化预测', desc: '历史趋势预测链路降级', def: 'L3', tiers: ['L3'], note: 'L3：预测报告，处置由人决策', agent: 'sa10' },
+      /* ── ITAM ── */
+      { id: 'p16', product: 'ITAM', name: '资产自动分类', desc: '新发现资产自动识别类型/归类', def: 'L3', tiers: ['L3'], note: '分类建议可直接查看；写入台账前提交 L3 业务审批（A5 承接）', agent: 'A5' },
+      { id: 'p17', product: 'ITAM', name: '台账数据质量巡检', desc: '台账脏数据巡检（重复/矛盾/缺失）', def: 'L3', tiers: ['L3'], note: 'L3：巡检报告自动生成，异常由人处置（A5 承接 · CMDB 域见 p8）', agent: 'A5' },
+      { id: 'p24', product: 'ITAM', name: '台账脏数据智能巡检', desc: 'ai-异常标签 + 整改建议', def: 'L3', tiers: ['L3'], note: '每日定时 + 新增/编辑触发，人工整改（低代码 PM v1 §2.1）', agent: 'A5' },
+      { id: 'p25', product: 'ITAM', name: '工单资产关联 CI', desc: '工单文本提取资产并推荐关联', def: 'L3', tiers: ['L2', 'L3'], note: 'L2 可切：白名单规则命中自动关联，其余人工确认', agent: 'A1' },
+      { id: 'p26', product: 'ITAM', name: '沉睡闲置资产分析', desc: '多维数据识别闲置资产/授权', def: 'L3', tiers: ['L3'], note: 'L3：输出闲置评估 + 回收建议清单', agent: 'A5' },
+      /* ── 平台 ── */
+      { id: 'p18', product: '平台', name: 'NEO Agent 全局对话', desc: '只回答问题不动手', def: 'L3', tiers: ['L2', 'L3'], note: '不做 L1 白名单：NEO Agent 无自动动作权', agent: 'sa6' }
+    ];
+    var TIER_LABEL = { L1: 'L1 自动执行', L2: 'L2 手工确认', L3: 'L3 业务审批' };
+    var TIER_KEY = 'ems-tier-data-v3';
+    var BREAKER_KEY = 'ems-breaker-state-v1';
+    var BREAKER_CONFIG_KEY = 'ems-breaker-config-v1';
+    var SUPPRESSION_CONFIG_KEY = 'ems-agent-suppression-default-v1';
+    function tenantTierKey() { return TIER_KEY + ':' + activeAiTenant(); }
+    function _loadTierData() {
+      try {
+        TIER_DATA.forEach(function (s) { if (typeof s.origDef === 'undefined') s.origDef = s.def; s.def = s.origDef; });
+        var raw = localStorage.getItem(tenantTierKey());
+        if (raw) {
+          var saved = JSON.parse(raw);
+          if (Array.isArray(saved) && saved.length === TIER_DATA.length) {
+            TIER_DATA.forEach(function (s, i) { if (saved[i] && saved[i].def) s.def = saved[i].def; });
+          }
+        }
+      } catch (e) {}
+    }
+    function _saveTierData() {
+      try { localStorage.setItem(tenantTierKey(), JSON.stringify(TIER_DATA.map(function (s) { return { def: s.def }; }))); } catch (e) {}
+    }
+    var _breakerOn = false;
+    function _loadBreakerState() {
+      try { _breakerOn = localStorage.getItem(BREAKER_KEY) === 'on'; } catch (e) {}
+      try {
+        var cfg = JSON.parse(localStorage.getItem(BREAKER_CONFIG_KEY) || 'null');
+        if (cfg) {
+          document.getElementById('breakerFailures').value = cfg.failures;
+          document.getElementById('breakerErrorRate').value = cfg.errorRate;
+          document.getElementById('breakerBudgetRate').value = cfg.budgetRate;
+          document.getElementById('breakerObjectCalls').value = cfg.objectCalls;
+        }
+        var suppression = JSON.parse(localStorage.getItem(SUPPRESSION_CONFIG_KEY) || 'null');
+        if (suppression) {
+          document.getElementById('suppressWindowDays').value = suppression.windowDays;
+          document.getElementById('suppressRejectCount').value = suppression.rejectCount;
+          document.getElementById('suppressPauseHours').value = suppression.pauseHours;
+        }
+      } catch (e) {}
+    }
+    function saveSuppressionConfig() {
+      if (!guardAiPlatformManage()) return;
+      var cfg={windowDays:Number(document.getElementById('suppressWindowDays').value),rejectCount:Number(document.getElementById('suppressRejectCount').value),pauseHours:Number(document.getElementById('suppressPauseHours').value)};
+      if(cfg.windowDays<1||cfg.rejectCount<1||cfg.pauseHours<1){showToast('请检查未采纳抑制策略','warn');return;}
+      localStorage.setItem(SUPPRESSION_CONFIG_KEY,JSON.stringify(cfg));
+      showToast('平台默认抑制策略已保存 · 租户场景覆盖保持不变','success');
+    }
+    function saveBreakerConfig() {
+      if (!guardAiPlatformManage()) return;
+      var cfg = {
+        failures: Number(document.getElementById('breakerFailures').value),
+        errorRate: Number(document.getElementById('breakerErrorRate').value),
+        budgetRate: Number(document.getElementById('breakerBudgetRate').value),
+        objectCalls: Number(document.getElementById('breakerObjectCalls').value)
+      };
+      if (cfg.failures < 1 || cfg.errorRate < 1 || cfg.errorRate > 100 || cfg.budgetRate < 1 || cfg.budgetRate > 100 || cfg.objectCalls < 1) { showToast('请检查全局熔断阈值', 'warn'); return; }
+      localStorage.setItem(BREAKER_CONFIG_KEY, JSON.stringify(cfg));
+      showToast('全局熔断阈值已保存 · 对所有租户生效', 'success');
+    }
+    function _renderBreakerStatus() {
+      var el = document.getElementById('breakerStatus');
+      if (!el) return;
+      if (_breakerOn) {
+        el.innerHTML = '<span style="color:var(--c-danger,#dc2626);font-weight:500">已触发</span>（自动写动作已暂停 · 租户档位未改变）';
+      } else {
+        el.innerHTML = '<span style="color:var(--c-success);font-weight:500">未触发</span>（本月 AI 成本 ¥328 / 预算 ¥1,000 · 33% · 错误率 0.4%）';
+      }
+    }
+    function renderTierTable() {
+      var html = '';
+      TIER_DATA.forEach(function (s) {
+        if (typeof s.origDef === 'undefined') s.origDef = s.def;  // 首次渲染固化原始默认档（默认 L1 的场景规则在领域页维护，不受 WL_DATA 灰置约束）
+        if (s.id === 'p12') {
+          try { var fsmPolicy=JSON.parse(localStorage.getItem(dispatchTenantPolicyKey(activeAiTenant()))||'{}'); s.def=['L1','L2','L3'].indexOf(fsmPolicy.tierCode)>=0?fsmPolicy.tierCode:'L2'; } catch(e) { s.def='L2'; }
+        }
+        var effective = s.def;
+        var radios = s.tiers.map(function (t) {
+          var disabled = (_breakerOn || !AI_PLATFORM_CAN_MANAGE) ? ' disabled' : '';
+          var title = '';
+          if (t === 'L1' && !_breakerOn && s.origDef !== 'L1') {
+            // L1 需至少一条已审批白名单规则，无规则时灰置；审批发生在白名单规则新增时，拨档位本身不审批
+            var hasRule = WL_DATA.some(function (r) { return r.scene === s.name && r.on; });
+            if (!hasRule) { disabled = ' disabled'; title = ' title="需先创建并审批一条白名单规则后可选（审批在白名单规则新增时）"'; }
+          }
+          var checked = (t === effective) ? ' checked' : '';
+          var clickable = (_breakerOn || disabled.indexOf('disabled') >= 0) ? '' : ' onclick="pickTier(this)"';
+          return '<span class="tier-radio' + checked + disabled + '"' + title + ' data-scene="' + s.id + '" data-tier="' + t + '"' + clickable + '>' + t + '</span>';
+        }).join('');
+        if (s.tiers.indexOf('L1') === -1) radios = '<span class="tier-radio disabled" title="该场景不做 L1 自动执行">L1</span>' + radios;
+        var badgeCls = effective.toLowerCase();
+        html += '<tr id="tier-row-' + s.id + '">'
+          + '<td><span class="prod-pill prod-' + (s.product || '其他').toLowerCase() + '">' + (s.product || '其他') + '</span><strong style="color:var(--c-text-1)">' + s.name + '</strong><div style="font-size:11px;color:var(--c-text-3);margin-top:2px">' + s.desc + '</div></td>'
+          + '<td><span class="tier-badge tier-' + badgeCls + ' sm">' + effective + '</span>' + (_breakerOn ? '<div style="font-size:10px;color:var(--c-danger,#dc2626);margin-top:2px">自动写动作暂停</div>' : '') + '</td>'
+          + '<td><div class="tier-radio-group">' + radios + '</div><div class="tier-current">当前：' + TIER_LABEL[effective] + '</div></td>'
+          + '<td><div style="font-size:11px;color:var(--c-text-2);line-height:1.6">' + s.note + '</div></td>'
+          + '</tr>';
+      });
+      document.getElementById('tierTbody').innerHTML = html;
+    }
+    function pickTier(el) {
+      if (!guardAiPlatformManage()) return;
+      var scene = el.dataset.scene;
+      var tier = el.dataset.tier;
+      var sceneName = '';
+      var s = TIER_DATA.find(function (x) { return x.id === scene; });
+      if (s) sceneName = s.name;
+      if (!s || s.def === tier) return;
+      if (scene === 'p12') {
+        var tenant = activeAiTenant();
+        if (tenant === '全部租户（MSP视角）') { showToast('请先选择具体租户', 'warn'); return; }
+        window.showConfirmModal && showConfirmModal({title:'提交场景档位治理变更',message:'将「'+sceneName+'」从 <strong>'+TIER_LABEL[s.def]+'</strong> 调整为 <strong>'+TIER_LABEL[tier]+'</strong>。<br><br>审批通过前继续执行当前档位。',okText:'提交治理审批',onOk:function(){var request={id:'GOV-FSM-TIER-'+Date.now(),agentId:'agent-fsm-dispatch-recommend',currentTier:s.def,requestedTier:tier,tenant:tenant,applicant:'当前 AI 平台管理员',applicantUserId:localStorage.getItem('ems-user-id')||'demo-ai-admin',requestedAt:new Date().toISOString(),status:'pending'};try{localStorage.setItem(dispatchTierRequestKey(tenant),JSON.stringify(request));}catch(e){}showToast('档位变更已提交 AI 治理 · 当前档位未改变','success');}});
+        return;
+      }
+      window.showConfirmModal && showConfirmModal({
+        title: '提交场景档位治理变更',
+        message: '将「' + sceneName + '」从 <strong>' + TIER_LABEL[s.def] + '</strong> 调整为 <strong>' + TIER_LABEL[tier] + '</strong>。<br><br>提交后当前档位保持不变，治理审批通过后生成新版本并生效。',
+        okText: '提交治理审批',
+        onOk: function () {
+          window.showToast && showToast('「' + sceneName + '」档位变更已提交治理审批 · 当前仍为 ' + TIER_LABEL[s.def], 'success');
+        }
+      });
+    }
+
+    var WL_DATA = [
+      { id: 'r1', name: 'P1 网络告警自动转单', scene: '告警转工单', cond: '来源=ITOM 且 优先级=P1 且 分类=网络', action: '自动转单给网络运维组', on: true },
+      { id: 'r2', name: 'VPN 证书续期自动审批', scene: '服务请求 AI 审批', cond: '分类=VPN 证书续期 且 申请人部门=本部门', action: '低风险自动通过', on: true },
+      { id: 'r3', name: '同 team 权限复制请求', scene: '服务请求 AI 审批', cond: '类型=权限复制 且 申请人与审批人同 team', action: '自动通过', on: false }
+    ];
+    var WL_KEY = 'ems-wl-data-v1';
+    function _loadWlData() {
+      try {
+        var raw = localStorage.getItem(WL_KEY);
+        if (raw) { var saved = JSON.parse(raw); if (Array.isArray(saved)) WL_DATA = saved; }
+      } catch (e) {}
+    }
+    function _saveWlData() {
+      try { localStorage.setItem(WL_KEY, JSON.stringify(WL_DATA)); } catch (e) {}
+    }
+    function renderWlTable() {
+      var html = '';
+      if (WL_DATA.length === 0) {
+        html = '<tr><td colspan="6" style="padding:var(--sp-24) 0;text-align:center;color:var(--c-text-3);font-size:13px">暂无白名单规则 · 点击「新增白名单规则」创建（需审批）</td></tr>';
+      } else {
+        WL_DATA.forEach(function (r) {
+          html += '<tr>'
+            + '<td><strong style="color:var(--c-text-1)">' + r.name + '</strong></td>'
+            + '<td>' + r.scene + '</td>'
+            + '<td><code style="font-family:monospace;font-size:11px;background:var(--c-fill-1);padding:2px 6px;border-radius:4px">' + r.cond + '</code></td>'
+            + '<td>' + r.action + '</td>'
+            + '<td>' + (r.on ? '<span class="kpi-status ok">● 启用</span>' : '<span class="kpi-status warn">● 已停用</span>') + '</td>'
+            + '<td>' + (AI_PLATFORM_CAN_MANAGE ? '<button class="wl-op-link" onclick="toggleWl(\'' + r.id + '\')">' + (r.on ? '停用' : '启用') + '</button> · <button class="wl-op-link danger" onclick="deleteWl(\'' + r.id + '\')">删除</button>' : '<span class="readonly-value">只读</span>') + '</td>'
+            + '</tr>';
+        });
+      }
+      document.getElementById('wlTbody').innerHTML = html;
+    }
+    function toggleWl(id) {
+      if (!guardAiPlatformManage()) return;
+      var r = WL_DATA.find(function (x) { return x.id === id; });
+      if (!r) return;
+      r.on = !r.on;
+      _saveWlData();
+      renderWlTable();
+      renderTierTable();  // 白名单规则状态变化联动档位表 L1 灰置
+      window.showToast && showToast('规则「' + r.name + '」已' + (r.on ? '启用' : '停用') + ' · 已生效 · 记录到审计', 'success');
+    }
+    function deleteWl(id) {
+      if (!guardAiPlatformManage()) return;
+      var r = WL_DATA.find(function (x) { return x.id === id; });
+      if (!r) return;
+      WL_DATA = WL_DATA.filter(function (x) { return x.id !== id; });
+      _saveWlData();
+      renderWlTable();
+      renderTierTable();  // 白名单规则状态变化联动档位表 L1 灰置
+      window.showToast && showToast('规则「' + r.name + '」已删除 · 已生效 · 记录到审计', 'success');
+    }
+    function openTierRuleModal() { if (guardAiPlatformManage()) document.getElementById('tierRuleOverlay').classList.add('visible'); }
+    function closeTierRuleModal() { document.getElementById('tierRuleOverlay').classList.remove('visible'); }
+    function submitTierRule() {
+      if (!guardAiPlatformManage()) return;
+      var name = document.getElementById('tierRuleName').value.trim();
+      if (!name) { window.showToast && showToast('请填写规则名称', 'warn'); return; }
+      var cond = document.getElementById('tierRuleCond').value.trim();
+      var action = document.getElementById('tierRuleAction').value.trim();
+      if (!cond || !action) { window.showToast && showToast('请填写触发条件与自动动作', 'warn'); return; }
+      // 真实落表：新规则以「审批中」态加入白名单列表
+      WL_DATA.push({ id: 'r' + Date.now(), name: name, scene: '服务请求', cond: cond, action: action, on: false, pending: true });
+      _saveWlData();
+      closeTierRuleModal();
+      document.getElementById('tierRuleName').value = '';
+      document.getElementById('tierRuleCond').value = '';
+      document.getElementById('tierRuleAction').value = '';
+      renderWlTable();
+      window.showToast && showToast('规则「' + name + '」已提交审批卡点（IT 主管）· 审批通过后启用', 'success');
+    }
+    function tierBreakerTrigger() {
+      if (!guardAiPlatformManage()) return;
+      _breakerOn = true;
+      try { localStorage.setItem(BREAKER_KEY, 'on'); } catch (e) {}
+      renderTierTable();
+      _renderBreakerStatus();
+      window.showToast && showToast('熔断已触发：L1/L2 写动作已暂停，仅保留只读分析 · 已告警 IT 主管', 'warn');
+    }
+    function tierBreakerRelease() {
+      if (!guardAiPlatformManage()) return;
+      _breakerOn = false;
+      try { localStorage.removeItem(BREAKER_KEY); } catch (e) {}
+      renderTierTable();
+      _renderBreakerStatus();
+      window.showToast && showToast('熔断已解除 · 各场景恢复配置档位', 'success');
+    }
+    _loadTierData();
+    _loadWlData();
+    _loadBreakerState();
+    renderTierTable();
+    renderWlTable();
+    _renderBreakerStatus();
+    applyAiPlatformRoleAccess();
+    renderModels();
+    renderSkillFiles();
+    renderCliCommands();
+
+    /* ═══════════ Agent 编辑抽屉 ═══════════ */
+    var AGENT_DATA = {
+      sa1: { name: '告警降噪 Agent', id: 'agent-alert-noise-reduction', scope: '把原始告警按指纹+拓扑+语义聚类为事件组，去除重复/抑制/静默；不执行处置动作（降噪后交给根因分析/工单起草）', scenes: 'M1 告警降噪 · ITOM', embed: { page: 'ITOM 告警降噪页', url: 'itom/alert-noise-reduction.html', spot: '降噪引擎区', trigger: '告警流入自动触发（实时）', mode: '自动' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）', 'BYOK 别名'], tier: 'L1 · 自动执行', impl: '规则引擎（去重/抑制/静默）+ 文本理解 + 知识检索（AI 关联规则需治理审批后加入白名单）', prompt: '你是 EMS NEO 告警降噪引擎。按指纹/拓扑/语义将原始告警聚类为事件组；确定性规则（去重/抑制/静默）为 L1 硬编码白名单，AI 关联规则仅建议（走治理审批）。禁止运行时自创规则。', commands: ['CMDB', 'ITOM'], ver: 'v2.0 · active · default', gray: '全量', enabled: true, metrics: '今日 2,491 次 · 降噪准确率 96.8%', templates: '告警确认 · 组合告警规则', caps: [['I02', 'AI 告警降噪', 'H2 2026'], ['I04', 'AI 动态基线与自动阈值', 'H2 2026'], ['I08', '组合告警规则（并发抑制）', 'H2 2026']] },
+      sa2: { name: '根因分析 Agent', id: 'agent-rca', scope: '对事件组输出 Top3 根因 + 证据链（CMDB/历史案例/指标趋势/网络路径）· 跨域归因；不自动确认根因（junior 判断）', scenes: 'M2 RCA + 证据链 · ITOM/CMDB/NPM', embed: { page: 'ITOM 告警详情页', url: 'itom/alert-detail.html', spot: 'RCA 工作台面板', trigger: '事件组确认后自动 + 手动重跑', mode: '自动 + 手动' }, own: '平台通用', model: 'ChatGPT 5.5', models: ['ChatGPT 5.5', 'DeepSeek V4 Pro', 'BYOK 别名'], tier: 'L3 · 业务审批（可切 L2 手工确认工单）', impl: '知识检索（证据链）+ 文本理解（事件解析）+ 对话（自然语言解释）→ 组合工作流（10 credits）', prompt: '你是 EMS NEO 根因分析引擎。整合时序指标/日志/配置/拓扑/网络路径，输出 Top3 根因猜测 + 可下钻证据链；叠加变更记录做跨域归因。只建议不确认；置信度仅作参考，执行闸门是确定性规则。', commands: ['CMDB', 'ITOM', 'ITSM', 'NPM'], ver: 'v3.1 · active · default', gray: '全量', enabled: true, metrics: '今日 127 次 · Top3 命中 73.4%', templates: '告警根因分析 · 网络路径诊断 · Syslog 日志解析', caps: [['I01', 'AI 智能告警根因分析 RCA', '已上线'], ['I05', 'Syslog 智能日志分析', 'H2 2026'], ['I07', 'RCA 多维指标扩展', 'H2 2026'], ['P03', '跨产品事件关联分析', 'H2 2026'], ['P05', '全链路故障排查', 'H2 2026'], ['P06', '增强版根因分析（跨域 RCA）', 'H2 2026']] },
+      sa3: { name: '工单起草 Agent', id: 'agent-ticket-drafting', scope: 'AI 起草工单（标题/描述/优先级/影响面）；不直接建单（走 L2 手工确认，白名单可切 L1）。分类/摘要已移交平台通用 Agent（A1/A3 底座）', scenes: 'M3 告警转工单 · ITOM', embed: { page: '告警转工单页 · 确认抽屉', url: 'itom/alert-to-incident.html', spot: '转单流水线', trigger: 'L2 手工确认触发', mode: '手工确认' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）', 'BYOK 别名'], tier: 'L2 · 手工确认（可切 L1 白名单）', impl: '引用 A1（分类）+ A3（摘要）底座 · 起草组装', prompt: '你是 EMS NEO 工单起草引擎。按事件组信息起草工单（标题/描述/优先级/影响面），优先级与分类枚举必须来自选项池白名单；起草结果必须经 L2 人工确认（白名单场景除外）。', commands: ['CMDB', 'ITSM', 'FSM'], ver: 'v2.4 · active · default', gray: '全量', enabled: true, metrics: '今日 892 次 · 分单准确 91.2%', templates: '工单起草', caps: [['P04', '告警-工单智能闭环（起草环节）', 'H2 2026'], ['I06', '自动化 Runbook 执行', 'H2 2026']] },
+      sa6: { name: 'NEO Agent', id: 'agent-copilot', scope: '自然语言全局问答（中英双语）· 多轮澄清 · 只读不动手（L3）；IM Bot 双向交互（H1 2027 待设计）', scenes: 'M6 NEO Agent · 全产品域', embed: { page: '全局 · 任意页面', url: 'portal/dashboard.html', spot: '⌘K 命令面板 + 右下角抽屉', trigger: '对话触发', mode: '手动' }, own: '平台通用', model: '5 模型可切', models: ['DeepSeek V4 Pro', 'ChatGPT 5.5', 'Opus 4.7', 'Gemini 2.5 Ultra', 'Qwen3 235B（本地）'], tier: 'L3 · 业务审批（只回答不动手）', impl: '对话引擎 + 按问题路由（知识检索/摘要生成）', prompt: '你是 EMS NEO Agent。用自然语言回答运维问题，多轮澄清用户意图；只读数据回答，不执行写操作（L3）；回答引用数据标签可跳转；支持中英双语。', commands: ['CMDB', 'ITOM', 'ITSM', 'NPM', 'ITAM'], ver: 'v3.0 · active · default', gray: '全量', enabled: true, metrics: '今日 843 次 · 快捷卡命中 82%', templates: '知识检索 · 服务健康分析 · 周报生成 · 容量预测', caps: [['P02', '自然语言交互（对话式运维）', 'H2 2026'], ['P14', 'IM Bot 接入（企微/钉钉/飞书）', 'H1 2027']] },
+      sa7: { name: '资产数据巡检 Agent', id: 'agent-asset-data-quality', scope: 'CMDB 数据质量巡检（发现结果异常/健康度报告/CI 关系补全/CI 类型建议）+ 设备自动分类 + NCM 配置合规；不自动修改数据（整改建议人工复核）。ITAM 台账域 3 项能力已移交 A5 数据质量巡检 Agent', scenes: 'CMDB 域 · 每日定时', embed: { page: 'CMDB 资产管理页', url: 'cmdb/cmdb-v2-ai-management.html', spot: '巡检任务区', trigger: '每日定时 + 手动运行', mode: '定时 + 手动' }, own: '子产品领域（CMDB · 产品自建 · EMS NEO 挂接）', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro'], tier: 'L3 · 业务审批', impl: '数据质量巡检 + 文本理解（提取/设备分类）', prompt: '你是 EMS NEO CMDB 数据质量引擎。巡检 CMDB 的发现结果异常、CI 关系缺失、健康度评分，输出 ai-异常标签 + ai-整改建议；新发现设备自动识别类型。判定规则与阈值来自 CMDB 域规则库。', commands: ['CMDB', 'ITAM'], ver: 'v1.4 · active · default', gray: '全量', enabled: true, metrics: '今日巡检 128 次 · 检出异常 156', templates: 'CI 关系补全 · 发现策略推荐', caps: [['C01', 'AI 自动分类', 'H2 2026'], ['C02', 'AI 关系补全建议', 'H2 2026'], ['C04', 'AI 异常检测（发现结果）', 'H2 2026'], ['C05', 'AI 数据质量报告', 'H2 2026'], ['C06', 'AI 发现策略推荐', 'H2 2026'], ['C07', 'AI CI 类型建议', 'H1 2027'], ['C08', 'CI 健康度评分', 'H2 2026'], ['I09', 'NCM 配置管理 AI 增强', 'H1 2027']] },
+      sa9: { name: '容量预测 Agent', id: 'agent-capacity-planning', scope: '基于历史指标趋势预测资源瓶颈与链路利用率 · 输出预测报告与扩容建议；不自动执行扩容（L1 白名单可自动提扩容工单）', scenes: 'ITOM 容量域', own: '子产品领域（ITOM · 产品自建 · EMS NEO 挂接）', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）'], tier: 'L1 · 自动执行', impl: '时序分析 + 摘要生成（预测报告）', prompt: '你是 EMS NEO 容量预测引擎。基于历史指标趋势预测 CPU/内存/存储/链路利用率，输出瓶颈预警与扩容建议；命中白名单规则时自动提扩容工单（L1），否则 L3 业务审批。', commands: ['ITOM', 'CMDB'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日预测 46 次 · 预警命中 12', templates: '容量预测', caps: [['I03', 'AI 容量预测', 'H2 2026']], embed: { page: 'ITOM 容量页', url: 'itom/capacity-forecast.html', spot: '容量预测列表区', trigger: '定时巡检 + 手动运行', mode: '定时 + 手动' } },
+      sa10: { name: '链路健康 Agent', id: 'agent-link-health', scope: '网络质量异常检测（基线学习识别异常丢包/延迟）+ 链路劣化预测 + SLA 违约预警；只出报告不动手', scenes: 'NPM/FSM 域 · SLA 预警', own: '子产品领域（NPM/FSM · 产品自建 · EMS NEO 挂接）', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro'], tier: 'L3 · 业务审批', impl: '时序分析（基线）+ 摘要生成（劣化报告）', prompt: '你是 EMS NEO 链路健康引擎。基于拨测与路径数据做基线学习，识别异常丢包/延迟，预测链路劣化时间点，输出 SLA 违约预警；只出报告，处置由人决策。', commands: ['NPM', 'ITOM', 'FSM'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日检测 2,140 次 · 预警 8', templates: '网络路径诊断', caps: [['N01', 'AI 路径诊断', 'H2 2026'], ['N02', 'AI 网络质量异常检测', 'H2 2026'], ['N03', 'AI 链路劣化预测', 'H2 2026'], ['T05', 'SLA 智能预警', 'H1 2027'], ['F02', 'AI SLA 违约预警', 'H1 2027']], embed: { page: 'NPM 网络质量页 · FSM 派工页', url: 'itom/npm-overview.html', spot: '链路健康卡', trigger: '拨测数据自动分析（跟随拨测任务）', mode: '自动' } },
+      /* ── 平台通用 Agent（A1-A7 · 低代码产品线 PM《corteza-itsm-itam-fsm-ai-v1.md》§六.1 · 2026-08-28 升格进库）── */
+      A1: { name: '文本理解与标签 Agent', id: 'agent-text-label', scope: '工单/表单文本意图识别 · 实体抽取（资产/设备/位置）· 标签归类与优先级研判 · 表单完整性校验；输出严格约束在选项池白名单，人工可改（M8 样本反哺）', scenes: '意图识别 · 智能标签 · 优先级研判 · 资产关联 · 表单校验（ITSM/ITAM/FSM）', embed: { page: 'ITSM 工单详情页', url: 'itsm/itsm-incident-detail.html', spot: 'AI 建议区', trigger: '工单新建/描述保存自动 + 手动重跑', mode: '自动 + 手动' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）', 'BYOK 别名'], tier: 'L3 · 业务审批（可切 L2 手工确认）', impl: '文本理解 + 实体抽取 + 选项池白名单校验（Enum-Policy 平台内置）', prompt: '你是 EMS NEO 文本理解引擎。对工单/表单文本做意图识别、实体抽取、标签归类与优先级研判；所有输出必须来自选项池白名单（禁止自由生成标签）；回填 ai-故障分类/业务影响/诉求类型/推荐优先级；判定仅供参考，人工可改。', commands: ['CMDB', 'ITSM', 'FSM', 'ITAM'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日 1,246 次 · 标签命中 92.4%', templates: '意图识别 · 资产关联', caps: [['T04', 'AI 工单智能分类与路由', 'H1 2027'], ['T06', 'AI 工单意图识别与智能标签', 'H2 2026'], ['T07', 'AI 优先级研判', 'H2 2026'], ['AM02', '工单提取资产并关联 CI', 'H2 2026'], ['F05', '维修表单智能校验', 'H2 2026']] },
+      A2: { name: '知识检索与推荐 Agent', id: 'agent-knowledge-rag', scope: 'RAG 语义检索（运维知识库/维修案例库）· 处置建议预览 · 上门检查清单与备件建议 · 维修照片核验（多模态扩展 · 不单独拆 Agent）', scenes: '知识推荐 · 案例/备件推荐 · 照片核验（ITSM/FSM）', embed: { page: 'ITSM 工单详情页 · FSM 单据页', url: 'itsm/itsm-incident-detail.html', spot: '知识推荐卡 · 备件/案例区', trigger: '工单/单据保存时自动', mode: '自动' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Gemini 2.5 Ultra（F07 照片核验）'], tier: 'L3 · 业务审批', impl: '知识检索（RAG）+ 摘要生成（处置建议）+ 多模态（照片核验）', prompt: '你是 EMS NEO 知识检索引擎。基于语义召回运维知识库与维修案例库：输出推荐知识/案例编号 + 证据片段 + 处置建议预览；对上门任务生成检查清单与建议备件；照片核验按完工合格标准判定。所有推荐供人决策。', commands: ['ITSM', 'FSM', 'ITAM'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日 986 次 · 推荐直接使用 87.6%', templates: '知识检索 · 备件清单生成', caps: [['T01', 'AI 知识推荐（RAG 检索）', 'H2 2026'], ['F03', '上门检查清单 + 备件清单', 'H2 2026'], ['F04', '历史维修案例语义推荐', 'H2 2026'], ['F07', '维修照片 AI 核验', 'H1 2027']] },
+      A3: { name: '摘要与文档生成 Agent', id: 'agent-summary-doc', scope: '工单会话/日志长文本智能摘要（现象/诉求/业务影响）· 工单关闭自动生成知识库草稿（管理员审核后入库）', scenes: '工单摘要 · 知识草稿（ITSM）', embed: { page: 'ITSM 工单详情页', url: 'itsm/itsm-incident-detail.html', spot: '摘要卡 · 关闭流程', trigger: '新增评论/附件时 + 工单关闭时', mode: '自动' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）'], tier: 'L2 · 手工确认（草稿审核后入库 · 不做 L1 白名单）', impl: '摘要生成 + 文档生成（知识模板）', prompt: '你是 EMS NEO 摘要与文档引擎。浓缩冗长工单会话与日志为结构化摘要（故障现象/用户诉求/业务影响）；工单关闭时按知识文档模板自动生成知识草稿，供管理员审核后入库。', commands: ['ITSM', 'CMDB'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日 534 次 · 摘要直接使用 90.1%', templates: '工单智能摘要 · 知识草稿生成', caps: [['T03', 'AI 工单智能摘要', 'H2 2026'], ['T08', '工单关闭自动生成知识草稿', 'H2 2026']] },
+      A4: { name: '风险评估 Agent', id: 'agent-risk-assess', scope: '变更单风险评估（影响面+历史失败率+窗口冲突）· 同源故障工单聚类 · 高风险强制回退预演证明；变更审批永不自动通过（合规硬约束）', scenes: '变更风险评估 · 同源故障聚类（ITSM）', embed: { page: 'ITSM 变更详情页', url: 'itsm/change-detail.html', spot: '风险评估卡', trigger: '提交变更单时自动 + 每日定时聚类', mode: '自动' }, own: '平台通用', model: 'Opus 4.7', models: ['Opus 4.7', 'DeepSeek V4 Pro', 'BYOK 别名'], tier: 'L2 · 手工确认', impl: '风险评估 + 知识检索（历史同类变更证据）+ 聚类分析', prompt: '你是 EMS NEO 风险评估引擎。结合 CMDB 影响面 + 历史同类变更失败率 + 变更窗口冲突，输出风险等级 + 风险因素 + 缓解建议；高风险必须附加"回退预演证明"必填校验；每日批量聚类同源故障工单。变更审批永不自动通过。', commands: ['CMDB', 'ITSM'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日 156 次 · 高风险覆盖 82%', templates: '变更风险评估 · 故障聚类', caps: [['P07', '变更影响智能评估', 'H2 2026'], ['C03', 'AI 影响面分析', 'H2 2026'], ['T02', 'AI 变更风险评估', 'H2 2026'], ['T09', '同源故障工单聚类', 'H1 2027']] },
+      A5: { name: '数据质量巡检 Agent', id: 'agent-data-quality', scope: 'ITAM 台账脏数据巡检（重复/矛盾/缺失 → ai-异常标签+整改建议）· 沉睡闲置资产分析 · 资产自动分类；不自动修改数据（整改人工复核）', scenes: '台账巡检 · 闲置分析（ITAM 域）', embed: { page: 'ITAM 资产台账页', url: 'itam/itam-asset-ledger.html', spot: '巡检任务区', trigger: '每日定时 + 新增/编辑触发', mode: '定时 + 手动' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro'], tier: 'L3 · 业务审批', impl: '数据质量巡检 + 文本理解（提取/分类）', prompt: '你是 EMS NEO 台账数据质量引擎。巡检 ITAM 资产台账的重复/矛盾/缺失字段，输出 ai-异常标签 + ai-整改建议；综合报修频次/工单记录/使用日志评估闲置资产，输出回收建议；新资产自动分类。判定规则来自 ITAM 域规则库。', commands: ['ITAM', 'CMDB'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日巡检 96 次 · 检出异常 87', templates: '台账巡检 · 闲置评估', caps: [['AM01', '资产台账脏数据智能巡检', 'H2 2026'], ['AM03', '沉睡闲置资产分析', 'H1 2027']] },
+      A6: { name: '对话助手 Agent', id: 'agent-chat-assist', scope: '自然语言 IT 自助助手（FAQ 问答 · 低风险自动闭环 · 复杂转人工）· 外勤语音维修助手（语音转文字 → 排查步骤建议）', scenes: 'IT 自助助手 · 外勤语音助手（ITSM/FSM）', embed: { page: 'ITSM 自助服务页 · FSM 外勤端', url: 'itsm/service-request.html', spot: '自助对话入口 · 语音入口', trigger: '用户提交咨询/语音交互时', mode: '手动' }, own: '平台通用', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）'], tier: 'L3 · 业务审批（自助闭环可切 L2）', impl: '对话引擎 + 知识检索（FAQ）+ 多模态（语音转写）', prompt: '你是 EMS NEO 对话助手。面向自助用户与外勤工程师提供自然语言问答：FAQ 简单问题直接解答并自动闭环，复杂问题转人工；外勤语音问答输出排查步骤建议；支持多轮澄清。', commands: ['ITSM', 'FSM'], ver: 'v1.0 · active · default', gray: '全量', enabled: true, metrics: '今日 218 次 · 自助闭环率 61%', templates: '自助问答 · 语音问答', caps: [['T10', '自然语言 IT 自助助手', 'H1 2027'], ['F06', '外勤语音维修助手', 'H1 2027']] },
+      A7: { name: 'FSM 调度推荐 Agent', id: 'agent-fsm-dispatch-recommend', scope: '以 FSM 待派工工单为主对象，按关联链读取 ITSM 事件、ITOM 告警、ITAM 资产与 CMDB CI 上下文，生成可解释 Top 3；持续跟踪到工程师认领', scenes: 'FSM 智能派工', embed: { page: '我的待办 · FSM 工单详情 · UMP 现场服务', url: 'fsm/fsm-dispatch-detail.html?id=FSM-2026-139', spot: 'AI 派工推荐', trigger: '待派单首轮推荐 · FSM 响应 SLA 阈值事件', mode: '租户配置 L1 / L2 / L3' }, own: '平台内置', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro'], tier: 'L2 · 手工确认', tierCode: 'L2', impl: '先读取 FSM 工单和来源引用，再按需调用 ITSM、ITOM、ITAM、CMDB CLI；结合工程师画像、负载、历史履约与上游风险生成推荐', prompt: '你是 FSM 调度推荐 Agent。目标是让符合条件的工程师完成认领。FSM 工单是派工事务主对象；仅根据工单保存的关联标识按需读取 ITSM 事件、ITOM 告警、ITAM 资产和 CMDB CI，不得猜测关联对象。上游上下文用于补充技能、资质、级别和风险判断，不覆盖 FSM 状态、站点、SLA 与派工结果。根据租户提示词选择可用 Skill，不得越过权限、FSM 上限或全局熔断。', businessPrompt: '优先加载 Skill：dispatch-recommend.md。优先推荐同站点、同类型工单有成功履约且满意度较高的工程师；结合关联事件影响、告警等级、资产型号与维保要求调整技能、资质和人员级别。', commands: ['FSM', 'ITSM', 'ITOM', 'ITAM', 'CMDB'], ver: 'v1.4 · active · default', gray: '全量', enabled: true, metrics: '今日 96 单 · 派单成功率 91% · 首轮认领率 78% · 准时到场率 94%', templates: '智能派工推荐', caps: [['F01', 'AI 智能派工', '已上线']] }
+      ,A8: { name: 'ITSM 事件理解与分配 Agent', id: 'agent-itsm-incident-intake-routing', scope: '识别描述、告警、影响范围和 CI，补全分类、SLA、优先级、重要性和标签；分单规则未覆盖时推荐处理组和处理人。', scenes: '事件自动分类 · 标签补全 · 智能分配处理人', embed: { page: '我的待办 · 事件详情 · 服务运营', url: 'itsm/itsm-incident-detail.html?id=INC-2026-0910-088', spot: '事件理解与分配卡 · 待办确认项 · 服务运营洞察', trigger: '事件创建自动运行 · 详情页手动重跑 · 用户确认采纳', mode: 'L1 / L2 / L3' }, own: '平台内置', model: 'DeepSeek V4 Pro', models: ['DeepSeek V4 Pro', 'Qwen3 235B（本地）'], tier: 'L2 · 手工确认', tierCode: 'L2', impl: '事件理解、标签补全、规则评估、分配推荐', prompt: '你是 ITSM 事件理解与分配 Agent。先读取事件描述、告警上下文、影响范围、CI、服务和客户信息，在 ITSM 字典、优先级矩阵、SLA 策略和字段白名单内补全分类、标签、SLA、优先级和重要性；再评估固定分单规则。固定规则命中且写入成功时只解释不覆盖；分单规则未命中、冲突或不完整时，基于相似事件、职责、排班、负载、SLA、VIP 和风险输出推荐。确认采纳后只能通过当前用户或平台服务身份的 ITSM CLI 权限写入，不得绕过 ITSM workflow。', businessPrompt: '优先加载 Skill：itsm-incident-intake-routing.md。固定分单规则优先；告警转工单需先识别告警、影响范围与关联 CI，再补全分类/SLA/优先级/重要性。', commands: ['ITSM', 'CMDB', 'ITOM'], ver: 'v0.2 · active · default', gray: '全量', enabled: true, metrics: '今日 64 单 · 分类采纳率 88% · 分配采纳率 82% · 分单规则补位 17 单', templates: '事件理解与标签补全 · 智能分配处理人', caps: [['T11', '事件理解与标签补全', 'H2 2026'], ['T12', '智能分配处理人', 'H2 2026']] }
+    };
+
+    renderAgentLibrary();
+    /* URL ?agent=aid 锚点定位（产品页面埋点「详情」跳转 · 高亮对应 Agent 行） */
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var aid = q.get('agent');
+      if (!aid) return;
+      // 切到 Agent 库 Tab
+      var tab = document.querySelector('.ac-subtab[data-sub="p-agent"]');
+      if (tab) tab.click();
+      setTimeout(function () {
+        var row = document.querySelector('.agent-row[data-aid="' + aid + '"]');
+        if (row) {
+          row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          row.classList.add('hl');
+          openAgentDrawer(aid);
+          setTimeout(function () { row.classList.remove('hl'); }, 2500);
+        }
+      }, 300);
+    })();
+
+    var AGENT_EXTRA_TOOLS = {
+      sa1: [{ type: 'CLI', name: '告警日志聚合' }],
+      sa2: [{ type: 'CLI', name: '网络路径诊断' }],
+      sa9: [{ type: 'CLI', name: '容量采集' }],
+      sa10: [{ type: 'CLI', name: '网络路径诊断' }],
+      A7: [{ type: 'CLI', name: 'fsm workorder get' }, { type: 'CLI', name: 'fsm engineer query' }, { type: 'CLI', name: 'fsm engineer workload' }, { type: 'CLI', name: 'fsm workorder history' }, { type: 'CLI', name: 'fsm dispatch history' }, { type: 'CLI', name: 'fsm survey summary' }, { type: 'CLI', name: 'itsm incident get（按关联）' }, { type: 'CLI', name: 'itom alert get（按关联）' }, { type: 'CLI', name: 'itam asset get（按关联）' }, { type: 'CLI', name: 'cmdb ci get / relations（按关联）' }]
+    };
+
+    var DISPATCH_AGENT_CONFIG_KEY = 'ems-agent-config-fsm-dispatch-v1';
+    var DISPATCH_TENANT_POLICY_PREFIX = 'ems-agent-policy-fsm-dispatch-v1:';
+    var DISPATCH_TIER_REQUEST_PREFIX = 'ems-agent-tier-request-fsm-dispatch-v1:';
+    function activeAiTenant() { try { var value=localStorage.getItem('ems-active-tenant')||'达美乐（Domino）';return {DEV:'达美乐（Domino）',tdengine:'周大福（CTF）',Test123456:'广发证券',mx:'香港美心MX'}[value]||value; } catch (e) { return '达美乐（Domino）'; } }
+    function dispatchTenantPolicyKey(tenant) { return DISPATCH_TENANT_POLICY_PREFIX + tenant; }
+    function dispatchTierRequestKey(tenant) { return DISPATCH_TIER_REQUEST_PREFIX + tenant; }
+    function fsmCliReadiness(tenant) {
+      var profiles = {
+        '全部租户（MSP视角）': { ready:false, aggregate:true, label:'2 / 4 租户可用', detail:'达美乐能力完整；周大福部分数据未验证；广发证券缺少关键字段；香港美心未授权 Agent' },
+        '达美乐（Domino）': { ready:true, licensed:true, label:'能力完整', detail:'License、系统 Skill、FSM 核心数据已就绪；ITSM 事件、ITOM 告警、ITAM 资产和 CMDB CI 可按工单关联读取' },
+        '周大福（CTF）': { ready:true, licensed:true, partial:true, label:'部分完成', detail:'FSM 核心能力完整；关联资产维保与部分候选人的预计到场时间未验证，可由调度员确认' },
+        '广发证券': { ready:false, label:'缺少字段', detail:'工程师画像缺少收费标准、服务范围字段' },
+        '香港美心MX': { ready:false, licensed:false, label:'Agent 未开通', detail:'当前租户 License 未授权 FSM 调度推荐 Agent' }
+      };
+      return profiles[tenant] || { ready:false, label:'待检查', detail:'尚未完成 FSM 核心字段及跨产品关联字段检查' };
+    }
+    (function loadDispatchAgentConfig() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(DISPATCH_AGENT_CONFIG_KEY) || '{}');
+        if (saved.model) AGENT_DATA.A7.model = saved.model;
+        if (typeof saved.enabled === 'boolean') AGENT_DATA.A7.enabled = saved.enabled;
+      } catch (e) {}
+      loadDispatchTenantPolicy(activeAiTenant());
+    })();
+
+    function loadDispatchTenantPolicy(tenant) {
+      var policy = null;
+      try { policy = JSON.parse(localStorage.getItem(dispatchTenantPolicyKey(tenant)) || 'null'); } catch (e) {}
+      AGENT_DATA.A7.businessPrompt = policy && typeof policy.businessPrompt === 'string' ? policy.businessPrompt : '优先加载 Skill：dispatch-recommend.md。优先推荐同站点、同类型工单有成功履约且满意度较高的工程师；收到 FSM 响应 SLA 阈值事件后，根据 Skill 决定重派或升级人工。';
+      AGENT_DATA.A7.tierCode = policy && ['L1','L2','L3'].indexOf(policy.tierCode) >= 0 ? policy.tierCode : 'L2';
+      AGENT_DATA.A7.tier = {L1:'L1 · 自动执行',L2:'L2 · 手工确认',L3:'L3 · 业务审批'}[AGENT_DATA.A7.tierCode];
+      AGENT_DATA.A7.suppressionOverride = policy && policy.suppressionOverride ? policy.suppressionOverride : null;
+    }
+
+    function saveDispatchTenantPolicy(tenant) {
+      try { localStorage.setItem(dispatchTenantPolicyKey(tenant), JSON.stringify({ businessPrompt:AGENT_DATA.A7.businessPrompt, tierCode:AGENT_DATA.A7.tierCode || 'L2', suppressionOverride:AGENT_DATA.A7.suppressionOverride || null })); } catch (e) {}
+    }
+
+    function saveDispatchAgentConfig() {
+      try {
+        localStorage.setItem(DISPATCH_AGENT_CONFIG_KEY, JSON.stringify({
+          model: AGENT_DATA.A7.model,
+          enabled: AGENT_DATA.A7.enabled
+        }));
+      } catch (e) {}
+    }
+
+    function toggleDispatchAgentEnabled(el) {
+      if (!guardAiPlatformManage()) return;
+      el.classList.toggle('on');
+      AGENT_DATA.A7.enabled = el.classList.contains('on');
+      var label = document.getElementById('dispatchAgentStatusLabel');
+      if (label) label.textContent = AGENT_DATA.A7.enabled ? '已启用' : '已停用';
+      saveDispatchAgentConfig();
+      window.showToast && showToast('FSM 调度推荐 Agent 已' + (AGENT_DATA.A7.enabled ? '启用' : '停用') + ' · 操作已记录审计', AGENT_DATA.A7.enabled ? 'success' : 'warn');
+    }
+
+    function renderDispatchAgentDrawer(d) {
+      var body = document.getElementById('agentDrawerBody');
+      var tenant = activeAiTenant();
+      var isMspAggregate = tenant === '全部租户（MSP视角）';
+      loadDispatchTenantPolicy(tenant);
+      var readiness = fsmCliReadiness(tenant);
+      var suppressionDefault={windowDays:7,rejectCount:30,pauseHours:24};
+      try{suppressionDefault=Object.assign(suppressionDefault,JSON.parse(localStorage.getItem(SUPPRESSION_CONFIG_KEY)||'{}'));}catch(e){}
+      var tenantPolicyDisabled = isMspAggregate || readiness.licensed === false;
+      var pendingTierRequest = null;
+      try { pendingTierRequest = JSON.parse(localStorage.getItem(dispatchTierRequestKey(tenant)) || 'null'); } catch (e) {}
+      var currentTierLabel = {L1:'L1 · 自动执行',L2:'L2 · 手工确认',L3:'L3 · 业务审批'}[d.tierCode || 'L2'];
+      var requestedTier = pendingTierRequest && pendingTierRequest.status === 'pending' ? pendingTierRequest.requestedTier : (d.tierCode || 'L2');
+      body.innerHTML = [
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">Agent 信息</div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">当前租户</span><span class="v">' + escapeSkillHtml(tenant) + '</span></div>',
+        '    <div class="detail-item"><span class="k">应用场景</span><span class="v">2 条现场服务业务链路</span></div>',
+        '    <div class="detail-item"><span class="k">当前档位</span><span class="v"><span class="tier-badge tier-' + (d.tierCode || 'L2').toLowerCase() + ' sm">' + currentTierLabel + '</span></span></div>',
+        '    <div class="detail-item"><span class="k">触发条件</span><span class="v">待派单首轮推荐 · 待认领超时/SLA 临期重派</span></div>',
+        '    <div class="detail-item"><span class="k">运行状态</span><span class="v"><span class="kpi-status ' + (readiness.licensed === false ? 'warn' : 'ok') + '">● ' + (readiness.licensed === false ? '未授权' : '正常') + '</span></span></div>',
+        '  </div>',
+        '  <div class="ad-field-hint" style="margin-top:var(--sp-8)">' + ((d.tierCode || 'L2') === 'L1' ? '低风险范围自动派单并跟踪到工程师认领。' : ((d.tierCode || 'L2') === 'L3' ? '高风险派工每次提交 FSM 业务审批，通过后执行并继续跟踪认领。' : '生成推荐后由调度员确认，并继续跟踪到工程师认领。')) + '</div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">应用场景</div>',
+        '  <div class="table-wrap"><table class="data-table"><thead><tr><th>业务场景</th><th>业务起点</th><th>派工补充依据</th><th>最终闭环</th></tr></thead><tbody>',
+        '    <tr><td><strong>告警事件转现场处置</strong></td><td>ITOM 告警 → ITSM 事件 → FSM 工单</td><td>事件影响、告警等级、资产型号、CI 关键度</td><td>现场验收 → 工单完成 → 事件解决 → 告警恢复/关闭</td></tr>',
+        '    <tr><td><strong>客户报障直接现场服务</strong></td><td>客户报障 → 调度员创建 FSM 工单</td><td>客户、网点、合同/SLA、资产、历史服务与满意度</td><td>现场处理 → 客户/有权人员验收 → 工单完成</td></tr>',
+        '  </tbody></table></div>',
+        '  <div class="ad-field-hint">两条链路共用同一调度推荐 Agent。系统根据 FSM 工单保存的来源引用识别场景，不要求用户选择或维护场景编码。</div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">全局配置</div>',
+        '  <div class="detail-grid">',
+        '    <div class="ad-field"><div class="ad-field-label">平台默认模型</div><select class="ad-select" id="agentDefaultModelSelect">' + agentModelOptions(d.model) + '</select></div>',
+        '    <div class="ad-field"><div class="ad-field-label">平台备用模型</div><select class="ad-select" id="agentFallbackModelSelect">' + agentModelOptions(d.fallbackModel) + '</select></div>',
+        '  </div>',
+        '  <div class="detail-box" style="font-family:inherit;white-space:normal"><strong>运行顺序</strong><br>租户 BYOK（如已启用） → 平台默认模型 → 平台备用模型</div>',
+        '  <div class="ad-field-hint">模型配置和 Agent 启用状态对所有租户生效；BYOK 失败不静默回退。</div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">租户运行策略 · ' + escapeSkillHtml(tenant) + '</div>',
+        (isMspAggregate ? '<div class="detail-box" style="font-family:inherit;white-space:normal;border-color:var(--c-warning);background:var(--c-warning-bg)"><strong>MSP 汇总视角</strong><br>可查看各租户能力状态；配置运行档位或派工偏好前，请切换到具体租户。</div>' : (readiness.licensed === false ? '<div class="detail-box" style="font-family:inherit;white-space:normal;border-color:var(--c-warning);background:var(--c-warning-bg)"><strong>当前租户未开通</strong><br>License 未授权 FSM 调度推荐 Agent，业务页面不会展示 AI 派工功能。</div>' : '')),
+        '  <div class="ad-field"><div class="ad-field-label">运行档位</div><select class="ad-select" id="agentTierSelect"' + (tenantPolicyDisabled ? ' disabled' : '') + '><option value="L2"' + (requestedTier === 'L2' ? ' selected' : '') + '>L2 · 手工确认</option><option value="L1"' + (requestedTier === 'L1' ? ' selected' : '') + '>L1 · 自动执行</option><option value="L3"' + (requestedTier === 'L3' ? ' selected' : '') + '>L3 · 业务审批</option></select><div class="ad-field-hint">档位按租户生效；变更提交 AI 治理审批，审批前继续按当前档位运行。</div></div>',
+        (pendingTierRequest && pendingTierRequest.status === 'pending' ? '<div class="detail-box" style="font-family:inherit;white-space:normal;border-color:var(--c-warning);background:var(--c-warning-bg)"><strong>档位变更审批中</strong><br>申请：' + currentTierLabel + ' → ' + ({L1:'L1 · 自动执行',L2:'L2 · 手工确认',L3:'L3 · 业务审批'}[pendingTierRequest.requestedTier]) + ' · 当前档位未改变</div>' : ''),
+        '  <div class="ad-field"><div class="ad-field-label">租户业务提示词</div><textarea class="ad-textarea" id="agentBusinessPrompt" placeholder="例如：优先加载 Skill：dispatch-redispatch-first.md"' + (tenantPolicyDisabled ? ' disabled' : '') + '>' + (tenantPolicyDisabled ? '' : (d.businessPrompt || '')) + '</textarea><div class="ad-field-hint">提示词可明确优先加载的 Skill 稳定 ID。运行时仍校验 Skill 是否存在、启用并适用于当前事件；不会形成 Agent 配置绑定。</div></div>',
+        '  <div class="detail-box" style="font-family:inherit;white-space:normal;line-height:1.8"><strong>推荐依据</strong><br>同站点同类型历史 30% · 满意度 20% · 技能 15% · 负载 15% · 收费 10% · SLA 时效 10% · 未认领/转派/投诉负向扣分</div>',
+        '  <div class="detail-box" style="font-family:inherit;white-space:normal;line-height:1.8;margin-top:var(--sp-8)"><strong>引用的 FSM 业务策略</strong><br><span class="kpi-status ok">● 已生效</span> 响应 SLA：工程师认领后结束 · 当前阈值事件由 FSM 产生<br>最大智能重派次数：2 次（FSM 策略） · 当前次数由工单派工记录返回<br><span style="color:var(--c-text-3)">AI 平台仅展示策略来源与状态，不维护 SLA 阈值或重派上限。</span></div>',
+        '  <div class="detail-box" style="font-family:inherit;white-space:normal;line-height:1.8;margin-top:var(--sp-8)"><strong>未采纳抑制</strong><br><select class="ad-select" id="dispatchSuppressionMode" onchange="document.getElementById(\'dispatchSuppressionOverride\').style.display=this.value===\'override\'?\'grid\':\'none\'"' + (tenantPolicyDisabled ? ' disabled' : '') + '><option value="default"' + (!d.suppressionOverride ? ' selected' : '') + '>沿用平台默认（' + suppressionDefault.windowDays + ' 天 / ' + suppressionDefault.rejectCount + ' 次 / ' + suppressionDefault.pauseHours + ' 小时）</option><option value="override"' + (d.suppressionOverride ? ' selected' : '') + '>当前租户场景覆盖</option></select><div class="detail-grid" id="dispatchSuppressionOverride" style="margin-top:8px;display:' + (d.suppressionOverride ? 'grid' : 'none') + '"><div class="ad-field"><div class="ad-field-label">统计窗口（天）</div><input class="ad-input" id="dispatchSuppressWindow" type="number" min="1" value="' + ((d.suppressionOverride||{}).windowDays||suppressionDefault.windowDays) + '"></div><div class="ad-field"><div class="ad-field-label">连续未采纳次数</div><input class="ad-input" id="dispatchSuppressCount" type="number" min="1" value="' + ((d.suppressionOverride||{}).rejectCount||suppressionDefault.rejectCount) + '"></div><div class="ad-field"><div class="ad-field-label">暂停（小时）</div><input class="ad-input" id="dispatchSuppressHours" type="number" min="1" value="' + ((d.suppressionOverride||{}).pauseHours||suppressionDefault.pauseHours) + '"></div></div><span style="color:var(--c-text-3)">仅影响本租户的 FSM 智能派工主动调用，不改变档位或全局熔断。</span></div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">CLI 能力检查</div>',
+        '  <div class="detail-box" style="font-family:inherit;white-space:normal"><span class="kpi-status ' + (readiness.ready ? 'ok' : 'warn') + '">● ' + readiness.label + '</span><br><span style="line-height:1.8">' + readiness.detail + '</span></div>',
+        '  <div class="ad-field-hint">必需：FSM 工单、工程师画像与负载。工单存在事件、告警、资产或 CI 引用时，再检查对应 ITSM、ITOM、ITAM、CMDB 只读 CLI；无引用时不调用。</div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">启用状态</div>',
+        '  <div style="display:flex;align-items:center;gap:var(--sp-12)">',
+        '    <span class="ad-switch ' + (d.enabled ? 'on' : '') + '" id="agentEnabledSwitch" onclick="toggleDispatchAgentEnabled(this)"></span>',
+        '    <span id="dispatchAgentStatusLabel" style="font-size:12px;color:var(--c-text-2)">' + (d.enabled ? '已启用' : '已停用') + '</span>',
+        '    <span style="font-size:12px;color:' + (readiness.licensed === false ? 'var(--c-warning)' : 'var(--c-text-3)') + '">' + (readiness.licensed === false ? 'License 未授权' : 'License 已授权') + '</span>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">运行测试</div>',
+        '  <div class="ad-field"><div class="ad-field-label">工单编号</div><input class="ad-input" id="agentTestInput" value="FSM-2026-139" placeholder="输入待派单工单编号"' + (tenantPolicyDisabled ? ' disabled' : '') + '></div>',
+        '  <label class="ad-command-item" style="margin-bottom:var(--sp-8)"><input type="checkbox" id="simulateDefaultModelFailure"><span>模拟平台默认模型不可用</span></label>',
+        '  <div class="ad-test-out" id="agentTestOut"></div>',
+        '  <div class="ad-field-hint">仅生成推荐，不写入候选工程师、不发送通知、不改变工单状态。</div>',
+        '</div>'
+      ].join('');
+      if (!AI_PLATFORM_CAN_MANAGE) {
+        body.querySelectorAll('select').forEach(function (el) { el.disabled = true; });
+        var preference = document.getElementById('agentBusinessPrompt');
+        if (preference) preference.disabled = true;
+        var switchEl = document.getElementById('agentEnabledSwitch');
+        if (switchEl) {
+          switchEl.removeAttribute('onclick');
+          switchEl.setAttribute('aria-disabled', 'true');
+        }
+      }
+    }
+
+    var AGENT_MODEL_CONFIG_KEY = 'ems-ai-agent-model-config-v1';
+    function availablePlatformModels() {
+      return MODELS.filter(function (model) { return model.scope === '平台模型池' && (model.status === 'active' || model.status === 'tested'); });
+    }
+    function loadAgentModelConfig(d) {
+      try {
+        var all = JSON.parse(localStorage.getItem(AGENT_MODEL_CONFIG_KEY) || '{}');
+        var saved = all[d.id];
+        if (saved) { d.model = saved.defaultModel || d.model; d.fallbackModel = saved.fallbackModel || d.fallbackModel; }
+      } catch (e) {}
+      var pool = availablePlatformModels();
+      if (!pool.some(function (model) { return model.name === d.model; }) && pool.length) d.model = pool[0].name;
+      if (!d.fallbackModel || d.fallbackModel === d.model || !pool.some(function (model) { return model.name === d.fallbackModel; })) {
+        var fallback = pool.find(function (model) { return model.name !== d.model; });
+        d.fallbackModel = fallback ? fallback.name : '';
+      }
+    }
+    function agentModelOptions(selected) {
+      return availablePlatformModels().map(function (model) { return '<option value="' + escapeSkillHtml(model.name) + '"' + (model.name === selected ? ' selected' : '') + '>' + escapeSkillHtml(model.name) + '</option>'; }).join('');
+    }
+    function saveAgentModelConfig(d) {
+      var defaultSelect = document.getElementById('agentDefaultModelSelect');
+      var fallbackSelect = document.getElementById('agentFallbackModelSelect');
+      if (!defaultSelect || !fallbackSelect) return true;
+      if (defaultSelect.value === fallbackSelect.value) { showToast('默认模型与备用模型不能相同', 'warn'); return false; }
+      d.model = defaultSelect.value;
+      d.fallbackModel = fallbackSelect.value;
+      try {
+        var all = JSON.parse(localStorage.getItem(AGENT_MODEL_CONFIG_KEY) || '{}');
+        all[d.id] = { defaultModel: d.model, fallbackModel: d.fallbackModel, updatedAt: new Date().toISOString() };
+        localStorage.setItem(AGENT_MODEL_CONFIG_KEY, JSON.stringify(all));
+      } catch (e) {}
+      return true;
+    }
+    function resolveAgentModel(d, tenant, simulateDefaultFailure) {
+      var byok = MODELS.find(function (model) { return model.scope === 'BYOK 池' && model.status === 'active' && tenant.indexOf(model.owner || '不存在') >= 0; });
+      if (byok) return { name: byok.name, source: '租户 BYOK' };
+      if (simulateDefaultFailure) return { name: d.fallbackModel, source: '平台备用模型（模拟默认模型不可用）' };
+      return { name: d.model, source: '平台默认模型' };
+    }
+
+    function openAgentDrawer(id) {
+      var d = AGENT_DATA[id];
+      if (!d) return;
+      loadAgentModelConfig(d);
+      _currentAgentId = id;
+      var isDispatchAgent = id === 'A7';
+      var isItsmIntakeAgent = id === 'A8';
+      var testSample = isDispatchAgent ? 'FSM-2026-139' : (isItsmIntakeAgent ? 'INC-2026-0910-088 · DNS 查询 SERVFAIL 突增，18 家门店 POS 交易间歇失败，CI=DNS-Core-01' : 'INC-20260812-005 · 数据库磁盘使用率 92%，业务影响：订单系统查询变慢');
+      var testHint = isDispatchAgent ? '测试校验 License、Skill、FSM 核心 CLI、关联上下文 CLI 与 Top 3 输出；仅生成推荐，不写入候选人或执行派单。' : (isItsmIntakeAgent ? '测试校验事件理解、字段白名单、固定规则评估和 ITSM 分配 CLI；默认 dry-run，不写入字段。' : '自动化 eval：命中率/误判率回归 · 近 7 次回归全通过');
+      document.getElementById('agentDrawerTitle').textContent = d.name + (AI_PLATFORM_CAN_MANAGE ? ' · 编辑' : ' · 详情');
+      var saveBtn = document.getElementById('agentSaveBtn');
+      if (saveBtn) saveBtn.textContent = isDispatchAgent ? '保存配置' : '保存（记录审计）';
+      if (isDispatchAgent) {
+        renderDispatchAgentDrawer(d);
+        document.getElementById('agentDrawerOverlay').classList.add('open');
+        return;
+      }
+      document.getElementById('agentDrawerBody').innerHTML = [
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">基础信息</div>',
+        '  <div class="ad-field"><div class="ad-field-label">Agent ID</div><input class="ad-input" value="' + d.id + '" disabled></div>',
+        '  <div class="ad-field"><div class="ad-field-label">用途</div><div class="detail-box" style="font-family:inherit;white-space:normal">' + d.scope + '</div></div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">能力</span><span class="v">' + d.scenes + '</span></div>',
+        '    <div class="detail-item"><span class="k">归属</span><span class="v">' + d.own + '</span></div>',
+        '    <div class="detail-item"><span class="k">交付状态</span><span class="v">' + chainStateBadge(agentChainState(id)) + '</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">业务入口</div>',
+        '  <div class="detail-box" style="font-family:inherit;white-space:normal;line-height:1.9">',
+        '    <div><strong>页面：</strong>' + (d.embed ? d.embed.page : '—') + '</div>',
+        '    <div><strong>位置：</strong>' + (d.embed ? d.embed.spot : '—') + '</div>',
+        '    <div><strong>触发：</strong>' + (d.embed ? d.embed.trigger : '—') + ' · <span class="tier-badge tier-l2 sm" style="margin-left:4px">' + (d.embed ? d.embed.mode : '—') + '</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">能力清单</div>',
+        '  <table class="ac-data-table" style="font-size:12px">',
+        '    <thead><tr><th>能力</th></tr></thead>',
+        '    <tbody>' + (d.caps || []).map(function (c) { return '<tr><td>' + c[1] + '</td></tr>'; }).join('') + '</tbody>',
+        '  </table>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">运行概况</div>',
+        '  <div class="detail-grid">',
+        '    <div class="detail-item"><span class="k">当前档位</span><span class="v">' + d.tier + '</span></div>',
+        '    <div class="detail-item"><span class="k">状态</span><span class="v">' + (d.enabled ? '已启用' : '已停用') + '</span></div>',
+        '    <div class="detail-item"><span class="k">灰度</span><span class="v">' + d.gray + '</span></div>',
+        '    <div class="detail-item"><span class="k">效果</span><span class="v">' + d.metrics + '</span></div>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">模型绑定</div>',
+        '  <div class="detail-grid">',
+        '    <div class="ad-field"><div class="ad-field-label">平台默认模型</div><select class="ad-select" id="agentDefaultModelSelect">' + agentModelOptions(d.model) + '</select></div>',
+        '    <div class="ad-field"><div class="ad-field-label">平台备用模型</div><select class="ad-select" id="agentFallbackModelSelect">' + agentModelOptions(d.fallbackModel) + '</select></div>',
+        '  </div>',
+        '  <div class="ad-field-hint">备用模型仅在默认模型不可用时使用。</div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">启用与发布</div>',
+        '  <div style="display:flex;align-items:center;gap:var(--sp-12)">',
+        '    <span style="font-size:12px;color:var(--c-text-2)">租户 License 已授权 · 启用状态</span>',
+        '    <span class="ad-switch ' + (d.enabled ? 'on' : '') + '" onclick="this.classList.toggle(\'on\')"></span>',
+        '    <span style="font-size:12px;color:var(--c-text-3);margin-left:var(--sp-8)">灰度</span>',
+        '    <select class="ad-select" id="agentGraySelect" style="width:120px"><option>' + d.gray + '</option><option>10% 租户</option><option>50% 用户</option></select>',
+        '    <span style="font-size:12px;color:var(--c-text-3);margin-left:var(--sp-8)">变更留痕：审计</span>',
+        '  </div>',
+        '</div>',
+        '<div class="detail-section">',
+        '  <div class="detail-section-title">测试</div>',
+        '  <div class="ad-field"><div class="ad-field-label">' + (isDispatchAgent ? '待派工样例工单' : '测试样本') + '</div><textarea class="ad-textarea" id="agentTestInput">' + testSample + '</textarea></div>',
+        '  <label class="ad-command-item" style="margin-bottom:var(--sp-8)"><input type="checkbox" id="simulateDefaultModelFailure"><span>模拟平台默认模型不可用</span></label>',
+        '  <div class="ad-test-out" id="agentTestOut"></div>',
+        '  <div class="ad-field-hint">' + testHint + '</div>',
+        '</div>'
+      ].join('');
+      if (!AI_PLATFORM_CAN_MANAGE) {
+        var body = document.getElementById('agentDrawerBody');
+        body.querySelectorAll('select, input[type="checkbox"]').forEach(function (el) { el.disabled = true; });
+        body.querySelectorAll('textarea').forEach(function (el) {
+          if (el.id !== 'agentTestInput') el.disabled = true;
+        });
+        body.querySelectorAll('.ad-switch').forEach(function (el) {
+          el.removeAttribute('onclick');
+          el.setAttribute('aria-disabled', 'true');
+        });
+      }
+      document.getElementById('agentDrawerOverlay').classList.add('open');
+    }
+
+    function closeAgentDrawer() {
+      document.getElementById('agentDrawerOverlay').classList.remove('open');
+      var out = document.getElementById('agentTestOut');
+      if (out) { out.style.display = 'none'; }
+    }
+
+    var _currentAgentId = null;
+    function runAgentTest() {
+      var out = document.getElementById('agentTestOut');
+      if (!out) return;
+      out.style.display = 'block';
+      if (_currentAgentId === 'A7') {
+        var sample = document.getElementById('agentTestInput');
+        var orderId = sample && sample.value.trim() ? sample.value.trim() : 'FSM-2026-139';
+        var tenant = activeAiTenant();
+        if (tenant === '全部租户（MSP视角）') {
+          out.innerHTML = '<strong style="color:var(--c-warning)">请选择具体租户</strong><br>运行测试必须基于一个明确的租户和工单，MSP 汇总视角仅用于查看租户能力概况。';
+          return;
+        }
+        var readiness = fsmCliReadiness(tenant);
+        if (!readiness.ready) {
+          out.innerHTML = '<strong style="color:var(--c-danger)">测试未通过 · ' + tenant + '</strong><br>CLI 能力检查失败：' + readiness.detail + '<br>请先补齐 FSM 模块与必需字段映射。';
+          return;
+        }
+        var simulateFailure = !!(document.getElementById('simulateDefaultModelFailure') || {}).checked;
+        var resolvedModel = resolveAgentModel(AGENT_DATA.A7, tenant, simulateFailure);
+        out.innerHTML = '<strong style="color:var(--c-success)">测试通过 · ' + orderId + '</strong>' +
+          '<div style="margin-top:8px"><strong>租户</strong>　' + tenant + ' · FSM 核心 CLI 完整 · 跨产品关联 CLI 可用</div>' +
+          '<div style="margin-top:6px"><strong>实际模型</strong>　' + resolvedModel.name + ' · ' + resolvedModel.source + '</div>' +
+          '<div style="margin-top:8px"><strong>前置校验</strong>　License 有效 · 当前租户有权访问 · 状态为待派单 · 未指定工程师</div>' +
+          '<div style="margin-top:6px"><strong>业务场景</strong>　告警事件转现场处置</div>' +
+          '<div style="margin-top:6px"><strong>来源链</strong>　FSM-2026-139 → INC-2026-0910-088 → ALT-2026-8841 · AST-UPS-2048 / CI-UPS-07</div>' +
+          '<div style="margin-top:6px"><strong>调用过程</strong>　FSM 工单/工程师/负载/历史/满意度成功 · ITSM 事件、ITOM 告警、ITAM 资产、CMDB CI 按关联读取成功</div>' +
+          '<div style="margin-top:6px"><strong>补充约束</strong>　P1 事件 · UPS 电池告警 · Vertiv GXT5 在保 · 关键 CI；要求 UPS L2 认证及同型号经验</div>' +
+          '<div style="margin-top:6px"><strong>已排除</strong>　2 人：1 人离线 · 1 人不覆盖 TKO 服务范围</div>' +
+          '<div style="margin-top:6px"><strong>Top 3</strong>　P.Y. Lau 96%（同站同类 12 单 · 满意度 4.8）· S.Y. Lee 88% · T.K. Yip 79%</div>' +
+          '<div style="margin-top:6px"><strong>策略解析</strong>　租户提示词选择 dispatch-recommend.md · FSM 事件：响应 SLA 阈值已触发 · 当前重派 1 / 2 次 · Skill 决策：允许生成下一轮候选</div>' +
+          '<div style="margin-top:6px;color:var(--c-text-3)">Dry-run · 未执行派单 · Agent v1.1 · Skill v1.0 · Trace tr-fsm-20260922-1036 · 1.3s</div>';
+        return;
+      }
+      if (_currentAgentId === 'A8') {
+        var incidentSample = document.getElementById('agentTestInput');
+        var incidentText = incidentSample && incidentSample.value.trim() ? incidentSample.value.trim() : 'INC-2026-0910-088';
+        var tenantName = activeAiTenant();
+        if (tenantName === '全部租户（MSP视角）') {
+          out.innerHTML = '<strong style="color:var(--c-warning)">请选择具体租户</strong><br>运行测试必须基于一个明确租户的事件、字典、SLA 策略和分单规则。';
+          return;
+        }
+        var simulateItsmFailure = !!(document.getElementById('simulateDefaultModelFailure') || {}).checked;
+        var itsmModel = resolveAgentModel(AGENT_DATA.A8, tenantName, simulateItsmFailure);
+        out.innerHTML = '<strong style="color:var(--c-success)">测试通过 · ITSM 事件理解与分配</strong>' +
+          '<div style="margin-top:8px"><strong>样本</strong>　' + escapeSkillHtml(incidentText) + '</div>' +
+          '<div style="margin-top:6px"><strong>实际模型</strong>　' + itsmModel.name + ' · ' + itsmModel.source + '</div>' +
+          '<div style="margin-top:8px"><strong>自动分类</strong>　分类=网络 → DNS 解析 · SLA=Gold · 优先级=P2 · 重要性=高 · 标签=告警转工单/VIP客户/DNS</div>' +
+          '<div style="margin-top:6px"><strong>规则评估</strong>　assignment-rule evaluate 返回 no_match · 固定规则优先策略已生效</div>' +
+          '<div style="margin-top:6px"><strong>推荐分配</strong>　网络二线组 / 李明 · 匹配度 92% · 证据：相似事件、排班、负载、SLA</div>' +
+          '<div style="margin-top:6px;color:var(--c-text-3)">Dry-run · 未写入分类字段或处理人 · Skill itsm-incident-intake-routing.md · Trace tr-itsm-20260924-0088 · 0.9s</div>';
+        return;
+      }
+      var activeAgent = AGENT_DATA[_currentAgentId];
+      var simulateFailure = !!(document.getElementById('simulateDefaultModelFailure') || {}).checked;
+      var effectiveModel = resolveAgentModel(activeAgent, activeAiTenant(), simulateFailure);
+      out.innerHTML = '<strong style="color:var(--c-success)">测试通过</strong><br>实际模型：' + effectiveModel.name + ' · ' + effectiveModel.source + '<br>{"category":"性能-存储资源","priority":"P2","summary":"DB 磁盘 92% · 影响订单查询","ai-status":"ok"} · 输出校验通过 · 单次 2 credits · 1.1s';
+    }
+
+    function saveAgent() {
+      if (!guardAiPlatformManage()) return;
+      var id = _currentAgentId;
+      var d = id ? AGENT_DATA[id] : null;
+      if (!d) { closeAgentDrawer(); return; }
+      // 读取抽屉内可编辑字段并写回
+      var body = document.getElementById('agentDrawerBody');
+      var promptTa = document.getElementById('agentPromptTemplate');
+      if (promptTa && id !== 'A7') d.prompt = promptTa.value;
+      var businessPrompt = document.getElementById('agentBusinessPrompt');
+      if (businessPrompt && id === 'A7') d.businessPrompt = businessPrompt.value;
+      if (!saveAgentModelConfig(d)) return;
+      var switchEl = document.getElementById('agentEnabledSwitch') || body.querySelector('.ad-switch');
+      if (switchEl && id !== 'A7') d.enabled = switchEl.classList.contains('on');
+      var graySel = id === 'A7' ? null : document.getElementById('agentGraySelect');
+      if (graySel) d.gray = graySel.value;
+      if (id === 'A7') {
+        var tenant = activeAiTenant();
+        var tierSel = document.getElementById('agentTierSelect');
+        var requestedTier = tierSel ? tierSel.value : (d.tierCode || 'L2');
+        var suppressionMode=document.getElementById('dispatchSuppressionMode');
+        if(suppressionMode&&suppressionMode.value==='override'){
+          d.suppressionOverride={windowDays:Number(document.getElementById('dispatchSuppressWindow').value),rejectCount:Number(document.getElementById('dispatchSuppressCount').value),pauseHours:Number(document.getElementById('dispatchSuppressHours').value)};
+          if(d.suppressionOverride.windowDays<1||d.suppressionOverride.rejectCount<1||d.suppressionOverride.pauseHours<1){showToast('请检查租户场景抑制策略','warn');return;}
+        }else d.suppressionOverride=null;
+        saveDispatchAgentConfig();
+        if (tenant === '全部租户（MSP视角）') {
+          closeAgentDrawer();
+          window.showToast && showToast('全局配置已保存；租户运行策略需选择具体租户', 'success');
+          return;
+        }
+        saveDispatchTenantPolicy(tenant);
+        if (requestedTier !== (d.tierCode || 'L2')) {
+          var readiness = fsmCliReadiness(tenant);
+          if (requestedTier === 'L1' && !readiness.ready) {
+            window.showToast && showToast('无法申请 L1：' + readiness.detail, 'warn');
+            return;
+          }
+          var request = {
+            id: 'GOV-FSM-TIER-' + tenant.replace(/[^a-z0-9]/gi, '').toUpperCase(),
+            agentId: d.id,
+            currentTier: d.tierCode || 'L2',
+            requestedTier: requestedTier,
+            tenant: tenant,
+            applicant: '当前 AI 平台管理员',
+            applicantUserId: localStorage.getItem('ems-user-id') || 'demo-ai-admin',
+            applicantRole: localStorage.getItem('ems-role-demo') || 'u3',
+            requestedAt: new Date().toISOString(),
+            status: 'pending'
+          };
+          try { localStorage.setItem(dispatchTierRequestKey(tenant), JSON.stringify(request)); } catch (e) {}
+          closeAgentDrawer();
+          window.showToast && showToast('档位变更已提交 AI 治理 · 审批通过前继续按 ' + request.currentTier + ' 运行', 'warn');
+          return;
+        }
+      }
+      closeAgentDrawer();
+      window.showToast && showToast('「' + d.name + '」配置已保存 · 变更记录审计', 'success');
+    }
+
+    window.addEventListener('ems:tenant-change', function (event) {
+      _loadTierData();
+      renderTierTable();
+      loadDispatchTenantPolicy((event.detail && event.detail.tenant) || activeAiTenant());
+      renderAgentLibrary();
+      renderCliCommands();
+      if (_currentAgentId === 'A7' && document.getElementById('agentDrawerOverlay').classList.contains('open')) {
+        renderDispatchAgentDrawer(AGENT_DATA.A7);
+      }
+    });
+
+    function toggleActionDropdown(ev, id) {
+      ev.stopPropagation();
+      document.querySelectorAll('.action-dropdown.open').forEach(function (d) { if (d.id !== 'drop-' + id) d.classList.remove('open'); });
+      var el = document.getElementById('drop-' + id);
+      if (el) el.classList.toggle('open');
+    }
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+    });
+
+    function closeAcModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    /* MSP 范围入口控制 */
+    (function initMspOnly() {
+      var role = localStorage.getItem('ems-role-demo') || 'u1';
+      var isMsp = role === 'pm' || role === 'bm';
+      document.querySelectorAll('[data-msp-only]').forEach(function (el) {
+        if (isMsp) { el.style.display = ''; } else { el.style.display = 'none'; }
+      });
+    })();
+  </script>
+  <script src="../assets/ems-v6-components.js"></script>
+</body>
+
+</html>

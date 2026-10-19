@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L3 业务审批动作 - EMS NEO</title>
+  <link rel="stylesheet" href="../assets/ems-v6-common.css">
+  <link rel="stylesheet" href="ai-hub.css?v=20260917">
+  <style>
+    .approval-page { max-width: 1440px; margin: 0 auto; }
+    .approval-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-16); }
+    .approval-title-main { min-width:0; }
+    .approval-title-main h1 { display:flex; align-items:center; gap:var(--sp-8); margin:0; }
+    .approval-id { margin-top:var(--sp-4); color:var(--c-text-3); font-size:12px; }
+    .approval-actions { display:flex; gap:var(--sp-8); flex-wrap:wrap; justify-content:flex-end; }
+    .status-pill { display:inline-flex; align-items:center; gap:6px; min-height:24px; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
+    .status-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+    .notice-band { display:flex; align-items:flex-start; gap:var(--sp-12); padding:var(--sp-12) var(--sp-16); margin-bottom:var(--sp-16); border:1px solid #fed7aa; border-left:4px solid #ea580c; background:#fffaf5; color:var(--c-text-2); }
+    .notice-band svg { width:18px; height:18px; flex:0 0 auto; stroke:#c2410c; fill:none; stroke-width:2; margin-top:1px; }
+    .notice-band strong { color:var(--c-text-1); }
+    .approval-grid { display:grid; grid-template-columns:minmax(0, 1.55fr) minmax(320px, .75fr); gap:var(--sp-16); align-items:start; }
+    .approval-section { border:1px solid var(--c-border); background:var(--c-surface, #fff); margin-bottom:var(--sp-16); }
+    .section-head { display:flex; justify-content:space-between; gap:var(--sp-12); align-items:center; min-height:44px; padding:0 var(--sp-16); border-bottom:1px solid var(--c-border); background:var(--c-fill-1); }
+    .section-head h2 { margin:0; font-size:14px; font-weight:600; }
+    .section-head small { color:var(--c-text-3); }
+    .section-body { padding:var(--sp-16); }
+    .info-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--sp-12) var(--sp-16); }
+    .info-item { min-width:0; }
+    .info-item .label { color:var(--c-text-3); font-size:11px; margin-bottom:4px; }
+    .info-item .value { color:var(--c-text-1); font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+    .summary { font-size:13px; line-height:1.75; color:var(--c-text-2); }
+    .summary strong { color:var(--c-text-1); }
+    .evidence-list { display:grid; gap:var(--sp-8); margin-top:var(--sp-12); }
+    .evidence-row { display:grid; grid-template-columns:112px minmax(0, 1fr) auto; gap:var(--sp-12); align-items:start; padding:var(--sp-8) var(--sp-12); background:var(--c-fill-1); border-left:3px solid #2563eb; }
+    .evidence-source { font-size:12px; font-weight:600; color:var(--c-text-1); }
+    .evidence-text { font-size:12px; color:var(--c-text-2); line-height:1.6; }
+    .verified { color:#15803d; font-size:11px; white-space:nowrap; }
+    .action-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .action-table th, .action-table td { padding:9px 10px; text-align:left; border-bottom:1px solid var(--c-border); vertical-align:top; }
+    .action-table th { width:120px; color:var(--c-text-3); font-weight:500; background:var(--c-fill-1); }
+    .action-table td { color:var(--c-text-1); }
+    .impact-box { margin-top:var(--sp-12); padding:var(--sp-12); border-left:3px solid #dc2626; background:#fef2f2; color:#991b1b; font-size:12px; line-height:1.65; }
+    .rollback-box { margin-top:var(--sp-8); padding:var(--sp-12); border-left:3px solid #0284c7; background:#f0f9ff; color:#075985; font-size:12px; line-height:1.65; }
+    .timeline { position:relative; padding-left:28px; }
+    .timeline:before { content:""; position:absolute; left:9px; top:10px; bottom:14px; width:1px; background:var(--c-border); }
+    .timeline-node { position:relative; padding:0 0 var(--sp-16); }
+    .timeline-node:last-child { padding-bottom:0; }
+    .node-mark { position:absolute; left:-28px; top:1px; width:19px; height:19px; border-radius:50%; display:grid; place-items:center; background:#fff; border:2px solid var(--c-border); color:var(--c-text-3); font-size:10px; font-weight:700; }
+    .timeline-node.done .node-mark { border-color:#16a34a; background:#16a34a; color:#fff; }
+    .timeline-node.current .node-mark { border-color:#2563eb; background:#eff6ff; color:#2563eb; }
+    .node-title { font-size:13px; font-weight:600; color:var(--c-text-1); }
+    .node-meta { margin-top:3px; font-size:11px; line-height:1.55; color:var(--c-text-3); }
+    .node-comment { margin-top:6px; padding:7px 9px; background:var(--c-fill-1); font-size:12px; color:var(--c-text-2); }
+    .approval-form label { display:block; font-size:12px; color:var(--c-text-2); margin-bottom:6px; }
+    .approval-form textarea { width:100%; min-height:92px; resize:vertical; border:1px solid var(--c-border); padding:10px 12px; font:inherit; color:var(--c-text-1); background:#fff; }
+    .approval-form textarea:focus { outline:2px solid rgba(37,99,235,.16); border-color:#2563eb; }
+    .char-count { margin-top:4px; text-align:right; font-size:11px; color:var(--c-text-3); }
+    .form-error { min-height:18px; margin-top:4px; color:#dc2626; font-size:11px; }
+    .decision-actions { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-8); }
+    .btn.danger-outline { color:#dc2626; border-color:#fecaca; background:#fff; }
+    .btn.danger-outline:hover { background:#fef2f2; }
+    .mail-state { display:grid; gap:8px; font-size:12px; color:var(--c-text-2); }
+    .mail-row { display:flex; justify-content:space-between; gap:12px; }
+    .mail-row span:last-child { text-align:right; color:var(--c-text-1); }
+    .security-note { margin-top:var(--sp-12); padding-top:var(--sp-12); border-top:1px solid var(--c-border); font-size:11px; line-height:1.6; color:var(--c-text-3); }
+    .result-panel { display:none; padding:var(--sp-24); text-align:center; border:1px solid var(--c-border); background:#fff; }
+    .result-panel.open { display:block; }
+    .result-icon { width:44px; height:44px; margin:0 auto var(--sp-12); border-radius:50%; display:grid; place-items:center; background:#ecfdf5; color:#15803d; }
+    .result-icon.reject { background:#fef2f2; color:#dc2626; }
+    .access-band { display:none; align-items:flex-start; gap:var(--sp-8); padding:var(--sp-12) var(--sp-16); margin-bottom:var(--sp-12); border:1px solid var(--c-border); border-radius:var(--r-md); background:var(--c-fill-1); color:var(--c-text-2); font-size:12px; line-height:1.6; }
+    .access-band.open { display:flex; }
+    .access-band strong { color:var(--c-text-1); }
+    .access-denied { display:none; padding:56px 24px; text-align:center; border:1px solid var(--c-border); border-radius:var(--r-lg); background:var(--c-white); }
+    .access-denied.open { display:block; }
+    .result-icon svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:2.5; }
+    .result-panel h2 { margin:0 0 6px; font-size:17px; }
+    .result-panel p { margin:0; color:var(--c-text-3); font-size:12px; }
+    .dialog-backdrop { display:none; position:fixed; inset:0; z-index:2000; background:rgba(15,23,42,.4); align-items:center; justify-content:center; padding:16px; }
+    .dialog-backdrop.open { display:flex; }
+    .dialog { width:min(440px, 100%); background:#fff; border:1px solid var(--c-border); box-shadow:0 18px 50px rgba(15,23,42,.18); }
+    .dialog-head { padding:14px 16px; border-bottom:1px solid var(--c-border); font-size:15px; font-weight:600; }
+    .dialog-body { padding:16px; font-size:13px; line-height:1.7; color:var(--c-text-2); }
+    .dialog-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 16px; border-top:1px solid var(--c-border); }
+    @media (max-width: 980px) {
+      .approval-grid { grid-template-columns:1fr; }
+      .approval-title-row { flex-direction:column; }
+      .approval-actions { justify-content:flex-start; }
+    }
+    @media (max-width: 640px) {
+      .info-grid { grid-template-columns:1fr 1fr; }
+      .evidence-row { grid-template-columns:1fr; }
+      .approval-actions, .approval-actions .btn { width:100%; }
+      .decision-actions { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header" id="emsHeader"></header>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main">
+    <div class="main-inner approval-page">
+      <div class="page-title-bar">
+        <div class="approval-title-row">
+          <div class="approval-title-main">
+            <h1 class="page-title">L3 业务审批动作 <span class="status-pill" id="statusPill"><span class="status-dot"></span>待二级审批</span></h1>
+            <div class="approval-id">审批单 APV-L3-20260917-0042 · 根因分析 + 证据链 · MSP 华南区</div>
+          </div>
+          <div class="approval-actions">
+            <a class="btn sm" href="ai-governance.html?sub=t1">返回待审批</a>
+            <button class="btn sm" id="remindBtn" onclick="remindApproval()">催办当前节点</button>
+            <button class="btn sm danger-outline" id="withdrawBtn" onclick="openDialog('withdraw')">撤回申请</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="access-band" id="accessBand"></div>
+        <div class="access-denied" id="accessDenied"><h2>无权查看此审批单</h2><p>当前登录角色不在申请人、当前审批人或授权审计范围内。</p></div>
+        <div class="notice-band" id="noticeBand">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 17h.01"></path></svg>
+          <div><strong>L3 业务审批不直接产生业务效果。</strong>当前 ITOM 流程配置为两级审批；全部通过后，系统重新校验权限、设备状态、EMS CLI 能力和熔断状态，再执行下方审批快照。</div>
+        </div>
+
+        <div class="result-panel" id="resultPanel">
+          <div class="result-icon" id="resultIcon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <h2 id="resultTitle">审批已通过</h2>
+          <p id="resultText">已进入执行前复核，执行结果将通过邮件通知申请人。</p>
+        </div>
+
+        <div class="approval-grid" id="approvalGrid">
+          <main>
+            <section class="approval-section">
+              <div class="section-head"><h2>申请信息</h2><small>提交后内容已冻结</small></div>
+              <div class="section-body info-grid">
+                <div class="info-item"><div class="label">申请人</div><div class="value">张伟 · IT 技术人员</div></div>
+                <div class="info-item"><div class="label">申请时间</div><div class="value">2026-09-17 14:50:22</div></div>
+                <div class="info-item"><div class="label">有效期</div><div class="value">剩余 18 分钟</div></div>
+                <div class="info-item"><div class="label">业务对象</div><div class="value"><a href="../itom/alert-detail.html?alert=cpu-95">ALM-20260917-0187</a></div></div>
+                <div class="info-item"><div class="label">目标对象</div><div class="value">FW-GZ-CORE-01 · 10.24.8.11</div></div>
+                <div class="info-item"><div class="label">当前告警</div><div class="value">CPU 使用率 96% · 持续 42 分钟</div></div>
+                <div class="info-item" style="grid-column:1/-1"><div class="label">申请理由</div><div class="value">业务低峰期已确认，拟按 RCA 建议重启异常采集进程，恢复前已准备配置备份和回退步骤。</div></div>
+              </div>
+            </section>
+
+            <section class="approval-section">
+              <div class="section-head"><h2>AI 建议与证据</h2><small>根因分析 Agent v1.0 · ChatGPT 5.5</small></div>
+              <div class="section-body">
+                <div class="summary"><strong>建议结论：</strong>异常采集进程持续占用 CPU，建议先重启该进程并观察 10 分钟；若指标未恢复，再进入人工扩展排查。该结论为审批依据，不代表动作已经执行。</div>
+                <div class="evidence-list">
+                  <div class="evidence-row"><div class="evidence-source">性能指标</div><div class="evidence-text">14:05 至 14:47 CPU 持续高于 92%，采集进程占用峰值 81%。</div><div class="verified">已验证</div></div>
+                  <div class="evidence-row"><div class="evidence-source">系统日志</div><div class="evidence-text">14:03:18 采集队列出现重复消费，随后进程线程数由 24 增长至 97。</div><div class="verified">已验证</div></div>
+                  <div class="evidence-row"><div class="evidence-source">配置变更</div><div class="evidence-text">近 24 小时无设备配置变更，可排除近期配置发布关联。</div><div class="verified">已验证</div></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="approval-section">
+              <div class="section-head"><h2>拟执行动作快照</h2><small>审批中不可编辑</small></div>
+              <div class="section-body">
+                <table class="action-table">
+                  <tbody>
+                    <tr><th>动作</th><td>重启异常采集进程并验证恢复</td></tr>
+                    <tr><th>执行目标</th><td>FW-GZ-CORE-01 / telemetry-collector</td></tr>
+                    <tr><th>执行工具</th><td>ITOM MCP · 受控进程操作</td></tr>
+                    <tr><th>执行参数</th><td>观察窗口 10 分钟；CPU 恢复阈值低于 70%；失败时停止后续步骤</td></tr>
+                    <tr><th>执行步骤</th><td>状态复核 → 配置快照 → 重启进程 → 健康检查 → 指标验证</td></tr>
+                  </tbody>
+                </table>
+                <div class="impact-box"><strong>预计影响：</strong>遥测数据可能中断 30 至 60 秒，不影响设备转发；监控曲线在中断期间可能出现短暂空点。</div>
+                <div class="rollback-box"><strong>回退说明：</strong>进程健康检查失败时恢复执行前配置快照并转人工处置，不进行设备重启。</div>
+              </div>
+            </section>
+          </main>
+
+          <aside>
+            <section class="approval-section">
+              <div class="section-head"><h2>审批进度</h2><small>两级顺序审批</small></div>
+              <div class="section-body timeline" id="timeline">
+                <div class="timeline-node done"><span class="node-mark">1</span><div class="node-title">提交申请</div><div class="node-meta">张伟 · 14:50:22</div><div class="node-comment">业务低峰期已确认，具备回退条件。</div></div>
+                <div class="timeline-node done"><span class="node-mark">2</span><div class="node-title">一级审批通过</div><div class="node-meta">李主管 · 14:55:18</div><div class="node-comment">同意，已确认当前无进行中的变更窗口。</div></div>
+                <div class="timeline-node current" id="currentNode"><span class="node-mark">3</span><div class="node-title">二级审批中</div><div class="node-meta">王经理 · 等待处理</div></div>
+                <div class="timeline-node"><span class="node-mark">4</span><div class="node-title">执行前复核与执行</div><div class="node-meta">全部审批通过后由系统执行</div></div>
+              </div>
+            </section>
+
+            <section class="approval-section" id="decisionSection">
+              <div class="section-head"><h2>审批操作</h2><small>当前审批人：王经理</small></div>
+              <div class="section-body approval-form">
+                <label for="approvalComment">审批意见</label>
+                <textarea id="approvalComment" maxlength="500" placeholder="通过时可选；驳回时必须填写原因" oninput="updateCount()"></textarea>
+                <div class="char-count"><span id="charCount">0</span>/500</div>
+                <div class="form-error" id="formError"></div>
+                <div class="decision-actions">
+                  <button class="btn danger-outline" onclick="rejectApproval()">驳回</button>
+                  <button class="btn primary" onclick="openDialog('approve')">通过</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="approval-section">
+              <div class="section-head"><h2>邮件通知</h2><small>仅作通知入口</small></div>
+              <div class="section-body">
+                <div class="mail-state">
+                  <div class="mail-row"><span>当前收件人</span><span>wang***@example.com</span></div>
+                  <div class="mail-row"><span>发送状态</span><span style="color:#15803d">已发送</span></div>
+                  <div class="mail-row"><span>发送时间</span><span>14:55:20</span></div>
+                  <div class="mail-row"><span>审批超时</span><span>15:20:22</span></div>
+                </div>
+                <div class="security-note">邮件只包含“前往审批”链接。通过或驳回必须登录 EMS，并由系统校验租户、当前审批节点和用户权限。</div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="dialogBackdrop" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog">
+      <div class="dialog-head" id="dialogTitle">确认通过</div>
+      <div class="dialog-body" id="dialogBody">通过后将进入执行前复核。系统只执行当前审批快照中的动作，是否继续？</div>
+      <div class="dialog-foot">
+        <button class="btn sm" onclick="closeDialog()">取消</button>
+        <button class="btn sm primary" id="dialogConfirm" onclick="confirmDialog()">确认通过</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.EMS_PAGE = {
+      activeMenu: 'ai/ai-platform.html',
+      basePath: '../',
+      breadcrumb: 'ITOM / 业务审批',
+      aiQuickActions: [
+        { title: '审批依据', desc: '总结建议与证据', prompt: '总结当前 L3 审批申请的建议、证据和预计影响' },
+        { title: '执行风险', desc: '检查动作边界', prompt: '当前审批动作有哪些执行风险和回退条件？' }
+      ]
+    };
+
+    var dialogMode = '';
+    var currentAccess = '';
+
+    function applyRoleAccess() {
+      var role = (typeof localStorage !== 'undefined' && localStorage.getItem('ems-role-demo')) || 'u1';
+      var band = document.getElementById('accessBand');
+      var denied = document.getElementById('accessDenied');
+      var grid = document.getElementById('approvalGrid');
+      var notice = document.getElementById('noticeBand');
+      var decision = document.getElementById('decisionSection');
+      var withdraw = document.getElementById('withdrawBtn');
+      var remind = document.getElementById('remindBtn');
+
+      currentAccess = (role === 'u3' || role === 'um') ? 'approver' : (role === 'u1' ? 'requester' : 'denied');
+      if (currentAccess === 'denied') {
+        denied.classList.add('open');
+        grid.style.display = 'none';
+        notice.style.display = 'none';
+        withdraw.style.display = 'none';
+        remind.style.display = 'none';
+        return;
+      }
+
+      band.classList.add('open');
+      if (currentAccess === 'approver') {
+        band.innerHTML = '<div><strong>当前身份：审批人。</strong>你处于本申请的当前审批节点，可查看冻结快照并执行通过或驳回。提交时系统仍会再次校验租户、角色和节点归属。</div>';
+        withdraw.style.display = 'none';
+        remind.style.display = 'none';
+      } else {
+        band.innerHTML = '<div><strong>当前身份：申请人。</strong>你可以查看审批进度、催办或撤回申请，但不能代替审批人通过或驳回。</div>';
+        decision.style.display = 'none';
+      }
+    }
+
+    function updateCount() {
+      var value = document.getElementById('approvalComment').value;
+      document.getElementById('charCount').textContent = value.length;
+      document.getElementById('formError').textContent = '';
+    }
+
+    function openDialog(mode) {
+      if ((mode === 'approve' && currentAccess !== 'approver') || (mode === 'withdraw' && currentAccess !== 'requester')) return;
+      dialogMode = mode;
+      var title = document.getElementById('dialogTitle');
+      var body = document.getElementById('dialogBody');
+      var confirm = document.getElementById('dialogConfirm');
+      if (mode === 'withdraw') {
+        title.textContent = '确认撤回申请';
+        body.textContent = '撤回后当前审批流程立即结束，若动作内容仍需执行，必须重新发起审批。';
+        confirm.textContent = '确认撤回';
+        confirm.className = 'btn sm danger-outline';
+      } else {
+        title.textContent = '确认通过审批';
+        body.textContent = '通过后将进入执行前复核。系统只执行当前审批快照中的动作，是否继续？';
+        confirm.textContent = '确认通过';
+        confirm.className = 'btn sm primary';
+      }
+      document.getElementById('dialogBackdrop').classList.add('open');
+    }
+
+    function closeDialog() {
+      document.getElementById('dialogBackdrop').classList.remove('open');
+    }
+
+    function confirmDialog() {
+      closeDialog();
+      if (dialogMode === 'withdraw') {
+        completeDecision('withdrawn');
+      } else {
+        completeDecision('approved');
+      }
+    }
+
+    function rejectApproval() {
+      if (currentAccess !== 'approver') return;
+      var comment = document.getElementById('approvalComment').value.trim();
+      if (!comment) {
+        document.getElementById('formError').textContent = '驳回时必须填写审批意见';
+        document.getElementById('approvalComment').focus();
+        return;
+      }
+      completeDecision('rejected');
+    }
+
+    function completeDecision(result) {
+      var pill = document.getElementById('statusPill');
+      var panel = document.getElementById('resultPanel');
+      var icon = document.getElementById('resultIcon');
+      var title = document.getElementById('resultTitle');
+      var text = document.getElementById('resultText');
+      document.getElementById('approvalGrid').style.display = 'none';
+      document.getElementById('noticeBand').style.display = 'none';
+      document.getElementById('remindBtn').style.display = 'none';
+      document.getElementById('withdrawBtn').style.display = 'none';
+      panel.classList.add('open');
+      if (result === 'approved') {
+        pill.innerHTML = '<span class="status-dot"></span>已通过待执行';
+        pill.style.background = '#ecfdf5'; pill.style.color = '#15803d'; pill.style.borderColor = '#bbf7d0';
+        title.textContent = '审批已通过';
+        text.textContent = '已进入执行前复核，执行结果将通过邮件通知申请人。';
+      } else {
+        icon.classList.add('reject');
+        icon.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        pill.innerHTML = '<span class="status-dot"></span>' + (result === 'rejected' ? '已驳回' : '已撤回');
+        pill.style.background = '#fef2f2'; pill.style.color = '#dc2626'; pill.style.borderColor = '#fecaca';
+        title.textContent = result === 'rejected' ? '审批已驳回' : '申请已撤回';
+        text.textContent = '本次动作不会执行，处理结果已通知申请人并写入审计。';
+      }
+    }
+
+    function remindApproval() {
+      var button = document.getElementById('remindBtn');
+      button.disabled = true;
+      button.textContent = '已催办';
+      if (window.showToast) showToast('催办邮件已发送给当前审批人', 'success');
+    }
+
+    document.getElementById('dialogBackdrop').addEventListener('click', function (event) {
+      if (event.target === this) closeDialog();
+    });
+    applyRoleAccess();
+  </script>
+  <script src="../assets/ems-v6-components.js"></script>
+</body>
+
+</html>

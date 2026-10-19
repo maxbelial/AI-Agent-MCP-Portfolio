@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMS Agent Demo — 原型导航</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+      background: #F5F7FA;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+      padding: 48px 32px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6B7280;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E5E7EB;
+    }
+
+    .section-header .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .section-header .dot.new {
+      background: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+    }
+
+    .section-header .dot.base {
+      background: #9CA3AF;
+    }
+
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      background: #fff;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all .15s;
+    }
+
+    .card:hover {
+      border-color: #2563EB;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .1);
+      transform: translateY(-1px);
+    }
+
+    .card.highlight {
+      background: #F0F7FF;
+      border-color: #BFDBFE;
+      border-left: 4px solid #2563EB;
+    }
+
+    .card.highlight:hover {
+      border-color: #2563EB;
+      border-left-color: #1D4ED8;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, .15);
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .card-icon.alert {
+      background: rgba(239, 68, 68, .12);
+    }
+
+    .card-icon.ai {
+      background: rgba(37, 99, 235, .10);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: #6B7280;
+      margin-top: 2px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 10px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .badge.new {
+      background: #2563EB;
+      color: #fff;
+    }
+
+    .footer {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #9CA3AF;
+      text-align: center;
+    }
+
+    .footer a {
+      color: #2563EB;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>EMS Agent Demo 原型</h1>
+    <p class="subtitle">基于 EMS V2 视觉规范，展示 AI Agent 能力在 EMS 平台的集成效果。</p>
+
+    <div class="section">
+      <div class="section-header"><span class="dot new"></span> 本次交付</div>
+      <div class="cards">
+        <a class="card highlight" href="itom/alert-center-v2.html">
+          <div class="card-icon alert">🔔</div>
+          <div>
+            <div class="card-title">ITOM 告警中心</div>
+            <div class="card-desc">告警列表 + AI 根因分析 Agent 实时诊断</div>
+          </div>
+          <span class="badge new">NEW</span>
+        </a>
+        <a class="card highlight" href="ai/ai-management-v2.html">
+          <div class="card-icon ai">🤖</div>
+          <div>
+            <div class="card-title">AI 管理（Agent Hub）</div>
+            <div class="card-desc">模型配置 · Token 用量 · Agent 管理 · MCP 工具</div>
+          </div>
+          <span class="badge new">NEW</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><span class="dot base"></span> 基线参考</div>
+      <div class="cards">
+        <a class="card" href="baseline/workspace-v2.html">
+          <div class="card-icon" style="background:rgba(37,99,235,.08);">🏠</div>
+          <div>
+            <div class="card-title">EMS V2 工作台</div>
+            <div class="card-desc">完整 V2 视觉规范原型（含组织·权限·系统设置全套页面）</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">
+      EMS V2 视觉基座 · Agent API: <code>http://10.10.10.61:28000</code> · <a
+        href="https://github.com/it188-networkx/ops-playbook/issues/1047">#1047</a>
+    </div>
+  </div>
+</body>
+
+</html>
